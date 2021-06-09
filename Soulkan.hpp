@@ -4028,6 +4028,7 @@ namespace SOULKAN_NAMESPACE
 			return result;
 		}
 
+		/*Returns the free memory of the memory pool*/
 		inline SkResult<uint64_t, AllocationError> getFreeMemory()
 		{
 			SkResult result(static_cast<uint64_t>(0), static_cast<AllocationError>(AllocationError::NO_ERROR));

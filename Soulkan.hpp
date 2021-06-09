@@ -3894,7 +3894,8 @@ namespace SOULKAN_NAMESPACE
 			blockSize = MemoryBlockSize::ZERO;
 		}
 
-		inline SkResult<MemoryBlock*, AllocationError> getInstance()
+		/*Returns a pointer to the memory block*/
+		inline SkResult<MemoryBlock*, AllocationError> get()
 		{
 			SkResult result(static_cast<MemoryBlock*>(nullptr), static_cast<AllocationError>(AllocationError::NO_ERROR));
 
@@ -3902,6 +3903,7 @@ namespace SOULKAN_NAMESPACE
 			return result;
 		}
 
+		/*Returns the id of the memory block*/
 		inline SkResult<uint32_t, AllocationError> getId()
 		{
 			SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<AllocationError>(AllocationError::NO_ERROR));
@@ -3910,6 +3912,7 @@ namespace SOULKAN_NAMESPACE
 			return result;
 		}
 
+		/*Returns the origin of the memory block*/
 		inline SkResult<uint64_t, AllocationError> getOrigin()
 		{
 			SkResult result(static_cast<uint64_t>(std::numeric_limits<uint64_t>::max()), static_cast<AllocationError>(AllocationError::NO_ERROR));
@@ -3919,6 +3922,7 @@ namespace SOULKAN_NAMESPACE
 			return result;
 		}
 
+		/*Returns the size of to the memory block*/
 		inline SkResult<MemoryBlockSize, AllocationError> getSize()
 		{
 			SkResult result(static_cast<MemoryBlockSize>(MemoryBlockSize::ZERO), static_cast<AllocationError>(AllocationError::NO_ERROR));

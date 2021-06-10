@@ -23,7 +23,12 @@ Here, **API** stands for **Abridged Programming Interface** !
 
 ## `SkResult` and its related functions
 
-- SkResult works as a very lightweight template wrapper around function returns to force error catching.
+- SkResult is a very simple struct that works as a very lightweight template wrapper around function returns to force error catching.
+- error() returns a true if the given SkResult contains an error, otherwise returns false
+- returnError() returns a formatted string containing the given SkResult's informations
+- logError() returns true and outputs to standard out if the given SkResult contains an error, otherwise returns false and outputs nothing
+- retLog() the must use function ! Returns the value of the given SkResult and calls logError() with the given SkResult 
+- More infos in `Soulkan.hpp`
 
 ## Examples
 ![SkResult example](img/instance_creation_example.png)

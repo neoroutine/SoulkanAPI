@@ -148,8 +148,7 @@ namespace SOULKAN_NAMESPACE
 		static auto createTriangleMeshResult = sk::createTriangleMesh();
 		static sk::Mesh triangleMesh = sk::retLog(createTriangleMeshResult);
 
-		static auto getTriangleMeshVerticesResult = triangleMesh.getVertices();
-		std::vector<sk::Vertex> triangleMeshVertices = sk::retLog(getTriangleMeshVerticesResult);
+		std::vector<sk::Vertex> triangleMeshVertices = triangleMesh.vertices;
 
 		/*VERTEX INPUT DESCRIPTIONS*/
 		static auto vertexInputBindingDescriptionResult = triangleMeshVertices[0].getInputBindingDescription();

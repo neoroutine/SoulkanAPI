@@ -782,6 +782,37 @@ namespace SOULKAN_NAMESPACE
 			y = 0.0f;
 		}
 
+		/*Operators*/
+		inline friend bool operator==(const Vec2 lhs, const Vec2 rhs)
+		{
+			return ((lhs.x == rhs.x) && (lhs.y == rhs.y));
+		}
+
+		inline friend bool operator!=(const Vec2 lhs, const Vec2 rhs)
+		{
+			return !(lhs == rhs);
+		}
+
+		inline friend Vec2 operator+(const Vec2 lhs, const Vec2 rhs)
+		{
+			return Vec2(lhs.x + rhs.x, lhs.y + rhs.y);
+		}
+
+		inline friend Vec2 operator+=(const Vec2 lhs, const Vec2 rhs)
+		{
+			return lhs + rhs;
+		}
+
+		inline friend Vec2 operator-(const Vec2 lhs, const Vec2 rhs)
+		{
+			return Vec2(lhs.x - rhs.x, lhs.y - rhs.y);
+		}
+
+		inline friend Vec2 operator-=(const Vec2 lhs, const Vec2 rhs)
+		{
+			return lhs - rhs;
+		}
+
 		float x;
 		float y;
 	};
@@ -802,6 +833,36 @@ namespace SOULKAN_NAMESPACE
 		Vec3()
 			: x(0.0f), y(0.0f), z(0.0f)
 		{
+		}
+
+		inline friend bool operator==(const Vec3 lhs, const Vec3 rhs)
+		{
+			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z));
+		}
+
+		inline friend bool operator!=(const Vec3 lhs, const Vec3 rhs)
+		{
+			return !(lhs == rhs);
+		}
+
+		inline friend Vec3 operator+(const Vec3 lhs, const Vec3 rhs)
+		{
+			return Vec3(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
+		}
+
+		inline friend Vec3 operator+=(const Vec3 lhs, const Vec3 rhs)
+		{
+			return lhs + rhs;
+		}
+
+		inline friend Vec3 operator-(const Vec3 lhs, const Vec3 rhs)
+		{
+			return Vec3(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
+		}
+
+		inline friend Vec3 operator-=(const Vec3 lhs, const Vec3 rhs)
+		{
+			return lhs - rhs;
 		}
 
 		float x;
@@ -831,6 +892,36 @@ namespace SOULKAN_NAMESPACE
 			: x(0.0f), y(0.0f), z(0.0f), w(0.0f)
 		{}
 
+		inline friend bool operator==(const Vec4 lhs, const Vec4 rhs)
+		{
+			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z) && (lhs.w == rhs.w));
+		}
+
+		inline friend bool operator!=(const Vec4 lhs, const Vec4 rhs)
+		{
+			return !(lhs == rhs);
+		}
+
+		inline friend Vec4 operator+(const Vec4 lhs, const Vec4 rhs)
+		{
+			return Vec4(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w);
+		}
+
+		inline friend Vec4 operator+=(const Vec4 lhs, const Vec4 rhs)
+		{
+			return lhs + rhs;
+		}
+
+		inline friend Vec4 operator-(const Vec4 lhs, const Vec4 rhs)
+		{
+			return Vec4(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w);
+		}
+
+		inline friend Vec4 operator-=(const Vec4 lhs, const Vec4 rhs)
+		{
+			return lhs - rhs;
+		}
+
 		float x;
 		float y;
 		float z;
@@ -839,9 +930,8 @@ namespace SOULKAN_NAMESPACE
 
 
 	/*Typical Vertex holding Vec3 position(x, y, z), normal(x, y, z) and color(r, g, b)*/
-	class Vertex
+	struct Vertex
 	{
-	public:
 		Vertex()
 			: position(std::move(Vec3(0.0f, 0.0f, 0.0f))),
 			normal(std::move(Vec3(0.0f, 0.0f, 0.0f))),
@@ -909,17 +999,14 @@ namespace SOULKAN_NAMESPACE
 			return SkResult(value, error);
 		}
 
-	private:
 		Vec3 position;
 		Vec3 normal;
 		Vec3 color;
-
 	};
 
 	/*Typical Mesh holding a list of Vertices*/
-	class Mesh
+	struct Mesh
 	{
-	public:
 		Mesh(std::vector<Vertex> vert)
 		{
 			vertices = vert;
@@ -930,17 +1017,18 @@ namespace SOULKAN_NAMESPACE
 			vertices = {};
 		}
 
-		inline SkResult<std::vector<Vertex>, UndefinedError> getVertices()
-		{
-			SkResult result(static_cast<std::vector<Vertex>>(std::vector<Vertex>()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+		//inline SkResult<std::vector<Vertex>, UndefinedError> getVertices()
+		//{
+		//	SkResult result(static_cast<std::vector<Vertex>>(std::vector<Vertex>()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+		//
+		//	result.value = vertices;
+		//	return result;
+		//}
 
-			result.value = vertices;
-			return result;
-		}
-
-	private:
 		std::vector<Vertex> vertices;
 	};
+
+	/*Frame and frametime stuf*/
 
 	/*@brief Calculates the FPS given a number of frames elapsed in delta time
 	*
@@ -4475,7 +4563,7 @@ namespace SOULKAN_NAMESPACE
 	{
 		SkResult result(static_cast<vk::Buffer>(vk::Buffer(nullptr)), static_cast<BufferError>(BufferError::NO_ERROR));
 
-		std::vector<Vertex> meshVertices = retLog(mesh.getVertices());
+		std::vector<Vertex> meshVertices = mesh.vertices;
 
 		vk::BufferCreateInfo bufferCreateInfo = {};
 		bufferCreateInfo.size = meshVertices.size() * sizeof(Vertex);

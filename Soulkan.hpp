@@ -1055,7 +1055,7 @@ namespace SOULKAN_NAMESPACE
 					}
 					else if (j == (matrixColumns - 1))
 					{
-						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t     ");
+						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t       ");
 					}
 					else
 					{

@@ -768,9 +768,8 @@ namespace SOULKAN_NAMESPACE
 	/*Structs first*/
 
 	/*Typical Vec2 holding x and y values*/
-	class Vec2
+	struct Vec2
 	{
-	public:
 		Vec2(float posX, float posY)
 		{
 			x = posX;
@@ -788,9 +787,8 @@ namespace SOULKAN_NAMESPACE
 	};
 
 	/*Typical Vec3 holding x, y and z values, constructor accepts Vec2 if needed*/
-	class Vec3
+	struct Vec3
 	{
-	public:
 		Vec3(float posX, float posY, float posZ)
 			: x(posX), y(posY), z(posZ)
 		{
@@ -809,6 +807,34 @@ namespace SOULKAN_NAMESPACE
 		float x;
 		float y;
 		float z;
+	};
+
+	struct Vec4
+	{
+		Vec4(float posX, float posY, float posZ, float posW)
+			: x(posX), y(posY), z(posZ), w(posW)
+		{}
+
+		Vec4(Vec2 xy, float posZ, float posW)
+			: x(xy.x), y(xy.y), z(posZ), w(posW)
+		{}
+
+		Vec4(Vec2 xy, Vec2 zw)
+			: x(xy.x), y(xy.y), z(zw.x), w(zw.y)
+		{}
+
+		Vec4(Vec3 xyz, float posW)
+			: x(xyz.x), y(xyz.y), z(xyz.z), w(posW)
+		{}
+
+		Vec4()
+			: x(0.0f), y(0.0f), z(0.0f), w(0.0f)
+		{}
+
+		float x;
+		float y;
+		float z;
+		float w;
 	};
 
 

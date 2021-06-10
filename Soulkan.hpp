@@ -1028,6 +1028,100 @@ namespace SOULKAN_NAMESPACE
 		std::vector<Vertex> vertices;
 	};
 
+	struct Mat
+	{
+		//Default is float
+		Mat(std::vector<std::vector<float>> values)
+		{
+			matrixRows = retLog(getNumberOfRows(values));
+			matrixColumns = retLog(getNumberOfColumns(values));
+
+			matrix = retLog(fillMatrix(values));
+		}
+
+		inline SkResult<std::string, UndefinedError> getAsString()
+		{
+			SkResult result(static_cast<std::string>(std::string()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+
+			std::string matrixAsString = std::string("");
+			matrixAsString.append("Matrix " + std::to_string(matrixRows) + "x" + std::to_string(matrixColumns) + " = [ ");
+			for (uint32_t i = 0; i < matrixRows; i++)
+			{
+				for (uint32_t j = 0; j < matrixColumns; j++)
+				{
+					if (i == (matrixRows - 1) && j == (matrixColumns - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]));
+					}
+					else if (j == (matrixColumns - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t     ");
+					}
+					else
+					{
+						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
+					}
+				}
+				matrixAsString.append("  ");
+			}
+			matrixAsString.append("]");
+
+			result.value = matrixAsString;
+			return result;
+		}
+
+		inline SkResult<uint32_t, UndefinedError> getNumberOfRows(std::vector<std::vector<float>> mat)
+		{
+			SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+
+			uint32_t numberOfRows = static_cast<uint32_t>(mat.size());
+
+			result.value = numberOfRows;
+			return result;
+		}
+
+		inline SkResult<uint32_t, UndefinedError> getNumberOfColumns(std::vector<std::vector<float>> mat)
+		{
+			SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+
+			uint32_t highestNumberOfColumns = 0;
+			for (uint32_t i = 0; i < mat.size(); i++)
+			{
+				if (mat[i].size() > highestNumberOfColumns)
+				{
+					highestNumberOfColumns = static_cast<uint32_t>(mat[i].size());
+				}
+			}
+
+			result.value = highestNumberOfColumns;
+			return result;
+		}
+
+		inline SkResult<std::vector<std::vector<float>>, UndefinedError> fillMatrix(std::vector<std::vector<float>> mat)
+		{
+			SkResult result(static_cast<std::vector<std::vector<float>>>(std::vector<std::vector<float>>()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+
+			uint32_t numberOfRows = retLog(getNumberOfRows(mat));
+			uint32_t numberOfColumns = retLog(getNumberOfColumns(mat));
+
+			std::vector<std::vector<float>> filledMatrix(numberOfRows, std::vector<float>(numberOfColumns, 0.0f));
+			for (uint32_t i = 0; i < mat.size(); i++)
+			{
+				for (uint32_t j = 0; j < mat[i].size(); j++)
+				{
+					filledMatrix[i][j] = mat[i][j];
+				}
+			}
+
+			result.value = filledMatrix;
+			return result;
+		}
+
+		uint32_t matrixRows;
+		uint32_t matrixColumns;
+		std::vector<std::vector<float>> matrix;
+	};
+
 	/*Frame and frametime stuf*/
 
 	/*@brief Calculates the FPS given a number of frames elapsed in delta time

@@ -194,8 +194,8 @@ namespace SOULKAN_NAMESPACE
 
 		std::vector<sk::Vertex> verticesToBeDrawn = std::move(triangleMeshVertices);
 
-		sk::Mat idMat({ { 1, 0, 0 }, { 0, 0, 0 }, { 0, 0, 1 } });
-		std::cout << "Ok" << sk::retLog(idMat.getAsString()) << std::endl;
+		sk::Mat4 equalityMatrix(1.0f);
+		std::cout << sk::retLog(equalityMatrix.asString()) << std::endl;
 
 		auto initEnd = std::chrono::steady_clock::now();
 		auto frameStart = std::chrono::steady_clock::now();

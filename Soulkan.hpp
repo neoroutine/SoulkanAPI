@@ -870,6 +870,7 @@ namespace SOULKAN_NAMESPACE
 		float z;
 	};
 
+	/*Typical Vec4 holding x, y and z values, constructor accepts Vec2, Vec3, ... if needed*/
 	struct Vec4
 	{
 		Vec4(float posX, float posY, float posZ, float posW)
@@ -1033,27 +1034,27 @@ namespace SOULKAN_NAMESPACE
 		//Default is float
 		Mat(std::vector<std::vector<float>> values)
 		{
-			matrixRows = retLog(getNumberOfRows(values));
-			matrixColumns = retLog(getNumberOfColumns(values));
-
 			matrix = retLog(fillMatrix(values));
 		}
 
-		inline SkResult<std::string, UndefinedError> getAsString()
+		inline SkResult<std::string, UndefinedError> asString()
 		{
 			SkResult result(static_cast<std::string>(std::string()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
 
+			uint32_t numberOfRows          = retLog(rowSize(matrix));
+			uint32_t numberOfColumns       = retLog(columnSize(matrix));
+
 			std::string matrixAsString = std::string("");
-			matrixAsString.append("Matrix " + std::to_string(matrixRows) + "x" + std::to_string(matrixColumns) + " = [ ");
-			for (uint32_t i = 0; i < matrixRows; i++)
+			matrixAsString.append("Matrix " + std::to_string(numberOfRows) + "x" + std::to_string(numberOfColumns) + " = [ ");
+			for (uint32_t i = 0; i < numberOfRows; i++)
 			{
-				for (uint32_t j = 0; j < matrixColumns; j++)
+				for (uint32_t j = 0; j < numberOfColumns; j++)
 				{
-					if (i == (matrixRows - 1) && j == (matrixColumns - 1))
+					if (i == (numberOfRows - 1) && j == (numberOfColumns - 1))
 					{
 						matrixAsString.append(" " + std::to_string(matrix[i][j]));
 					}
-					else if (j == (matrixColumns - 1))
+					else if (j == (numberOfColumns - 1))
 					{
 						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t       ");
 					}
@@ -1070,7 +1071,7 @@ namespace SOULKAN_NAMESPACE
 			return result;
 		}
 
-		inline SkResult<uint32_t, UndefinedError> getNumberOfRows(std::vector<std::vector<float>> mat)
+		inline SkResult<uint32_t, UndefinedError> rowSize(std::vector<std::vector<float>> mat)
 		{
 			SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
 
@@ -1080,7 +1081,7 @@ namespace SOULKAN_NAMESPACE
 			return result;
 		}
 
-		inline SkResult<uint32_t, UndefinedError> getNumberOfColumns(std::vector<std::vector<float>> mat)
+		inline SkResult<uint32_t, UndefinedError> columnSize(std::vector<std::vector<float>> mat)
 		{
 			SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
 
@@ -1101,8 +1102,8 @@ namespace SOULKAN_NAMESPACE
 		{
 			SkResult result(static_cast<std::vector<std::vector<float>>>(std::vector<std::vector<float>>()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
 
-			uint32_t numberOfRows = retLog(getNumberOfRows(mat));
-			uint32_t numberOfColumns = retLog(getNumberOfColumns(mat));
+			uint32_t numberOfRows = retLog(rowSize(mat));
+			uint32_t numberOfColumns = retLog(columnSize(mat));
 
 			std::vector<std::vector<float>> filledMatrix(numberOfRows, std::vector<float>(numberOfColumns, 0.0f));
 			for (uint32_t i = 0; i < mat.size(); i++)
@@ -1117,9 +1118,145 @@ namespace SOULKAN_NAMESPACE
 			return result;
 		}
 
-		uint32_t matrixRows;
-		uint32_t matrixColumns;
 		std::vector<std::vector<float>> matrix;
+	};
+
+	struct Mat4
+	{
+		Mat4(std::array<std::array<float, 4>, 4> matrixValues)
+			: matrix(matrixValues)
+		{}
+
+		Mat4(std::array<std::array<float, 4>, 4>&& matrixValues)
+			: matrix(std::move(matrixValues))
+		{}
+
+		Mat4(Mat4& mat4)
+			: matrix(mat4.matrix)
+		{}
+
+		Mat4(Mat4&& mat4)
+			: matrix(std::move(mat4.matrix))
+		{}
+
+		Mat4(float value)
+			: matrix({ { {value, value, value, value}, 
+				         {value, value, value , value},
+				         {value, value, value , value},
+				         {value, value, value , value} } })
+		{}
+
+		Mat4()
+			: matrix({ {{0.0f, 0.0f, 0.0f, 0.0f}, 
+				        {0.0f, 0.0f, 0.0f, 0.0f}, 
+				        {0.0f, 0.0f, 0.0f, 0.0f}, 
+				        {0.0f, 0.0f, 0.0f, 0.0f}} })
+		{}
+
+		friend bool operator==(const Mat4& lhs, const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (lhs.matrix[i][j] != rhs.matrix[i][j])
+					{
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		friend bool operator!=(const Mat4& lhs, const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (lhs.matrix[i][j] != rhs.matrix[i][j])
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		Mat4& operator+=(const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] += rhs.matrix[i][j];
+				}
+			}
+
+			return *this;
+		}
+
+		friend Mat4 operator+(Mat4 lhs, const Mat4 rhs)
+		{
+			lhs += rhs;
+
+			return lhs; 
+		}
+
+		Mat4& operator-=(const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] -= rhs.matrix[i][j];
+				}
+			}
+
+			return *this;
+		}
+
+		friend Mat4 operator-(Mat4 lhs, const Mat4 rhs)
+		{
+			lhs -= rhs;
+
+			return lhs;
+		}
+
+		SkResult<std::string, UndefinedError> asString()
+		{
+			SkResult result(static_cast<std::string>(std::string()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+
+			std::string matrixAsString = std::string("");
+			matrixAsString.append("Matrix 4x4 = [ ");
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (i == (4 - 1) && j == (4 - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]));
+					}
+					else if (j == (4 - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t     ");
+					}
+					else
+					{
+						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
+					}
+				}
+				matrixAsString.append("  ");
+			}
+			matrixAsString.append("]");
+
+			result.value = matrixAsString;
+			return result;
+		}
+
+		std::array<std::array<float, 4>, 4> matrix;
 	};
 
 	/*Frame and frametime stuf*/

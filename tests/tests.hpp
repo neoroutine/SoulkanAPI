@@ -194,8 +194,14 @@ namespace SOULKAN_NAMESPACE
 
 		std::vector<sk::Vertex> verticesToBeDrawn = std::move(triangleMeshVertices);
 
-		sk::Mat4 equalityMatrix(1.0f);
-		std::cout << sk::retLog(equalityMatrix.asString()) << std::endl;
+		sk::Mat4 equality(1.0f);
+		std::cout << equality.asString() << std::endl;
+
+		sk::Mat4 squaredEquality = equality * equality;
+		std::cout << squaredEquality.asString() << std::endl;
+
+		sk::Mat4 squaredEqualityTimes2 = squaredEquality * 2.0f;
+		std::cout << squaredEqualityTimes2.asString() << std::endl;
 
 		auto initEnd = std::chrono::steady_clock::now();
 		auto frameStart = std::chrono::steady_clock::now();

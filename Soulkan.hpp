@@ -783,34 +783,42 @@ namespace SOULKAN_NAMESPACE
 		}
 
 		/*Operators*/
-		inline friend bool operator==(const Vec2 lhs, const Vec2 rhs)
+		friend bool operator==(const Vec2 lhs, const Vec2 rhs)
 		{
 			return ((lhs.x == rhs.x) && (lhs.y == rhs.y));
 		}
 
-		inline friend bool operator!=(const Vec2 lhs, const Vec2 rhs)
+		friend bool operator!=(const Vec2 lhs, const Vec2 rhs)
 		{
 			return !(lhs == rhs);
 		}
 
-		inline friend Vec2 operator+(const Vec2 lhs, const Vec2 rhs)
+		Vec2& operator+=(const Vec2& rhs)
 		{
-			return Vec2(lhs.x + rhs.x, lhs.y + rhs.y);
+			x += rhs.x;
+			y += rhs.y;
+
+			return *this;
 		}
 
-		inline friend Vec2 operator+=(const Vec2 lhs, const Vec2 rhs)
+		Vec2& operator-=(const Vec2& rhs)
 		{
-			return lhs + rhs;
+			x -= rhs.x;
+			y -= rhs.y;
+
+			return *this;
 		}
 
-		inline friend Vec2 operator-(const Vec2 lhs, const Vec2 rhs)
+		friend Vec2 operator+(Vec2& lhs, const Vec2& rhs)
 		{
-			return Vec2(lhs.x - rhs.x, lhs.y - rhs.y);
+			lhs += rhs;
+			return lhs;
 		}
 
-		inline friend Vec2 operator-=(const Vec2 lhs, const Vec2 rhs)
+		friend Vec2 operator-(Vec2& lhs, const Vec2& rhs)
 		{
-			return lhs - rhs;
+			lhs -= rhs;
+			return lhs;
 		}
 
 		float x;
@@ -835,39 +843,267 @@ namespace SOULKAN_NAMESPACE
 		{
 		}
 
-		inline friend bool operator==(const Vec3 lhs, const Vec3 rhs)
+		friend bool operator==(const Vec3 lhs, const Vec3 rhs)
 		{
 			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z));
 		}
 
-		inline friend bool operator!=(const Vec3 lhs, const Vec3 rhs)
+		friend bool operator!=(const Vec3 lhs, const Vec3 rhs)
 		{
 			return !(lhs == rhs);
 		}
 
-		inline friend Vec3 operator+(const Vec3 lhs, const Vec3 rhs)
+		Vec3& operator+=(const Vec3& rhs)
 		{
-			return Vec3(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
+			x += rhs.x;
+			y += rhs.y;
+			z += rhs.z;
+
+			return *this;
 		}
 
-		inline friend Vec3 operator+=(const Vec3 lhs, const Vec3 rhs)
+		Vec3& operator-=(const Vec3& rhs)
 		{
-			return lhs + rhs;
+			x -= rhs.x;
+			y -= rhs.y;
+			z -= rhs.z;
+
+			return *this;
 		}
 
-		inline friend Vec3 operator-(const Vec3 lhs, const Vec3 rhs)
+		friend Vec3 operator+(Vec3& lhs, const Vec3& rhs)
 		{
-			return Vec3(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
+			lhs += rhs;
+			return lhs;
 		}
 
-		inline friend Vec3 operator-=(const Vec3 lhs, const Vec3 rhs)
+		friend Vec3 operator-(Vec3& lhs, const Vec3& rhs)
 		{
-			return lhs - rhs;
+			lhs -= rhs;
+			return lhs;
 		}
 
 		float x;
 		float y;
 		float z;
+	};
+
+	/*4 by 4 matrix*/
+	struct Mat4
+	{
+		Mat4(std::array<std::array<float, 4>, 4> matrixValues)
+			: matrix(matrixValues)
+		{}
+
+		Mat4(std::array<std::array<float, 4>, 4>&& matrixValues)
+			: matrix(std::move(matrixValues))
+		{}
+
+		Mat4(Mat4& mat4)
+			: matrix(mat4.matrix)
+		{}
+
+		Mat4(Mat4&& mat4)
+			: matrix(std::move(mat4.matrix))
+		{}
+
+		Mat4(const float value)
+			: matrix({ { {value, 0.0f, 0.0f, 0.0f},
+						 {0.0f, value, 0.0f , 0.0f},
+						 {0.0f, 0.0f, value , 0.0f},
+						 {0.0f, 0.0f, 0.0f , value} } })
+		{}
+
+		Mat4()
+			: matrix({ {{0.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 0.0f}} })
+		{}
+
+		friend bool operator==(const Mat4& lhs, const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (lhs.matrix[i][j] != rhs.matrix[i][j])
+					{
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		friend bool operator!=(const Mat4& lhs, const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (lhs.matrix[i][j] != rhs.matrix[i][j])
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		Mat4& operator+=(const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] += rhs.matrix[i][j];
+				}
+			}
+
+			return *this;
+		}
+
+		Mat4& operator-=(const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] -= rhs.matrix[i][j];
+				}
+			}
+
+			return *this;
+		}
+
+		Mat4& operator*=(const Mat4& rhs)
+		{
+			std::array<std::array<float, 4>, 4> matrixValues;
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrixValues[i][j] = matrix[i][0] * rhs.matrix[0][i] +
+						matrix[i][1] * rhs.matrix[1][i] +
+						matrix[i][2] * rhs.matrix[2][i] +
+						matrix[i][3] * rhs.matrix[3][i];
+
+				}
+			}
+
+			matrix = matrixValues;
+			return *this;
+		}
+
+		Mat4& operator*=(const float rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] *= rhs;
+				}
+			}
+
+			return *this;
+		}
+
+		friend Mat4 operator+(Mat4& lhs, const Mat4& rhs)
+		{
+			lhs += rhs;
+
+			return lhs;
+		}
+
+		friend Mat4 operator-(Mat4& lhs, const Mat4& rhs)
+		{
+			lhs -= rhs;
+
+			return lhs;
+		}
+
+		friend Mat4 operator*(Mat4& lhs, const Mat4& rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		friend Mat4 operator*(Mat4 lhs, const float rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		/*Should be used like this Mat4 myTranslationMatrix = Mat4::translation(myXyzVector)*/
+		inline Mat4 translation(const Vec3& xyz) noexcept
+		{
+			Mat4 idMatrix(1.0f);
+
+			idMatrix.matrix[0][3] = xyz.x;
+			idMatrix.matrix[1][3] = xyz.y;
+			idMatrix.matrix[1][3] = xyz.z;
+
+			return idMatrix;
+		}
+
+		/*Should be used like this Mat4 myTranslationMatrix = Mat4::translation(x, y, z)*/
+		inline Mat4 translation(const float x, const float y, const float z) noexcept
+		{
+			Mat4 idMatrix(1.0f);
+
+			idMatrix.matrix[0][3] = x;
+			idMatrix.matrix[1][3] = y;
+			idMatrix.matrix[1][3] = z;
+
+			return idMatrix;
+		}
+
+		/*Should be used like this Mat4 myScaleMatrix = Mat4::scale(xScaling, yScaling, zScaling)*/
+		inline Mat4 scale(const float x, const float y, const float z)
+		{
+			Mat4 idMatrix(1.0f);
+
+			idMatrix.matrix[0][0] = x;
+			idMatrix.matrix[1][1] = y;
+			idMatrix.matrix[2][2] = z;
+
+			return idMatrix;
+		}
+
+		inline std::string asString()
+		{
+			std::string matrixAsString = std::string("");
+			matrixAsString.append("Matrix 4x4 = [ ");
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (i == (4 - 1) && j == (4 - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]));
+					}
+					else if (j == (4 - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t     ");
+					}
+					else
+					{
+						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
+					}
+				}
+				matrixAsString.append("  ");
+			}
+			matrixAsString.append("]");
+
+			return matrixAsString;
+		}
+
+		std::array<std::array<float, 4>, 4> matrix;
 	};
 
 	/*Typical Vec4 holding x, y and z values, constructor accepts Vec2, Vec3, ... if needed*/
@@ -893,34 +1129,112 @@ namespace SOULKAN_NAMESPACE
 			: x(0.0f), y(0.0f), z(0.0f), w(0.0f)
 		{}
 
-		inline friend bool operator==(const Vec4 lhs, const Vec4 rhs)
+		friend bool operator==(const Vec4& lhs, const Vec4& rhs)
 		{
 			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z) && (lhs.w == rhs.w));
 		}
 
-		inline friend bool operator!=(const Vec4 lhs, const Vec4 rhs)
+		friend bool operator!=(const Vec4& lhs, const Vec4& rhs)
 		{
 			return !(lhs == rhs);
 		}
 
-		inline friend Vec4 operator+(const Vec4 lhs, const Vec4 rhs)
+		Vec4& operator+=(const Vec4& rhs)
 		{
-			return Vec4(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w);
+			x += rhs.x;
+			y += rhs.y;
+			z += rhs.z;
+			w += rhs.w;
+
+			return *this;
 		}
 
-		inline friend Vec4 operator+=(const Vec4 lhs, const Vec4 rhs)
+		Vec4& operator-=(const Vec4& rhs)
 		{
-			return lhs + rhs;
+			x -= rhs.x;
+			y -= rhs.y;
+			z -= rhs.z;
+			w -= rhs.w;
+
+			return *this;
 		}
 
-		inline friend Vec4 operator-(const Vec4 lhs, const Vec4 rhs)
+		Vec4& operator*=(const float rhs)
 		{
-			return Vec4(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w);
+			x *= rhs;
+			y *= rhs;
+			z *= rhs;
+			w *= rhs;
+
+			return *this;
 		}
 
-		inline friend Vec4 operator-=(const Vec4 lhs, const Vec4 rhs)
+		Vec4& operator*=(const Mat4& rhs)
 		{
-			return lhs - rhs;
+			Vec4 product(x, y, z, w);
+
+			product.x = rhs.matrix[0][0] * x +
+				        rhs.matrix[0][1] * x +
+				        rhs.matrix[0][2] * x +
+				        rhs.matrix[0][3] * x;
+
+			product.y = rhs.matrix[1][0] * y +
+				        rhs.matrix[1][1] * y +
+				        rhs.matrix[1][2] * y +
+				        rhs.matrix[1][3] * y;
+
+			product.z = rhs.matrix[2][0] * z +
+				        rhs.matrix[2][1] * z +
+				        rhs.matrix[2][2] * z +
+				        rhs.matrix[2][3] * z;
+
+			product.w = rhs.matrix[3][0] * w +
+				        rhs.matrix[3][1] * w +
+				        rhs.matrix[3][2] * w +
+				        rhs.matrix[3][3] * w;
+
+			x = product.x;
+			y = product.y;
+			z = product.z;
+			w = product.w;
+
+			return *this;
+		}
+
+		friend Vec4 operator+(Vec4& lhs, const Vec4& rhs)
+		{
+			lhs += rhs;
+			return lhs;
+		}
+
+		friend Vec4 operator-(Vec4& lhs, const Vec4& rhs)
+		{
+			lhs -= rhs;
+			return lhs;
+		}
+
+		friend Vec4 operator*(Vec4& lhs, const float rhs)
+		{
+			lhs *= rhs;
+			
+			return lhs;
+		}
+
+		friend Vec4 operator*(Vec4& lhs, const Mat4& rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		inline bool isDirection() noexcept
+		{
+			return (w == 0);
+		}
+
+		inline bool isPosition() noexcept
+		{
+			return (w == 1);
 		}
 
 		float x;
@@ -1119,144 +1433,6 @@ namespace SOULKAN_NAMESPACE
 		}
 
 		std::vector<std::vector<float>> matrix;
-	};
-
-	struct Mat4
-	{
-		Mat4(std::array<std::array<float, 4>, 4> matrixValues)
-			: matrix(matrixValues)
-		{}
-
-		Mat4(std::array<std::array<float, 4>, 4>&& matrixValues)
-			: matrix(std::move(matrixValues))
-		{}
-
-		Mat4(Mat4& mat4)
-			: matrix(mat4.matrix)
-		{}
-
-		Mat4(Mat4&& mat4)
-			: matrix(std::move(mat4.matrix))
-		{}
-
-		Mat4(float value)
-			: matrix({ { {value, value, value, value}, 
-				         {value, value, value , value},
-				         {value, value, value , value},
-				         {value, value, value , value} } })
-		{}
-
-		Mat4()
-			: matrix({ {{0.0f, 0.0f, 0.0f, 0.0f}, 
-				        {0.0f, 0.0f, 0.0f, 0.0f}, 
-				        {0.0f, 0.0f, 0.0f, 0.0f}, 
-				        {0.0f, 0.0f, 0.0f, 0.0f}} })
-		{}
-
-		friend bool operator==(const Mat4& lhs, const Mat4& rhs)
-		{
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					if (lhs.matrix[i][j] != rhs.matrix[i][j])
-					{
-						return false;
-					}
-				}
-			}
-
-			return true;
-		}
-
-		friend bool operator!=(const Mat4& lhs, const Mat4& rhs)
-		{
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					if (lhs.matrix[i][j] != rhs.matrix[i][j])
-					{
-						return true;
-					}
-				}
-			}
-
-			return false;
-		}
-
-		Mat4& operator+=(const Mat4& rhs)
-		{
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					matrix[i][j] += rhs.matrix[i][j];
-				}
-			}
-
-			return *this;
-		}
-
-		friend Mat4 operator+(Mat4 lhs, const Mat4 rhs)
-		{
-			lhs += rhs;
-
-			return lhs; 
-		}
-
-		Mat4& operator-=(const Mat4& rhs)
-		{
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					matrix[i][j] -= rhs.matrix[i][j];
-				}
-			}
-
-			return *this;
-		}
-
-		friend Mat4 operator-(Mat4 lhs, const Mat4 rhs)
-		{
-			lhs -= rhs;
-
-			return lhs;
-		}
-
-		SkResult<std::string, UndefinedError> asString()
-		{
-			SkResult result(static_cast<std::string>(std::string()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
-
-			std::string matrixAsString = std::string("");
-			matrixAsString.append("Matrix 4x4 = [ ");
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					if (i == (4 - 1) && j == (4 - 1))
-					{
-						matrixAsString.append(" " + std::to_string(matrix[i][j]));
-					}
-					else if (j == (4 - 1))
-					{
-						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t     ");
-					}
-					else
-					{
-						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
-					}
-				}
-				matrixAsString.append("  ");
-			}
-			matrixAsString.append("]");
-
-			result.value = matrixAsString;
-			return result;
-		}
-
-		std::array<std::array<float, 4>, 4> matrix;
 	};
 
 	/*Frame and frametime stuf*/
@@ -2039,7 +2215,7 @@ namespace SOULKAN_NAMESPACE
 		//Picks the chosen present mode if it's available, otherwise go through preferred present modes one by one
 		if (isChoiceAvailable)
 		{
-			result.value = std::move(presentMode);
+			result.value = presentMode;
 		}
 		else
 		{

@@ -13,7 +13,7 @@ Here, **API** stands for **Abridged Programming Interface** !
 - Basic window management with GLFW
 - Error communication to the users with the `SkResult` struct template and its related function templates
 - A very simple memory allocator
-- Its own very simple maths types and (soon) calculations
+- Its own very simple maths types and calculations including Vectors (Vec2, Vec3 and Vec4) and Matrices (General Mat type and Mat4 for now)
 - Every relevant function is accurately commented, documentaton is indeed included in this single hpp file.
 
 # Goals

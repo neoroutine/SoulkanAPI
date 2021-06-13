@@ -768,9 +768,8 @@ namespace SOULKAN_NAMESPACE
 	/*Structs first*/
 
 	/*Typical Vec2 holding x and y values*/
-	class Vec2
+	struct Vec2
 	{
-	public:
 		Vec2(float posX, float posY)
 		{
 			x = posX;
@@ -783,14 +782,52 @@ namespace SOULKAN_NAMESPACE
 			y = 0.0f;
 		}
 
+		/*Operators*/
+		friend bool operator==(const Vec2 lhs, const Vec2 rhs)
+		{
+			return ((lhs.x == rhs.x) && (lhs.y == rhs.y));
+		}
+
+		friend bool operator!=(const Vec2 lhs, const Vec2 rhs)
+		{
+			return !(lhs == rhs);
+		}
+
+		Vec2& operator+=(const Vec2& rhs)
+		{
+			x += rhs.x;
+			y += rhs.y;
+
+			return *this;
+		}
+
+		Vec2& operator-=(const Vec2& rhs)
+		{
+			x -= rhs.x;
+			y -= rhs.y;
+
+			return *this;
+		}
+
+		friend Vec2 operator+(Vec2& lhs, const Vec2& rhs)
+		{
+			lhs += rhs;
+			return lhs;
+		}
+
+		friend Vec2 operator-(Vec2& lhs, const Vec2& rhs)
+		{
+			lhs -= rhs;
+			return lhs;
+		}
+
 		float x;
 		float y;
 	};
 
 	/*Typical Vec3 holding x, y and z values, constructor accepts Vec2 if needed*/
-	class Vec3
+	struct Vec3
 	{
-	public:
 		Vec3(float posX, float posY, float posZ)
 			: x(posX), y(posY), z(posZ)
 		{
@@ -806,16 +843,410 @@ namespace SOULKAN_NAMESPACE
 		{
 		}
 
+		friend bool operator==(const Vec3 lhs, const Vec3 rhs)
+		{
+			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z));
+		}
+
+		friend bool operator!=(const Vec3 lhs, const Vec3 rhs)
+		{
+			return !(lhs == rhs);
+		}
+
+		Vec3& operator+=(const Vec3& rhs)
+		{
+			x += rhs.x;
+			y += rhs.y;
+			z += rhs.z;
+
+			return *this;
+		}
+
+		Vec3& operator-=(const Vec3& rhs)
+		{
+			x -= rhs.x;
+			y -= rhs.y;
+			z -= rhs.z;
+
+			return *this;
+		}
+
+		friend Vec3 operator+(Vec3& lhs, const Vec3& rhs)
+		{
+			lhs += rhs;
+			return lhs;
+		}
+
+		friend Vec3 operator-(Vec3& lhs, const Vec3& rhs)
+		{
+			lhs -= rhs;
+			return lhs;
+		}
+
 		float x;
 		float y;
 		float z;
 	};
 
+	/*4 by 4 matrix*/
+	struct Mat4
+	{
+		Mat4(std::array<std::array<float, 4>, 4> matrixValues)
+			: matrix(matrixValues)
+		{}
+
+		Mat4(std::array<std::array<float, 4>, 4>&& matrixValues)
+			: matrix(std::move(matrixValues))
+		{}
+
+		Mat4(Mat4& mat4)
+			: matrix(mat4.matrix)
+		{}
+
+		Mat4(Mat4&& mat4)
+			: matrix(std::move(mat4.matrix))
+		{}
+
+		Mat4(const float value)
+			: matrix({ { {value, 0.0f, 0.0f, 0.0f},
+						 {0.0f, value, 0.0f , 0.0f},
+						 {0.0f, 0.0f, value , 0.0f},
+						 {0.0f, 0.0f, 0.0f , value} } })
+		{}
+
+		Mat4()
+			: matrix({ {{0.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 0.0f}} })
+		{}
+
+		friend bool operator==(const Mat4& lhs, const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (lhs.matrix[i][j] != rhs.matrix[i][j])
+					{
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		friend bool operator!=(const Mat4& lhs, const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (lhs.matrix[i][j] != rhs.matrix[i][j])
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		Mat4& operator+=(const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] += rhs.matrix[i][j];
+				}
+			}
+
+			return *this;
+		}
+
+		Mat4& operator-=(const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] -= rhs.matrix[i][j];
+				}
+			}
+
+			return *this;
+		}
+
+		Mat4& operator*=(const Mat4& rhs)
+		{
+			std::array<std::array<float, 4>, 4> matrixValues;
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrixValues[i][j] = matrix[i][0] * rhs.matrix[0][i] +
+						matrix[i][1] * rhs.matrix[1][i] +
+						matrix[i][2] * rhs.matrix[2][i] +
+						matrix[i][3] * rhs.matrix[3][i];
+
+				}
+			}
+
+			matrix = matrixValues;
+			return *this;
+		}
+
+		Mat4& operator*=(const float rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] *= rhs;
+				}
+			}
+
+			return *this;
+		}
+
+		friend Mat4 operator+(Mat4& lhs, const Mat4& rhs)
+		{
+			lhs += rhs;
+
+			return lhs;
+		}
+
+		friend Mat4 operator-(Mat4& lhs, const Mat4& rhs)
+		{
+			lhs -= rhs;
+
+			return lhs;
+		}
+
+		friend Mat4 operator*(Mat4& lhs, const Mat4& rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		friend Mat4 operator*(Mat4 lhs, const float rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		/*Should be used like this Mat4 myTranslationMatrix = Mat4::translation(myXyzVector)*/
+		inline Mat4 translation(const Vec3& xyz) noexcept
+		{
+			Mat4 idMatrix(1.0f);
+
+			idMatrix.matrix[0][3] = xyz.x;
+			idMatrix.matrix[1][3] = xyz.y;
+			idMatrix.matrix[1][3] = xyz.z;
+
+			return idMatrix;
+		}
+
+		/*Should be used like this Mat4 myTranslationMatrix = Mat4::translation(x, y, z)*/
+		inline Mat4 translation(const float x, const float y, const float z) noexcept
+		{
+			Mat4 idMatrix(1.0f);
+
+			idMatrix.matrix[0][3] = x;
+			idMatrix.matrix[1][3] = y;
+			idMatrix.matrix[1][3] = z;
+
+			return idMatrix;
+		}
+
+		/*Should be used like this Mat4 myScaleMatrix = Mat4::scale(xScaling, yScaling, zScaling)*/
+		inline Mat4 scale(const float x, const float y, const float z)
+		{
+			Mat4 idMatrix(1.0f);
+
+			idMatrix.matrix[0][0] = x;
+			idMatrix.matrix[1][1] = y;
+			idMatrix.matrix[2][2] = z;
+
+			return idMatrix;
+		}
+
+		inline std::string asString()
+		{
+			std::string matrixAsString = std::string("");
+			matrixAsString.append("Matrix 4x4 = [ ");
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (i == (4 - 1) && j == (4 - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]));
+					}
+					else if (j == (4 - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t     ");
+					}
+					else
+					{
+						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
+					}
+				}
+				matrixAsString.append("  ");
+			}
+			matrixAsString.append("]");
+
+			return matrixAsString;
+		}
+
+		std::array<std::array<float, 4>, 4> matrix;
+	};
+
+	/*Typical Vec4 holding x, y and z values, constructor accepts Vec2, Vec3, ... if needed*/
+	struct Vec4
+	{
+		Vec4(float posX, float posY, float posZ, float posW)
+			: x(posX), y(posY), z(posZ), w(posW)
+		{}
+
+		Vec4(Vec2 xy, float posZ, float posW)
+			: x(xy.x), y(xy.y), z(posZ), w(posW)
+		{}
+
+		Vec4(Vec2 xy, Vec2 zw)
+			: x(xy.x), y(xy.y), z(zw.x), w(zw.y)
+		{}
+
+		Vec4(Vec3 xyz, float posW)
+			: x(xyz.x), y(xyz.y), z(xyz.z), w(posW)
+		{}
+
+		Vec4()
+			: x(0.0f), y(0.0f), z(0.0f), w(0.0f)
+		{}
+
+		friend bool operator==(const Vec4& lhs, const Vec4& rhs)
+		{
+			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z) && (lhs.w == rhs.w));
+		}
+
+		friend bool operator!=(const Vec4& lhs, const Vec4& rhs)
+		{
+			return !(lhs == rhs);
+		}
+
+		Vec4& operator+=(const Vec4& rhs)
+		{
+			x += rhs.x;
+			y += rhs.y;
+			z += rhs.z;
+			w += rhs.w;
+
+			return *this;
+		}
+
+		Vec4& operator-=(const Vec4& rhs)
+		{
+			x -= rhs.x;
+			y -= rhs.y;
+			z -= rhs.z;
+			w -= rhs.w;
+
+			return *this;
+		}
+
+		Vec4& operator*=(const float rhs)
+		{
+			x *= rhs;
+			y *= rhs;
+			z *= rhs;
+			w *= rhs;
+
+			return *this;
+		}
+
+		Vec4& operator*=(const Mat4& rhs)
+		{
+			Vec4 product(x, y, z, w);
+
+			product.x = rhs.matrix[0][0] * x +
+				        rhs.matrix[0][1] * x +
+				        rhs.matrix[0][2] * x +
+				        rhs.matrix[0][3] * x;
+
+			product.y = rhs.matrix[1][0] * y +
+				        rhs.matrix[1][1] * y +
+				        rhs.matrix[1][2] * y +
+				        rhs.matrix[1][3] * y;
+
+			product.z = rhs.matrix[2][0] * z +
+				        rhs.matrix[2][1] * z +
+				        rhs.matrix[2][2] * z +
+				        rhs.matrix[2][3] * z;
+
+			product.w = rhs.matrix[3][0] * w +
+				        rhs.matrix[3][1] * w +
+				        rhs.matrix[3][2] * w +
+				        rhs.matrix[3][3] * w;
+
+			x = product.x;
+			y = product.y;
+			z = product.z;
+			w = product.w;
+
+			return *this;
+		}
+
+		friend Vec4 operator+(Vec4& lhs, const Vec4& rhs)
+		{
+			lhs += rhs;
+			return lhs;
+		}
+
+		friend Vec4 operator-(Vec4& lhs, const Vec4& rhs)
+		{
+			lhs -= rhs;
+			return lhs;
+		}
+
+		friend Vec4 operator*(Vec4& lhs, const float rhs)
+		{
+			lhs *= rhs;
+			
+			return lhs;
+		}
+
+		friend Vec4 operator*(Vec4& lhs, const Mat4& rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		inline bool isDirection() noexcept
+		{
+			return (w == 0);
+		}
+
+		inline bool isPosition() noexcept
+		{
+			return (w == 1);
+		}
+
+		float x;
+		float y;
+		float z;
+		float w;
+	};
+
 
 	/*Typical Vertex holding Vec3 position(x, y, z), normal(x, y, z) and color(r, g, b)*/
-	class Vertex
+	struct Vertex
 	{
-	public:
 		Vertex()
 			: position(std::move(Vec3(0.0f, 0.0f, 0.0f))),
 			normal(std::move(Vec3(0.0f, 0.0f, 0.0f))),
@@ -883,17 +1314,14 @@ namespace SOULKAN_NAMESPACE
 			return SkResult(value, error);
 		}
 
-	private:
 		Vec3 position;
 		Vec3 normal;
 		Vec3 color;
-
 	};
 
 	/*Typical Mesh holding a list of Vertices*/
-	class Mesh
+	struct Mesh
 	{
-	public:
 		Mesh(std::vector<Vertex> vert)
 		{
 			vertices = vert;
@@ -904,17 +1332,110 @@ namespace SOULKAN_NAMESPACE
 			vertices = {};
 		}
 
-		inline SkResult<std::vector<Vertex>, UndefinedError> getVertices()
-		{
-			SkResult result(static_cast<std::vector<Vertex>>(std::vector<Vertex>()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+		//inline SkResult<std::vector<Vertex>, UndefinedError> getVertices()
+		//{
+		//	SkResult result(static_cast<std::vector<Vertex>>(std::vector<Vertex>()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+		//
+		//	result.value = vertices;
+		//	return result;
+		//}
 
-			result.value = vertices;
+		std::vector<Vertex> vertices;
+	};
+
+	struct Mat
+	{
+		//Default is float
+		Mat(std::vector<std::vector<float>> values)
+		{
+			matrix = retLog(fillMatrix(values));
+		}
+
+		inline SkResult<std::string, UndefinedError> asString()
+		{
+			SkResult result(static_cast<std::string>(std::string()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+
+			uint32_t numberOfRows          = retLog(rowSize(matrix));
+			uint32_t numberOfColumns       = retLog(columnSize(matrix));
+
+			std::string matrixAsString = std::string("");
+			matrixAsString.append("Matrix " + std::to_string(numberOfRows) + "x" + std::to_string(numberOfColumns) + " = [ ");
+			for (uint32_t i = 0; i < numberOfRows; i++)
+			{
+				for (uint32_t j = 0; j < numberOfColumns; j++)
+				{
+					if (i == (numberOfRows - 1) && j == (numberOfColumns - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]));
+					}
+					else if (j == (numberOfColumns - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t       ");
+					}
+					else
+					{
+						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
+					}
+				}
+				matrixAsString.append("  ");
+			}
+			matrixAsString.append("]");
+
+			result.value = matrixAsString;
 			return result;
 		}
 
-	private:
-		std::vector<Vertex> vertices;
+		inline SkResult<uint32_t, UndefinedError> rowSize(std::vector<std::vector<float>> mat)
+		{
+			SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+
+			uint32_t numberOfRows = static_cast<uint32_t>(mat.size());
+
+			result.value = numberOfRows;
+			return result;
+		}
+
+		inline SkResult<uint32_t, UndefinedError> columnSize(std::vector<std::vector<float>> mat)
+		{
+			SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+
+			uint32_t highestNumberOfColumns = 0;
+			for (uint32_t i = 0; i < mat.size(); i++)
+			{
+				if (mat[i].size() > highestNumberOfColumns)
+				{
+					highestNumberOfColumns = static_cast<uint32_t>(mat[i].size());
+				}
+			}
+
+			result.value = highestNumberOfColumns;
+			return result;
+		}
+
+		inline SkResult<std::vector<std::vector<float>>, UndefinedError> fillMatrix(std::vector<std::vector<float>> mat)
+		{
+			SkResult result(static_cast<std::vector<std::vector<float>>>(std::vector<std::vector<float>>()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+
+			uint32_t numberOfRows = retLog(rowSize(mat));
+			uint32_t numberOfColumns = retLog(columnSize(mat));
+
+			std::vector<std::vector<float>> filledMatrix(numberOfRows, std::vector<float>(numberOfColumns, 0.0f));
+			for (uint32_t i = 0; i < mat.size(); i++)
+			{
+				for (uint32_t j = 0; j < mat[i].size(); j++)
+				{
+					filledMatrix[i][j] = mat[i][j];
+				}
+			}
+
+			result.value = filledMatrix;
+			return result;
+		}
+
+		std::vector<std::vector<float>> matrix;
 	};
+
+	/*Frame and frametime stuf*/
 
 	/*@brief Calculates the FPS given a number of frames elapsed in delta time
 	*
@@ -1694,7 +2215,7 @@ namespace SOULKAN_NAMESPACE
 		//Picks the chosen present mode if it's available, otherwise go through preferred present modes one by one
 		if (isChoiceAvailable)
 		{
-			result.value = std::move(presentMode);
+			result.value = presentMode;
 		}
 		else
 		{
@@ -4028,6 +4549,7 @@ namespace SOULKAN_NAMESPACE
 			return result;
 		}
 
+		/*Returns the free memory of the memory pool*/
 		inline SkResult<uint64_t, AllocationError> getFreeMemory()
 		{
 			SkResult result(static_cast<uint64_t>(0), static_cast<AllocationError>(AllocationError::NO_ERROR));
@@ -4448,7 +4970,7 @@ namespace SOULKAN_NAMESPACE
 	{
 		SkResult result(static_cast<vk::Buffer>(vk::Buffer(nullptr)), static_cast<BufferError>(BufferError::NO_ERROR));
 
-		std::vector<Vertex> meshVertices = retLog(mesh.getVertices());
+		std::vector<Vertex> meshVertices = mesh.vertices;
 
 		vk::BufferCreateInfo bufferCreateInfo = {};
 		bufferCreateInfo.size = meshVertices.size() * sizeof(Vertex);

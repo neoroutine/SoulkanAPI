@@ -148,8 +148,7 @@ namespace SOULKAN_NAMESPACE
 		static auto createTriangleMeshResult = sk::createTriangleMesh();
 		static sk::Mesh triangleMesh = sk::retLog(createTriangleMeshResult);
 
-		static auto getTriangleMeshVerticesResult = triangleMesh.getVertices();
-		std::vector<sk::Vertex> triangleMeshVertices = sk::retLog(getTriangleMeshVerticesResult);
+		std::vector<sk::Vertex> triangleMeshVertices = triangleMesh.vertices;
 
 		/*VERTEX INPUT DESCRIPTIONS*/
 		static auto vertexInputBindingDescriptionResult = triangleMeshVertices[0].getInputBindingDescription();
@@ -194,6 +193,15 @@ namespace SOULKAN_NAMESPACE
 		static auto unmapResult = pPool->unmap();
 
 		std::vector<sk::Vertex> verticesToBeDrawn = std::move(triangleMeshVertices);
+
+		sk::Mat4 equality(1.0f);
+		std::cout << equality.asString() << std::endl;
+
+		sk::Mat4 squaredEquality = equality * equality;
+		std::cout << squaredEquality.asString() << std::endl;
+
+		sk::Mat4 squaredEqualityTimes2 = squaredEquality * 2.0f;
+		std::cout << squaredEqualityTimes2.asString() << std::endl;
 
 		auto initEnd = std::chrono::steady_clock::now();
 		auto frameStart = std::chrono::steady_clock::now();

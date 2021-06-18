@@ -194,14 +194,14 @@ namespace SOULKAN_NAMESPACE
 
 		std::vector<sk::Vertex> verticesToBeDrawn = std::move(triangleMeshVertices);
 
-		sk::Mat4 equality(1.0f);
-		std::cout << equality.asString() << std::endl;
+		skm::Mat4 translation = skm::translation(1.f, 2.f, 3.f);
+		std::cout << translation.asString() << std::endl;
 
-		sk::Mat4 squaredEquality = equality * equality;
-		std::cout << squaredEquality.asString() << std::endl;
-
-		sk::Mat4 squaredEqualityTimes2 = squaredEquality * 2.0f;
-		std::cout << squaredEqualityTimes2.asString() << std::endl;
+		std::cout << "45 deg  : " << skm::toRad(45.f)  << " rad" << std::endl;
+		std::cout << "90 deg  : " << skm::toRad(90.f)  << " rad" << std::endl;
+		std::cout << "135 deg : " << skm::toRad(135.f) << " rad" << std::endl;
+		std::cout << "180 deg : " << skm::toRad(180.f) << " rad" << std::endl;
+		std::cout << "360 deg : " << skm::toRad(360.f) << " rad" << std::endl;
 
 		auto initEnd = std::chrono::steady_clock::now();
 		auto frameStart = std::chrono::steady_clock::now();

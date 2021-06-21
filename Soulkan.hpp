@@ -42,6 +42,56 @@ namespace SOULKAN_MATHS_NAMESPACE
 		DIVIDING_BY_ZERO_ERROR = 1
 	};
 
+	/*Debug / Util functions*/
+
+	/*@brief Checks if a given SkResult contains an error
+	*@param result SkResult, containing value and error, returned from a function
+	*@return Boolean indicating if result contains an error
+	*/
+	template<class V, class E>
+	constexpr inline bool error(SkResult<V, E> result) noexcept
+	{
+		if (result.error != E::NO_ERROR)
+		{
+			return true;
+		}
+
+		else
+		{
+			return false;
+		}
+	}
+
+	/*@brief Calls logError() on result and then returns the value of the result
+	*@param result  SkResult, containing value and error, returned from a function
+	*@return The value of result
+	*/
+	template<class V, class E>
+	inline V retLog(SkResult<V, E> result) noexcept
+	{
+		if (error(result)) { std::cout << "Math error" << std::endl; }
+
+		return result.value;
+	}
+
+	/*@brief Checks if result contains an error using error() and then returns it if it does, else return the current error
+	*@param result SkResult, containing value and error, returned from a function
+	*@param err the current error to be compared against result.error
+	*@return The error of result if result contains an error, else returns err
+	*/
+	template<class V, class E>
+	inline E affectError(SkResult<V, E> result, E err) noexcept
+	{
+		if (error(result))
+		{
+			return result.error;
+		}
+		else
+		{
+			return err;
+		}
+	}
+
 	inline constexpr float toRad(float degrees)
 	{
 		return (static_cast<float>(degrees * (pi / 180)));
@@ -52,7 +102,7 @@ namespace SOULKAN_MATHS_NAMESPACE
 		return (static_cast<float>(radians * (180 / pi)));
 	}
 
-	struct Quat
+	/*struct Quat
 	{
 		Quat()
 			: x(0.f), y(0.f), z(0.f), w(0.f)
@@ -70,7 +120,7 @@ namespace SOULKAN_MATHS_NAMESPACE
 		float y;
 		float z;
 		float w;
-	};
+	};*/
 
 	/*Typical Vec2 holding x and y values*/
 	struct Vec2
@@ -611,6 +661,53 @@ namespace SOULKAN_MATHS_NAMESPACE
 			projectionMatrix[2][2] = far / (far - near);
 			projectionMatrix[2][3] = 1.f;
 			projectionMatrix[3][2] = -(far * near) / (far - near);
+		}
+
+		return result;
+	}
+
+	/*@brief Calculates the FPS given a number of frames elapsed in delta time
+	*
+	* @param frames The number of frames elapsed during delta time
+	* @param delta The elapsed time
+	*
+	* @return SkResult(FPS, MathError)
+	*/
+	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFramePerSecond(double frames, std::chrono::duration<double> delta) noexcept
+	{
+		SkResult result(static_cast<double>(0.0f), static_cast<SOULKAN_MATHS_NAMESPACE::MathError>(SOULKAN_MATHS_NAMESPACE::MathError::NO_ERROR));
+
+		if (delta.count() == 0)
+		{
+			result.value = 0;
+			result.error = SOULKAN_MATHS_NAMESPACE::MathError::DIVIDING_BY_ZERO_ERROR;
+		}
+		else
+		{
+			result.value = frames / delta.count();
+		}
+
+		return result;
+	}
+
+	/*@brief Calculates the frametime with a given FPS value
+	*
+	* @param framePerSecond The given FPS
+	*
+	* @return SkResult(frametime in miliseconds, MathError)
+	*/
+	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFrametime(double framePerSecond) noexcept
+	{
+		SkResult result(static_cast<double>(0.0f), static_cast<SOULKAN_MATHS_NAMESPACE::MathError>(SOULKAN_MATHS_NAMESPACE::MathError::NO_ERROR));
+
+		if (framePerSecond == 0)
+		{
+			result.value = 0;
+			result.error = SOULKAN_MATHS_NAMESPACE::MathError::DIVIDING_BY_ZERO_ERROR;
+		}
+		else
+		{
+			result.value = 1000.0 / framePerSecond;
 		}
 
 		return result;
@@ -1550,55 +1647,6 @@ namespace SOULKAN_NAMESPACE
 		std::vector<Vertex> vertices;
 	};
 
-	/*Frame and frametime stuf*/
-
-	/*@brief Calculates the FPS given a number of frames elapsed in delta time
-	*
-	* @param frames The number of frames elapsed during delta time
-	* @param delta The elapsed time
-	*
-	* @return SkResult(FPS, MathError)
-	*/
-	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFramePerSecond(double frames, std::chrono::duration<double> delta) noexcept
-	{
-		SkResult result(static_cast<double>(0.0f), static_cast<SOULKAN_MATHS_NAMESPACE::MathError>(SOULKAN_MATHS_NAMESPACE::MathError::NO_ERROR));
-
-		if (delta.count() == 0)
-		{
-			result.value = 0;
-			result.error = SOULKAN_MATHS_NAMESPACE::MathError::DIVIDING_BY_ZERO_ERROR;
-		}
-		else
-		{
-			result.value = frames / delta.count();
-		}
-
-		return result;
-	}
-
-	/*@brief Calculates the frametime with a given FPS value
-	*
-	* @param framePerSecond The given FPS
-	*
-	* @return SkResult(frametime in miliseconds, MathError)
-	*/
-	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFrametime(double framePerSecond) noexcept
-	{
-		SkResult result(static_cast<double>(0.0f), static_cast<SOULKAN_MATHS_NAMESPACE::MathError>(SOULKAN_MATHS_NAMESPACE::MathError::NO_ERROR));
-
-		if (framePerSecond == 0)
-		{
-			result.value = 0;
-			result.error = SOULKAN_MATHS_NAMESPACE::MathError::DIVIDING_BY_ZERO_ERROR;
-		}
-		else
-		{
-			result.value = 1000.0 / framePerSecond;
-		}
-
-		return result;
-	}
-
 	/*GLFW
 	* Main functions concerning init and terminate, window creation.
 	*/
@@ -1614,7 +1662,7 @@ namespace SOULKAN_NAMESPACE
 
 		if (!result.value)
 		{
-			result.error = std::move(GLFWError::INIT_ERROR);
+			result.error = GLFWError::INIT_ERROR;
 
 		}
 		else
@@ -1650,7 +1698,7 @@ namespace SOULKAN_NAMESPACE
 		* @return inline SkResult<Pointer to the GLFW window, GLFWError>
 		*
 		*/
-	inline SkResult<GLFWwindow*, GLFWError> createGlfwWindow(uint32_t width, uint32_t height, std::string title, bool resizable) noexcept
+	inline SkResult<GLFWwindow*, GLFWError> createGlfwWindow(uint32_t width, uint32_t height, std::string_view title, bool resizable) noexcept
 	{
 		SkResult result(static_cast<GLFWwindow*>(nullptr), static_cast<GLFWError>(GLFWError::NO_ERROR));
 
@@ -1663,7 +1711,7 @@ namespace SOULKAN_NAMESPACE
 			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		}
 
-		result.value = glfwCreateWindow(width, height, title.c_str(), 0, nullptr);
+		result.value = glfwCreateWindow(width, height, std::string(title).c_str(), 0, nullptr);
 
 		if (result.value == nullptr)
 		{
@@ -1678,14 +1726,69 @@ namespace SOULKAN_NAMESPACE
 		SkResult result(static_cast<GLFWwindow*>(nullptr), static_cast<GLFWError>(GLFWError::NO_ERROR));
 
 		auto initGlfwResult = initGlfw();
-		result.error = std::move(affectError(initGlfwResult, result.error));
+		result.error = affectError(initGlfwResult, result.error);
 
 		auto createGlfwWindowResult = createGlfwWindow(width, height, title, resizable);
-		result.error = std::move(affectError(createGlfwWindowResult, result.error));
-		result.value = std::move(retLog(createGlfwWindowResult));
+		result.error = affectError(createGlfwWindowResult, result.error);
+		result.value = retLog(createGlfwWindowResult);
 
 		return result;
 	}
+
+	class Window
+	{
+	public:
+		Window()
+		{
+			auto createWindowResult = createGlfwWindow(800, 600, "Window title", false);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+		}
+
+		Window(GLFWwindow* pWindow)
+			: m_pWindow(pWindow)
+		{}
+
+		Window(uint32_t width, uint32_t height)
+		{
+			auto createWindowResult = createGlfwWindow(width, height, "Window title", false);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+
+		}
+
+		Window(uint32_t width, uint32_t height, std::string_view title)
+		{
+			auto createWindowResult = createGlfwWindow(width, height, title, false);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+		}
+
+		Window(uint32_t width, uint32_t height, std::string_view title, bool resizable)
+		{
+			auto createWindowResult = createGlfwWindow(width, height, title, resizable);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+		}
+
+		void rename(std::string_view newTitle)
+		{
+			glfwSetWindowTitle(m_pWindow, std::string(newTitle).c_str());
+		}
+
+		GLFWwindow* get()
+		{
+			return m_pWindow;
+		}
+
+	private:
+		GLFWwindow* m_pWindow = nullptr;
+		GLFWError m_error     = GLFWError::NO_ERROR;
+	};
 
 
 
@@ -2504,6 +2607,39 @@ namespace SOULKAN_NAMESPACE
 		value = heapIndex;
 		return SkResult(value, error);
 	}
+
+	class Instance
+	{
+		public:
+			Instance()
+			{}
+
+			Instance(vk::Instance newInstance)
+				: m_instance(newInstance)
+			{}
+
+			Instance(vk::ApplicationInfo appInfo)
+			{
+				auto createInstanceResult = createInstance(appInfo);
+				m_error = affectError(createInstanceResult, m_error);
+
+				m_instance = createInstanceResult.value;
+			}
+
+			vk::Instance get()
+			{
+				return m_instance;
+			}
+
+			std::string error()
+			{
+				return to_string(m_error);
+			}
+
+		private:
+			vk::Instance m_instance = nullptr;
+			InstanceError m_error   = InstanceError::NO_ERROR;
+	};
 
 	/*LOGICAL DEVICE*/
 

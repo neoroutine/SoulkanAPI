@@ -23,8 +23,11 @@ namespace SOULKAN_NAMESPACE
 		static sk::DeletionQueue deletionQueue;
 
 		/*GLFW*/
-		static auto createWindowResult = sk::createWindow(800, 600, "Soulkan", false);
-		static GLFWwindow* pWindow = sk::retLog(createWindowResult);
+		static auto initResult = initGlfw();
+		static auto isInit     = sk::retLog(initResult);
+		static sk::Window window(800, 600, "Soulkan");
+		static GLFWwindow* pWindow = window.get();
+
 
 		/*INSTANCE*/
 
@@ -214,8 +217,8 @@ namespace SOULKAN_NAMESPACE
 			auto now = std::chrono::steady_clock::now();
 			std::chrono::duration<double> delta = now - frameStart;
 
-			double framesPerSecond = std::move(sk::retLog(sk::getFramePerSecond(frameNumber, delta)));
-			double frametime       = std::move(sk::retLog(sk::getFrametime(framesPerSecond)));
+			double framesPerSecond = skm::retLog(skm::getFramePerSecond(frameNumber, delta));
+			double frametime       = skm::retLog(skm::getFrametime(framesPerSecond));
 
 			averageFramesPerSecond += framesPerSecond;
 			averageFrametime += frametime;

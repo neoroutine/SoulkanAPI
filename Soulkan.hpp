@@ -2083,7 +2083,7 @@ namespace SOULKAN_NAMESPACE
 		SkResult result(static_cast<vk::SurfaceKHR>(vk::SurfaceKHR(nullptr)), static_cast<InstanceError>(InstanceError::NO_ERROR));
 
 		VkSurfaceKHR rawSurface;
-		VkResult res = std::move(glfwCreateWindowSurface(instance, pWindow, nullptr, &rawSurface));
+		VkResult res = glfwCreateWindowSurface(instance, pWindow, nullptr, &rawSurface);
 
 		if (res != VK_SUCCESS || rawSurface == VK_NULL_HANDLE)
 		{
@@ -2093,6 +2093,71 @@ namespace SOULKAN_NAMESPACE
 		result.value = std::move(rawSurface);
 		return result;
 	}
+
+	class Instance
+	{
+	public:
+		Instance()
+		{}
+
+		Instance(vk::Instance newInstance)
+			: mInstance(newInstance)
+		{}
+
+		Instance(vk::ApplicationInfo appInfo)
+		{
+			auto createInstanceResult = createInstance(appInfo);
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		Instance(std::string_view engineName, std::string_view appName)
+		{
+			auto createInstanceResult = createInstance(std::string(engineName).c_str(), std::string(appName).c_str());
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		Instance(vk::ApplicationInfo appInfo, std::vector<const char*> extensions, std::vector<const char*> validationLayers)
+		{
+			auto createInstanceResult = createInstance(appInfo, extensions, validationLayers);
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		Instance(std::string_view engineName, std::string_view appName, std::vector<const char*> extensions, std::vector<const char*> validationLayers)
+		{
+			auto createInstanceResult = createInstance(std::string(engineName).c_str(), std::string(appName).c_str(), extensions, validationLayers);
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		vk::SurfaceKHR getSurface(Window window)
+		{
+			auto createWindowSurfaceResult = createGLFWWindowSurface(mInstance, window.get());
+			mError = affectError(createWindowSurfaceResult, mError);
+
+			return createWindowSurfaceResult.value;
+		}
+
+		vk::Instance get()
+		{
+			return mInstance;
+		}
+
+		std::string error()
+		{
+			return to_string(mError);
+		}
+
+	private:
+		vk::Instance mInstance = nullptr;
+		InstanceError mError   = InstanceError::NO_ERROR;
+	};
 
 	/*PHYSICAL DEVICE*/
 
@@ -2608,37 +2673,38 @@ namespace SOULKAN_NAMESPACE
 		return SkResult(value, error);
 	}
 
-	class Instance
+	class PhysicalDevice
 	{
-		public:
-			Instance()
-			{}
+	public:
+		PhysicalDevice(Instance instance)
+			: mInstance(instance)
+		{
+			auto getPhysicalDeviceResult = getPhysicalDevice(mInstance.get());
+			mError = affectError(getPhysicalDeviceResult, mError);
 
-			Instance(vk::Instance newInstance)
-				: m_instance(newInstance)
-			{}
+			mPhysicalDevice = getPhysicalDeviceResult.value;
+		}
 
-			Instance(vk::ApplicationInfo appInfo)
-			{
-				auto createInstanceResult = createInstance(appInfo);
-				m_error = affectError(createInstanceResult, m_error);
+		vk::PhysicalDevice get()
+		{
+			return mPhysicalDevice;
+		}
 
-				m_instance = createInstanceResult.value;
-			}
+	    Instance getInstance()
+		{
+			return mInstance;
+		}
 
-			vk::Instance get()
-			{
-				return m_instance;
-			}
+		std::string error()
+		{
+			return to_string(mError);
+		}
 
-			std::string error()
-			{
-				return to_string(m_error);
-			}
+	private:
+		vk::PhysicalDevice mPhysicalDevice = nullptr;
+		Instance mInstance                 = Instance();
 
-		private:
-			vk::Instance m_instance = nullptr;
-			InstanceError m_error   = InstanceError::NO_ERROR;
+		PhysicalDeviceError mError         = PhysicalDeviceError::NO_ERROR;
 	};
 
 	/*LOGICAL DEVICE*/

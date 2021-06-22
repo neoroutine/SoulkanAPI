@@ -11,7 +11,7 @@ namespace SOULKAN_NAMESPACE
 {
 	inline sk::SkResult<sk::SkTestData, sk::TestError> mainSoulkanTest(bool debug)
 	{
-		sk::SkResult result(static_cast<sk::SkTestData>(sk::SkTestData()), static_cast<sk::TestError>(sk::TestError::NO_ERROR));
+		sk::SkResult result(sk::SkTestData(), sk::TestError::NO_ERROR);
 
 		/*TEST DATA*/
 		auto initStart = std::chrono::steady_clock::now();
@@ -23,7 +23,7 @@ namespace SOULKAN_NAMESPACE
 		static sk::DeletionQueue deletionQueue;
 
 		/*GLFW*/
-		static auto initResult = initGlfw();
+		static auto initResult = sk::initGlfw();
 		static auto isInit     = sk::retLog(initResult);
 		static sk::Window window(800, 600, "Soulkan");
 		static GLFWwindow* pWindow = window.get();
@@ -31,23 +31,22 @@ namespace SOULKAN_NAMESPACE
 
 		/*INSTANCE*/
 
-		static vk::Instance instance;
+		static sk::Instance skInstance;
 		if (debug)
 		{
 			static std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_api_dump" };
-			static auto createInstanceResult = sk::createInstance("Soulkan", "Soulkan", std::vector<const char*>(), validationLayers);
-			instance = sk::retLog(createInstanceResult);
-
+			skInstance = sk::Instance("Soulkan", "Soulkan", std::vector<const char*>(), validationLayers);
 		}
 		else
 		{
-			static auto createInstanceResult = sk::createInstance("Soulkan", "Soulkan");
-			instance = sk::retLog(createInstanceResult);
+			skInstance = sk::Instance("Soulkan", "Soulkan");
 		}
 
+		static vk::Instance instance = skInstance.get();
+
 		/*PHYSICAL DEVICE*/
-		static auto getPhysicalDeviceResult = sk::getPhysicalDevice(instance);
-		static vk::PhysicalDevice physicalDevice = sk::retLog(getPhysicalDeviceResult);
+		static sk::PhysicalDevice skPhysicalDevice(skInstance);
+		static vk::PhysicalDevice physicalDevice = skPhysicalDevice.get();
 		std::cout << "Physical device name : " << physicalDevice.getProperties().deviceName << std::endl;
 
 		static auto createGLFWWindowSurfaceResult = sk::createGLFWWindowSurface(instance, pWindow);

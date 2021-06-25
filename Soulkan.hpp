@@ -730,22 +730,22 @@ namespace SOULKAN_MATHS_NAMESPACE
 			uint32_t numberOfColumns = SOULKAN_NAMESPACE::retLog(columnSize(matrix));
 
 			std::string matrixAsString = std::string("");
-			matrixAsString.append("Matrix " + std::to_string(numberOfRows) + "x" + std::to_string(numberOfColumns) + " = [ ");
+			matrixAsString.append("Matrix " + std::toString(numberOfRows) + "x" + std::toString(numberOfColumns) + " = [ ");
 			for (uint32_t i = 0; i < numberOfRows; i++)
 			{
 				for (uint32_t j = 0; j < numberOfColumns; j++)
 				{
 					if (i == (numberOfRows - 1) && j == (numberOfColumns - 1))
 					{
-						matrixAsString.append(" " + std::to_string(matrix[i][j]));
+						matrixAsString.append(" " + std::toString(matrix[i][j]));
 					}
 					else if (j == (numberOfColumns - 1))
 					{
-						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t       ");
+						matrixAsString.append(" " + std::toString(matrix[i][j]) + ", \n\t       ");
 					}
 					else
 					{
-						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
+						matrixAsString.append(std::toString(matrix[i][j]) + ", ");
 					}
 				}
 				matrixAsString.append("  ");
@@ -1165,8 +1165,8 @@ namespace SOULKAN_NAMESPACE
 		TRIANGLE_MESH_LOADING_ERROR = 1
 	};
 
-	/*to_string() implementation for every enum class, inspired by vulkan.hpp*/
-	inline std::string to_string(QueueFamilyType value)
+	/*toString() implementation for every enum class, inspired by vulkan.hpp*/
+	inline std::string toString(QueueFamilyType value)
 	{
 		switch (value)
 		{
@@ -1180,7 +1180,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(UndefinedError value)
+	inline std::string toString(UndefinedError value)
 	{
 		switch (value)
 		{
@@ -1190,7 +1190,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(TestError value)
+	inline std::string toString(TestError value)
 	{
 		switch (value)
 		{
@@ -1199,7 +1199,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(GLFWError value)
+	inline std::string toString(GLFWError value)
 	{
 		switch (value)
 		{
@@ -1211,7 +1211,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(DebugUtilsError value)
+	inline std::string toString(DebugUtilsError value)
 	{
 		switch (value)
 		{
@@ -1221,7 +1221,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(InstanceError value)
+	inline std::string toString(InstanceError value)
 	{
 		switch (value)
 		{
@@ -1234,7 +1234,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(PhysicalDeviceError value)
+	inline std::string toString(PhysicalDeviceError value)
 	{
 		switch (value)
 		{
@@ -1250,7 +1250,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(DeviceError value)
+	inline std::string toString(DeviceError value)
 	{
 		switch (value)
 		{
@@ -1266,7 +1266,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(QueueError value)
+	inline std::string toString(QueueError value)
 	{
 		switch (value)
 		{
@@ -1276,7 +1276,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(SwapchainError value)
+	inline std::string toString(SwapchainError value)
 	{
 		switch (value)
 		{
@@ -1291,7 +1291,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(CommandPoolError value)
+	inline std::string toString(CommandPoolError value)
 	{
 		switch (value)
 		{
@@ -1303,7 +1303,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(CommandBufferError value)
+	inline std::string toString(CommandBufferError value)
 	{
 		switch (value)
 		{
@@ -1315,7 +1315,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(RenderPassError value)
+	inline std::string toString(RenderPassError value)
 	{
 		switch (value)
 		{
@@ -1328,7 +1328,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(FramebufferError value)
+	inline std::string toString(FramebufferError value)
 	{
 		switch (value)
 		{
@@ -1340,7 +1340,7 @@ namespace SOULKAN_NAMESPACE
 
 	}
 
-	inline std::string to_string(SyncError value)
+	inline std::string toString(SyncError value)
 	{
 		switch (value)
 		{
@@ -1354,7 +1354,7 @@ namespace SOULKAN_NAMESPACE
 
 	}
 
-	inline std::string to_string(DrawingError value)
+	inline std::string toString(DrawingError value)
 	{
 		switch (value)
 		{
@@ -1363,7 +1363,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(ShaderError value)
+	inline std::string toString(ShaderError value)
 	{
 		switch (value)
 		{
@@ -1374,7 +1374,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(SOULKAN_MATHS_NAMESPACE::MathError value)
+	inline std::string toString(SOULKAN_MATHS_NAMESPACE::MathError value)
 	{
 		switch (value)
 		{
@@ -1384,7 +1384,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(GraphicsPipelineError value)
+	inline std::string toString(GraphicsPipelineError value)
 	{
 		switch (value)
 		{
@@ -1408,7 +1408,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(AllocationError value)
+	inline std::string toString(AllocationError value)
 	{
 		switch (value)
 		{
@@ -1423,7 +1423,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(BufferError value)
+	inline std::string toString(BufferError value)
 	{
 		switch (value)
 		{
@@ -1434,7 +1434,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string to_string(MeshError value)
+	inline std::string toString(MeshError value)
 	{
 		switch (value)
 		{
@@ -1471,7 +1471,7 @@ namespace SOULKAN_NAMESPACE
 	template<class V, class E>
 	constexpr inline std::string returnError(SkResult<V, E> result) noexcept
 	{
-		return std::string("ERROR : " + to_string(static_cast<E>(result.error)) + " when returning SkResult(" + typeid(V).name() + ", " + typeid(E).name() + ")\n");
+		return std::string("ERROR : " + toString(static_cast<E>(result.error)) + " when returning SkResult(" + typeid(V).name() + ", " + typeid(E).name() + ")\n");
 	}
 
 	/*@brief Checks if a given SkResult contains an error using error() and then logs it
@@ -1735,63 +1735,6 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	class Window
-	{
-	public:
-		Window()
-		{
-			auto createWindowResult = createGlfwWindow(800, 600, "Window title", false);
-			m_error = affectError(createWindowResult, m_error);
-
-			m_pWindow = createWindowResult.value;
-		}
-
-		Window(GLFWwindow* pWindow)
-			: m_pWindow(pWindow)
-		{}
-
-		Window(uint32_t width, uint32_t height)
-		{
-			auto createWindowResult = createGlfwWindow(width, height, "Window title", false);
-			m_error = affectError(createWindowResult, m_error);
-
-			m_pWindow = createWindowResult.value;
-
-		}
-
-		Window(uint32_t width, uint32_t height, std::string_view title)
-		{
-			auto createWindowResult = createGlfwWindow(width, height, title, false);
-			m_error = affectError(createWindowResult, m_error);
-
-			m_pWindow = createWindowResult.value;
-		}
-
-		Window(uint32_t width, uint32_t height, std::string_view title, bool resizable)
-		{
-			auto createWindowResult = createGlfwWindow(width, height, title, resizable);
-			m_error = affectError(createWindowResult, m_error);
-
-			m_pWindow = createWindowResult.value;
-		}
-
-		void rename(std::string_view newTitle)
-		{
-			glfwSetWindowTitle(m_pWindow, std::string(newTitle).c_str());
-		}
-
-		GLFWwindow* get()
-		{
-			return m_pWindow;
-		}
-
-	private:
-		GLFWwindow* m_pWindow = nullptr;
-		GLFWError m_error     = GLFWError::NO_ERROR;
-	};
-
-
-
 	/*DEBUG UTILS
 	 *Useful functions concerning the debug utils messenger from vulkan.
 	 * @TODO : Clean up all that ugly stuff
@@ -1950,17 +1893,17 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(application info, InstanceError)
 	*/
-	inline SkResult<vk::ApplicationInfo, InstanceError> createApplicationInfo(const char* pApplicationName, const char* pEngineName) noexcept
+	inline SkResult<vk::ApplicationInfo, InstanceError> createApplicationInfo(std::string_view appName, std::string_view engineName) noexcept
 	{
 		SkResult result(static_cast<vk::ApplicationInfo>(vk::ApplicationInfo{}), static_cast<InstanceError>(InstanceError::NO_ERROR));
 
 		try
 		{
-			result.value = vk::ApplicationInfo(pApplicationName,
-				VK_MAKE_VERSION(1, 0, 0),
-				pEngineName,
-				VK_MAKE_VERSION(1, 0, 0),
-				VK_API_VERSION_1_0);
+			result.value = vk::ApplicationInfo(std::string(appName).c_str(),
+				                               VK_MAKE_VERSION(1, 0, 0),
+				                               std::string(engineName).c_str(),
+				                               VK_MAKE_VERSION(1, 0, 0),
+				                               VK_API_VERSION_1_0);
 		}
 		catch (vk::SystemError err)
 		{
@@ -2051,18 +1994,18 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	inline SkResult<vk::Instance, InstanceError> createInstance(const char* pApplicationName, const char* pEngineName, std::vector<const char*> extensions = std::vector<const char*>(),
+	inline SkResult<vk::Instance, InstanceError> createInstance(std::string_view appName, std::string_view engineName, std::vector<const char*> extensions = std::vector<const char*>(),
 		std::vector<const char*> validationLayers = std::vector<const char*>(), PFN_vkDebugUtilsMessengerCallbackEXT debugUtilsMessenger = nullptr) noexcept
 	{
-		SkResult result(static_cast<vk::Instance>(vk::Instance(nullptr)), static_cast<InstanceError>(InstanceError::NO_ERROR));
+		SkResult result(vk::Instance(nullptr), InstanceError::NO_ERROR);
 
-		auto createApplicationInfoResult = createApplicationInfo(pApplicationName, pEngineName);
-		result.error = std::move(affectError(createApplicationInfoResult, result.error));
-		vk::ApplicationInfo applicationInfo = std::move(retLog(createApplicationInfoResult));
+		auto createApplicationInfoResult = createApplicationInfo(appName, engineName);
+		result.error = affectError(createApplicationInfoResult, result.error);
+		vk::ApplicationInfo applicationInfo = retLog(createApplicationInfoResult);
 
 		auto createInstanceResult = createInstance(applicationInfo, extensions, validationLayers, debugUtilsMessenger);
 		result.error = std::move(affectError(createInstanceResult, result.error));
-		vk::Instance instance = std::move(retLog(createInstanceResult));
+		vk::Instance instance = retLog(createInstanceResult);
 
 		result.value = std::move(instance);
 		return result;
@@ -2093,71 +2036,6 @@ namespace SOULKAN_NAMESPACE
 		result.value = std::move(rawSurface);
 		return result;
 	}
-
-	class Instance
-	{
-	public:
-		Instance()
-		{}
-
-		Instance(vk::Instance newInstance)
-			: mInstance(newInstance)
-		{}
-
-		Instance(vk::ApplicationInfo appInfo)
-		{
-			auto createInstanceResult = createInstance(appInfo);
-			mError = affectError(createInstanceResult, mError);
-
-			mInstance = createInstanceResult.value;
-		}
-
-		Instance(std::string_view engineName, std::string_view appName)
-		{
-			auto createInstanceResult = createInstance(std::string(engineName).c_str(), std::string(appName).c_str());
-			mError = affectError(createInstanceResult, mError);
-
-			mInstance = createInstanceResult.value;
-		}
-
-		Instance(vk::ApplicationInfo appInfo, std::vector<const char*> extensions, std::vector<const char*> validationLayers)
-		{
-			auto createInstanceResult = createInstance(appInfo, extensions, validationLayers);
-			mError = affectError(createInstanceResult, mError);
-
-			mInstance = createInstanceResult.value;
-		}
-
-		Instance(std::string_view engineName, std::string_view appName, std::vector<const char*> extensions, std::vector<const char*> validationLayers)
-		{
-			auto createInstanceResult = createInstance(std::string(engineName).c_str(), std::string(appName).c_str(), extensions, validationLayers);
-			mError = affectError(createInstanceResult, mError);
-
-			mInstance = createInstanceResult.value;
-		}
-
-		vk::SurfaceKHR getSurface(Window window)
-		{
-			auto createWindowSurfaceResult = createGLFWWindowSurface(mInstance, window.get());
-			mError = affectError(createWindowSurfaceResult, mError);
-
-			return createWindowSurfaceResult.value;
-		}
-
-		vk::Instance get()
-		{
-			return mInstance;
-		}
-
-		std::string error()
-		{
-			return to_string(mError);
-		}
-
-	private:
-		vk::Instance mInstance = nullptr;
-		InstanceError mError   = InstanceError::NO_ERROR;
-	};
 
 	/*PHYSICAL DEVICE*/
 
@@ -2337,12 +2215,12 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of queue family indexes, PhysicalDeviceError)
 	*/
-	inline SkResult<std::vector<uint32_t>, PhysicalDeviceError> getQueueFamilyIndexes(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
+	inline SkResult<std::array<uint32_t, 6>, PhysicalDeviceError> getQueueFamilyIndexes(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
 	{
-		SkResult result(static_cast<std::vector<uint32_t>>(std::vector<uint32_t>()), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
+		SkResult result(std::array<uint32_t, 6>(), PhysicalDeviceError::NO_ERROR);
 
 		uint32_t uint32_tMax = std::move(std::numeric_limits<uint32_t>::max());
-		std::vector<uint32_t> queueFamilyIndexes = { uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax };
+		std::array<uint32_t, 6> queueFamilyIndexes = { uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax };
 
 		auto availableQueueFamilies = physicalDevice.getQueueFamilyProperties();
 
@@ -2407,7 +2285,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of concentrated queue family indexes, PhysicalDeviceError)
 	*/
-	inline SkResult<std::vector<uint32_t>, QueueError> concentrateQueueFamilyIndexes(std::vector<uint32_t> queueFamilyIndexes)
+	inline SkResult<std::vector<uint32_t>, QueueError> concentrateQueueFamilyIndexes(std::array<uint32_t, 6> queueFamilyIndexes)
 	{
 		SkResult result(static_cast<std::vector<uint32_t>>(std::vector<uint32_t>()), static_cast<QueueError>(QueueError::NO_ERROR));
 
@@ -2450,7 +2328,7 @@ namespace SOULKAN_NAMESPACE
 	*/
 	inline SkResult<vk::PresentModeKHR, PhysicalDeviceError> getBestAvailablePresentMode(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, vk::PresentModeKHR presentMode)
 	{
-		SkResult result(static_cast<vk::PresentModeKHR>(vk::PresentModeKHR::eImmediate), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR)); //Could not find an acceptable default value for PresentModeKHR
+		SkResult result(vk::PresentModeKHR::eImmediate, PhysicalDeviceError::NO_ERROR); //Could not find an acceptable default value for PresentModeKHR
 
 		std::vector<vk::PresentModeKHR> presentModes = physicalDevice.getSurfacePresentModesKHR(surface);
 		if (presentModes.size() == 0)
@@ -2562,7 +2440,7 @@ namespace SOULKAN_NAMESPACE
 			{
 				if (surfaceFormat.format == vk::Format::eB8G8R8A8Unorm && surfaceFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
 				{
-					result.value = std::move(surfaceFormat);
+					result.value = surfaceFormat;
 				}
 			}
 		}
@@ -2586,7 +2464,7 @@ namespace SOULKAN_NAMESPACE
 
 		if (surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
 		{
-			result.value = std::move(surfaceCapabilities.currentExtent);
+			result.value = surfaceCapabilities.currentExtent;
 		}
 		else
 		{
@@ -2673,40 +2551,6 @@ namespace SOULKAN_NAMESPACE
 		return SkResult(value, error);
 	}
 
-	class PhysicalDevice
-	{
-	public:
-		PhysicalDevice(Instance instance)
-			: mInstance(instance)
-		{
-			auto getPhysicalDeviceResult = getPhysicalDevice(mInstance.get());
-			mError = affectError(getPhysicalDeviceResult, mError);
-
-			mPhysicalDevice = getPhysicalDeviceResult.value;
-		}
-
-		vk::PhysicalDevice get()
-		{
-			return mPhysicalDevice;
-		}
-
-	    Instance getInstance()
-		{
-			return mInstance;
-		}
-
-		std::string error()
-		{
-			return to_string(mError);
-		}
-
-	private:
-		vk::PhysicalDevice mPhysicalDevice = nullptr;
-		Instance mInstance                 = Instance();
-
-		PhysicalDeviceError mError         = PhysicalDeviceError::NO_ERROR;
-	};
-
 	/*LOGICAL DEVICE*/
 
 	/*@brief Returns a vulkan device from a given vulkan physical device
@@ -2717,7 +2561,7 @@ namespace SOULKAN_NAMESPACE
 	* @param physicalDeviceFeatures vulkan physical device features to be enabled on the dedvice
 	* @param specificQueueFamilyIndex the index of the queue family to be enabled on the device (default is -1), -1 value means all the indexes from queueFamilyIndexes are used for device creation
 	*/
-	inline SkResult<vk::Device, DeviceError> createDevice(vk::PhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndexes, std::vector<const char*> deviceExtensions,
+	inline SkResult<vk::Device, DeviceError> createDevice(vk::PhysicalDevice physicalDevice, std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> deviceExtensions,
 		vk::PhysicalDeviceFeatures physicalDeviceFeatures = vk::PhysicalDeviceFeatures{}, int32_t specificQueueFamilyIndex = -1)
 	{
 		SkResult result(static_cast<vk::Device>(vk::Device(nullptr)), static_cast<DeviceError>(DeviceError::NO_ERROR));
@@ -2772,7 +2616,7 @@ namespace SOULKAN_NAMESPACE
 
 		try
 		{
-			device = std::move(physicalDevice.createDevice(deviceCreateInfo));
+			device = physicalDevice.createDevice(deviceCreateInfo);
 		}
 		catch (vk::SystemError err)
 		{
@@ -2956,52 +2800,31 @@ namespace SOULKAN_NAMESPACE
 
 	/*Swapchain*/
 
-	/*@brief (No the recommended function, please refer to the createSwapchain() using a present mode, surface format and 2D extent as parameters)
-	* Creates a vulkan swapchain from a given vulkan device using a given vulkan physicalDevice, surface, present mode, a GLFW window and a vector of allowed queue family indices
-	*
-	* @param physicalDevice the vulkan physical device used to query surface capabilities
-	* @param device the vulkan device from which the swapchain is created
-	* @param surface the vulkan surface used to get its capabilities
-	* @param pWindow the GLFW window used to query the swapchain 2D extent
-	* @param chosenPresentMode the preferred present mode to use over the other is it's available
-	* @param allowedQueueIndices a vector of all the allowed queue indices for swapchain creation
-	*
-	* @return SkResult(created swapchain, SwapchainError)
-	*/
-	inline SkResult<vk::SwapchainKHR, SwapchainError> createSwapchain(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface, GLFWwindow* pWindow, vk::PresentModeKHR chosenPresentMode,
-		std::vector<uint32_t> allowedQueueIndices)
+	inline SkResult<vk::SwapchainCreateInfoKHR, SwapchainError> createSwapchainCreateInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, GLFWwindow* pWindow, vk::PresentModeKHR presentMode,
+		vk::SurfaceFormatKHR surfaceFormat, vk::Extent2D extent, std::array<uint32_t, 6>& queueFamilyIndices)
 	{
-		SkResult result(static_cast<vk::SwapchainKHR>(vk::SwapchainKHR(nullptr)), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
-
-		SkResult<std::vector<uint32_t>, QueueError> concentrateQueueFamilyIndexesResult = concentrateQueueFamilyIndexes(allowedQueueIndices);
-		//incompatible enum class error so no affectError() here
-		allowedQueueIndices = std::move(retLog(concentrateQueueFamilyIndexesResult));
-
+		SkResult result(vk::SwapchainCreateInfoKHR{}, SwapchainError::NO_ERROR);
 
 		vk::SurfaceCapabilitiesKHR surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
-		uint32_t swapchainImageCount = std::move(surfaceCapabilities.minImageCount + 1);
+		uint32_t swapchainImageCount = surfaceCapabilities.minImageCount + 1;
 		if (surfaceCapabilities.maxImageCount > 0 && swapchainImageCount > surfaceCapabilities.maxImageCount)
 		{
 			swapchainImageCount = surfaceCapabilities.maxImageCount;
 		}
 
-		vk::PresentModeKHR presentMode = std::move(retLog(getBestAvailablePresentMode(physicalDevice, surface, chosenPresentMode)));
-		vk::SurfaceFormatKHR surfaceFormat = std::move(retLog(getBestAvailableSurfaceFormat(physicalDevice, surface)));
-		vk::Extent2D extent = std::move(retLog(getSwapchainExtent(physicalDevice, surface, pWindow)));
+		vk::SwapchainCreateInfoKHR swapchainCreateInfo = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(),
+			                                                                        surface,
+			                                                                        swapchainImageCount,
+			                                                                        surfaceFormat.format,
+			                                                                        surfaceFormat.colorSpace,
+			                                                                        extent,
+			                                                                        1,
+			                                                                        vk::ImageUsageFlagBits::eColorAttachment);
 
-		vk::SwapchainCreateInfoKHR swapchainCreateInfo = std::move(vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(),
-			surface,
-			swapchainImageCount,
-			surfaceFormat.format,
-			surfaceFormat.colorSpace,
-			extent,
-			1,
-			vk::ImageUsageFlagBits::eColorAttachment));
+		swapchainCreateInfo.queueFamilyIndexCount = std::move(static_cast<uint32_t>(queueFamilyIndices.size()));
+		swapchainCreateInfo.pQueueFamilyIndices = std::move(queueFamilyIndices.data());
 
-		swapchainCreateInfo.queueFamilyIndexCount = std::move(static_cast<uint32_t>(allowedQueueIndices.size()));
-		swapchainCreateInfo.pQueueFamilyIndices = std::move(allowedQueueIndices.data());
-
-		if (allowedQueueIndices.size() > 1)
+		if (queueFamilyIndices.size() > 1)
 		{
 			swapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
 		}
@@ -3011,14 +2834,22 @@ namespace SOULKAN_NAMESPACE
 			swapchainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
 		}
 
-		swapchainCreateInfo.preTransform = std::move(surfaceCapabilities.currentTransform);
-
+		swapchainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
 		swapchainCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
 		swapchainCreateInfo.presentMode = std::move(presentMode);
 
 		swapchainCreateInfo.clipped = VK_TRUE;
-		swapchainCreateInfo.oldSwapchain = std::move(vk::SwapchainKHR(nullptr));
+		swapchainCreateInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
+
+		result.value = std::move(swapchainCreateInfo);
+
+		return result;
+	}
+
+	inline SkResult<vk::SwapchainKHR, SwapchainError> createSwapchain(vk::Device device, vk::SwapchainCreateInfoKHR swapchainCreateInfo)
+	{
+		SkResult result(vk::SwapchainKHR(nullptr), SwapchainError::NO_ERROR);
 
 		try
 		{
@@ -3047,7 +2878,7 @@ namespace SOULKAN_NAMESPACE
 	* @return SkResult(created swapchain, SwapchainError)
 	*/
 	inline SkResult<vk::SwapchainKHR, SwapchainError> createSwapchain(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface, GLFWwindow* pWindow, vk::PresentModeKHR presentMode,
-		vk::SurfaceFormatKHR surfaceFormat, vk::Extent2D extent, std::vector<uint32_t> allowedQueueIndices)
+		vk::SurfaceFormatKHR surfaceFormat, vk::Extent2D extent, std::array<uint32_t, 6> queueFamilyIndices)
 	{
 		SkResult result(static_cast<vk::SwapchainKHR>(vk::SwapchainKHR(nullptr)), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
 
@@ -3055,22 +2886,22 @@ namespace SOULKAN_NAMESPACE
 		uint32_t swapchainImageCount = surfaceCapabilities.minImageCount + 1;
 		if (surfaceCapabilities.maxImageCount > 0 && swapchainImageCount > surfaceCapabilities.maxImageCount)
 		{
-			swapchainImageCount = std::move(surfaceCapabilities.maxImageCount);
+			swapchainImageCount = surfaceCapabilities.maxImageCount;
 		}
 
-		vk::SwapchainCreateInfoKHR swapchainCreateInfo = std::move(vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(),
-			surface,
-			swapchainImageCount,
-			surfaceFormat.format,
-			surfaceFormat.colorSpace,
-			extent,
-			1,
-			vk::ImageUsageFlagBits::eColorAttachment));
+		vk::SwapchainCreateInfoKHR swapchainCreateInfo = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(),
+			                                                                        surface,
+			                                                                        swapchainImageCount,
+			                                                                        surfaceFormat.format,
+			                                                                        surfaceFormat.colorSpace,
+			                                                                        extent,
+			                                                                        1,
+			                                                                        vk::ImageUsageFlagBits::eColorAttachment);
 
-		swapchainCreateInfo.queueFamilyIndexCount = std::move(static_cast<uint32_t>(allowedQueueIndices.size()));
-		swapchainCreateInfo.pQueueFamilyIndices = std::move(allowedQueueIndices.data());
+		swapchainCreateInfo.queueFamilyIndexCount = std::move(static_cast<uint32_t>(queueFamilyIndices.size()));
+		swapchainCreateInfo.pQueueFamilyIndices = std::move(queueFamilyIndices.data());
 
-		if (allowedQueueIndices.size() > 1)
+		if (queueFamilyIndices.size() > 1)
 		{
 			swapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
 		}
@@ -3080,13 +2911,13 @@ namespace SOULKAN_NAMESPACE
 			swapchainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
 		}
 
-		swapchainCreateInfo.preTransform = std::move(surfaceCapabilities.currentTransform);
+		swapchainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
 		swapchainCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
 		swapchainCreateInfo.presentMode = std::move(presentMode);
 
 		swapchainCreateInfo.clipped = VK_TRUE;
-		swapchainCreateInfo.oldSwapchain = std::move(vk::SwapchainKHR(nullptr));
+		swapchainCreateInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
 
 		try
 		{
@@ -3285,7 +3116,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created command pool, CommandPoolError)
 	*/
-	inline SkResult<vk::CommandPool, CommandPoolError> createCommandPool(vk::Device device, std::vector<uint32_t> queueFamilyIndexes, QueueFamilyType queueFamilyType)
+	inline SkResult<vk::CommandPool, CommandPoolError> createCommandPool(vk::Device device, std::array<uint32_t, 6> queueFamilyIndexes, QueueFamilyType queueFamilyType)
 	{
 		SkResult result(static_cast<vk::CommandPool>(vk::CommandPool(nullptr)), static_cast<CommandPoolError>(CommandPoolError::NO_ERROR));
 
@@ -3320,7 +3151,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of created command pools, CommandPoolError)
 	*/
-	inline SkResult<std::vector<vk::CommandPool>, CommandPoolError> createCommandPools(vk::Device device, std::vector<uint32_t> queueFamilyIndexes)
+	inline SkResult<std::vector<vk::CommandPool>, CommandPoolError> createCommandPools(vk::Device device, std::array<uint32_t, 6> queueFamilyIndexes)
 	{
 		SkResult result(static_cast<std::vector<vk::CommandPool>>(std::vector<vk::CommandPool>()), static_cast<CommandPoolError>(CommandPoolError::NO_ERROR));
 
@@ -5455,5 +5286,420 @@ namespace SOULKAN_NAMESPACE
 		result.value = std::move(Mesh(vertices));
 		return result;
 	}
+
+	//Convenient classes
+
+	class Window;
+	class Instance;
+	class PhysicalDevice;
+	class Device;
+	class Queue;
+	class Swapchain;
+
+	class Window
+	{
+	public:
+		Window()
+		{
+			auto createWindowResult = createGlfwWindow(800, 600, "Window title", false);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+		}
+
+		Window(GLFWwindow* pWindow)
+			: m_pWindow(pWindow)
+		{}
+
+		Window(uint32_t width, uint32_t height)
+		{
+			auto createWindowResult = createGlfwWindow(width, height, "Window title", false);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+
+		}
+
+		Window(uint32_t width, uint32_t height, std::string_view title)
+		{
+			auto createWindowResult = createGlfwWindow(width, height, title, false);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+		}
+
+		Window(uint32_t width, uint32_t height, std::string_view title, bool resizable)
+		{
+			auto createWindowResult = createGlfwWindow(width, height, title, resizable);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = retLog(createWindowResult);
+		}
+
+		void rename(std::string_view newTitle)
+		{
+			glfwSetWindowTitle(m_pWindow, std::string(newTitle).c_str());
+		}
+
+		GLFWwindow* get()
+		{
+			return m_pWindow;
+		}
+
+	private:
+		GLFWwindow* m_pWindow = nullptr;
+		GLFWError m_error = GLFWError::NO_ERROR;
+	};
+
+	class Instance
+	{
+	public:
+		Instance()
+		{}
+
+		Instance(vk::Instance newInstance)
+			: mInstance(newInstance)
+		{}
+
+		Instance(vk::ApplicationInfo appInfo)
+		{
+			auto createInstanceResult = createInstance(appInfo);
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		Instance(std::string_view engineName, std::string_view appName)
+		{
+			auto createInstanceResult = createInstance(std::string(engineName).c_str(), std::string(appName).c_str());
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = retLog(createInstanceResult);
+		}
+
+		Instance(vk::ApplicationInfo appInfo, std::vector<const char*> extensions, std::vector<const char*> validationLayers)
+		{
+			auto createInstanceResult = createInstance(appInfo, extensions, validationLayers);
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		Instance(std::string_view engineName, std::string_view appName, std::vector<const char*> extensions, std::vector<const char*> validationLayers)
+		{
+			auto createInstanceResult = createInstance(std::string(engineName).c_str(), std::string(appName).c_str(), extensions, validationLayers);
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		bool operator==(Instance other)
+		{
+			return (mInstance == other.get());
+		}
+
+		bool operator!=(Instance other)
+		{
+			return !(*this == other);
+		}
+
+		vk::SurfaceKHR createSurface(Window window)
+		{
+			auto createWindowSurfaceResult = createGLFWWindowSurface(mInstance, window.get());
+			mError = affectError(createWindowSurfaceResult, mError);
+
+			return retLog(createWindowSurfaceResult);
+		}
+
+		vk::Instance get()
+		{
+			return mInstance;
+		}
+
+		std::string error()
+		{
+			return toString(mError);
+		}
+
+	private:
+		vk::Instance mInstance = nullptr;
+		InstanceError mError = InstanceError::NO_ERROR;
+	};
+
+	class PhysicalDevice
+	{
+	public:
+		PhysicalDevice()
+		{}
+
+		PhysicalDevice(Instance instance)
+			: mInstance(instance)
+		{
+			auto getPhysicalDeviceResult = getPhysicalDevice(mInstance.get());
+			mError = affectError(getPhysicalDeviceResult, mError);
+
+			mPhysicalDevice = retLog(getPhysicalDeviceResult);
+		}
+
+		bool operator==(PhysicalDevice other)
+		{
+			return (mPhysicalDevice == other.get() &&
+				    mInstance == other.getInstance());
+		}
+
+		bool operator!=(PhysicalDevice other)
+		{
+			return !(*this == other);
+		}
+
+		std::array<uint32_t, 6> getQFIndexes(vk::SurfaceKHR surface)
+		{
+			auto queueFamilyIndexesResult = getQueueFamilyIndexes(mPhysicalDevice, surface);
+			mError = affectError(queueFamilyIndexesResult, mError);
+
+			return retLog(queueFamilyIndexesResult);
+		}
+
+		Device createDevice(std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions);
+		Device createDevice(std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions, vk::PhysicalDeviceFeatures physicalDeviceFeatures);
+
+		vk::PresentModeKHR getAppropriatePresentMode(vk::SurfaceKHR surface, vk::PresentModeKHR chosenPresentMode)
+		{
+			auto getPresentModeResult = getBestAvailablePresentMode(mPhysicalDevice, surface, chosenPresentMode);
+			mError = affectError(getPresentModeResult, mError);
+
+			return retLog(getPresentModeResult);
+		}
+
+		vk::SurfaceFormatKHR getAppropriateSurfaceFormat(vk::SurfaceKHR surface)
+		{
+			auto getSurfaceFormatResult = getBestAvailableSurfaceFormat(mPhysicalDevice, surface);
+			mError = affectError(getSurfaceFormatResult, mError);
+
+			return retLog(getSurfaceFormatResult);
+		}
+
+		vk::Extent2D getAppropriateExtent(vk::SurfaceKHR surface, Window window)
+		{
+			auto getExtentResult = getSwapchainExtent(mPhysicalDevice, surface, window.get());
+			mError = affectError(getExtentResult, mError);
+
+			return retLog(getExtentResult);
+		}
+
+		vk::PhysicalDevice get()
+		{
+			return mPhysicalDevice;
+		}
+
+		Instance getInstance()
+		{
+			return mInstance;
+		}
+
+		std::string error()
+		{
+			return toString(mError);
+		}
+
+	private:
+		vk::PhysicalDevice mPhysicalDevice = nullptr;
+		Instance mInstance = Instance();
+
+		PhysicalDeviceError mError = PhysicalDeviceError::NO_ERROR;
+	};
+
+	class Device
+	{
+	public:
+		Device()
+		{}
+
+		Device(vk::Device device, PhysicalDevice physicalDevice)
+			: mDevice(device), mPhysicalDevice(physicalDevice)
+		{}
+
+		Device(PhysicalDevice physicalDevice, std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions)
+			: mPhysicalDevice(physicalDevice)
+		{
+			auto createDeviceResult = createDevice(physicalDevice.get(), queueFamilyIndexes, extensions);
+			mError = affectError(createDeviceResult, mError);
+
+			mDevice = retLog(createDeviceResult);
+		}
+
+		Device(PhysicalDevice physicalDevice, std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions, vk::PhysicalDeviceFeatures physicalDeviceFeatures)
+			: mPhysicalDevice(physicalDevice)
+		{
+			auto createDeviceResult = createDevice(physicalDevice.get(), queueFamilyIndexes, extensions, physicalDeviceFeatures);
+			mError = affectError(createDeviceResult, mError);
+
+			mDevice = retLog(createDeviceResult);
+		}
+
+		bool operator==(Device other)
+		{
+			return (mDevice == other.get() &&
+				    mPhysicalDevice == other.getPhysicalDevice());
+		}
+
+		bool operator!=(Device other)
+		{
+			return !(*this == other);
+		}
+
+		vk::Queue getVkQueue(uint32_t familyIndex, uint32_t index);
+
+		Queue getQueue(QueueFamilyType queueFamilyType, std::array<uint32_t, 6> queueFamilyIndexes, uint32_t queueIndex);
+		Queue getQueue(QueueFamilyType queueFamilyType, uint32_t queueFamilyIndex, uint32_t queueIndex);
+
+		vk::Device get()
+		{
+			return mDevice;
+		}
+
+		DeviceError error()
+		{
+			return mError;
+		}
+
+		PhysicalDevice getPhysicalDevice()
+		{
+			return mPhysicalDevice;
+		}
+
+		void cleanup()
+		{
+			logError(destroyDevice(mDevice));
+		}
+
+	private:
+		vk::Device mDevice = nullptr;
+		PhysicalDevice mPhysicalDevice = PhysicalDevice();
+
+		DeviceError mError = DeviceError::NO_ERROR;
+	};
+
+	inline Device PhysicalDevice::createDevice(std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions)
+	{
+		return Device(*this, queueFamilyIndexes, extensions);
+	}
+	
+	inline Device PhysicalDevice::createDevice(std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions, vk::PhysicalDeviceFeatures physicalDeviceFeatures)
+	{
+		return Device(*this, queueFamilyIndexes, extensions, physicalDeviceFeatures);
+	}
+
+	class Queue
+	{
+	public:
+		Queue(vk::Queue queue, Device& device, QueueFamilyType familyType, uint32_t familyIndex, uint32_t index)
+			: mQueue(queue), mDevice(device), mFamilyType(familyType), mFamilyIndex(familyIndex), mIndex(index)
+		{}
+
+		Queue(vk::Queue queue, Device& device, QueueFamilyType familyType, std::array<uint32_t, 6> familyIndexes, uint32_t index)
+			: mQueue(queue), mDevice(device), mFamilyType(familyType), mFamilyIndex(familyIndexes[static_cast<uint32_t>(familyType)]), mIndex(index)
+		{}
+
+		bool operator==(Queue other)
+		{
+			return (mQueue == other.get() &&
+				    mDevice == other.getDevice() &&
+				    mFamilyType == other.getFamilyType() &&
+				    mFamilyIndex == other.getFamilyIndex() &&
+				    mIndex == other.getIndex());
+		}
+
+		bool operator!=(Queue other)
+		{
+			return !(*this == other);
+		}
+
+		vk::Queue get()
+		{
+			return mQueue;
+		}
+
+		Device getDevice()
+		{
+			return mDevice;
+		}
+
+		QueueFamilyType getFamilyType()
+		{
+			return mFamilyType;
+		}
+
+		uint32_t getFamilyIndex()
+		{
+			return mFamilyIndex;
+		}
+
+		uint32_t getIndex()
+		{
+			return mIndex;
+		}
+
+		QueueError error()
+		{
+			return mError;
+		}
+
+		std::string infos()
+		{
+			return ("\nerror        = " + toString(mError) +
+				    "\nfamily type  = " + toString(mFamilyType) +
+				    "\nfamily index = " + std::to_string(mFamilyIndex) +
+				    "\nindex        = " + std::to_string(mIndex));
+		}
+
+	private:
+		vk::Queue mQueue = vk::Queue();
+		Device mDevice   = Device();
+
+		QueueError mError = QueueError::NO_ERROR;
+
+		QueueFamilyType mFamilyType = QueueFamilyType::DEBUG_TMP;
+
+		uint32_t mFamilyIndex = std::numeric_limits<uint32_t>::max();
+		uint32_t mIndex = std::numeric_limits<uint32_t>::max();
+	};
+
+	inline vk::Queue Device::getVkQueue(uint32_t familyIndex, uint32_t index)
+	{
+		auto getQueueResult = sk::getQueue(mDevice, familyIndex, index);
+		mError = affectError(getQueueResult, mError);
+
+		return retLog(getQueueResult);
+	}
+
+	inline Queue Device::getQueue(QueueFamilyType queueFamilyType, std::array<uint32_t, 6> queueFamilyIndexes, uint32_t queueIndex)
+	{
+		vk::Queue queue = getVkQueue(queueFamilyIndexes[static_cast<uint32_t>(queueFamilyType)], queueIndex);
+		return Queue(queue, *this, queueFamilyType, queueFamilyIndexes, queueIndex);
+	}
+
+	inline Queue Device::getQueue(QueueFamilyType queueFamilyType, uint32_t queueFamilyIndex, uint32_t queueIndex)
+	{
+		vk::Queue queue = getVkQueue(queueFamilyIndex, queueIndex);
+		return Queue(queue, *this, queueFamilyType, queueFamilyIndex, queueIndex);
+	}
+
+	class Swapchain
+	{
+	public:
+
+	private:
+		vk::SwapchainKHR mSwapchain = nullptr;
+		Device device = Device();
+
+		vk::PresentModeKHR mPresentMode     = vk::PresentModeKHR();
+		vk::SurfaceFormatKHR mSurfaceFormat = vk::SurfaceFormatKHR();
+		vk::Extent2D mExtent                = { 0, 0 };
+
+		std::array<uint32_t, 6> queueFamilyIndexes = {std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max(),
+													  std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max(),
+													  std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max()};
+	};
 }
 #endif

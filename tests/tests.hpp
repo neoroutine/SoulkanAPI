@@ -58,7 +58,7 @@ namespace SOULKAN_NAMESPACE
 		static Device skDevice = skPhysicalDevice.createDevice(queueFamilyIndexes, deviceExtensions);
 		static vk::Device device = skDevice.get();
 
-		deletionQueue.push_func([=]() { skDevice.cleanup(); });
+		deletionQueue.push_func([=]() { skDevice.destroy(); });
 
 		/*QUEUE*/
 		sk::Queue skQueue = skDevice.getQueue(QueueFamilyType::GENERAL, queueFamilyIndexes, 0);
@@ -70,16 +70,10 @@ namespace SOULKAN_NAMESPACE
 		static vk::SurfaceFormatKHR surfaceFormat = skPhysicalDevice.getAppropriateSurfaceFormat(surface);
 		static vk::Extent2D extent                = skPhysicalDevice.getAppropriateExtent(surface, skWindow);
 
-		static auto swapchainCIResult                         = sk::createSwapchainCreateInfo(physicalDevice, surface, pWindow, presentMode, surfaceFormat, extent, queueFamilyIndexes);
-		static vk::SwapchainCreateInfoKHR swapchainCreateInfo = retLog(swapchainCIResult);
+		static sk::Swapchain skSwapchain = skDevice.createSwapchain(skWindow, surface, presentMode, surfaceFormat, extent, queueFamilyIndexes);
+		static vk::SwapchainKHR swapchain = skSwapchain.get();
 
-		static auto createSwapchainResult = sk::createSwapchain(device, swapchainCreateInfo);
-		static vk::SwapchainKHR swapchain = retLog(createSwapchainResult);
-
-		//static auto createSwapchainResult = sk::createSwapchain(physicalDevice, device, surface, pWindow, presentMode, surfaceFormat, extent, queueFamilyIndexes);
-		//static vk::SwapchainKHR swapchain = sk::retLog(createSwapchainResult);
-
-		deletionQueue.push_func([=]() { sk::logError(sk::destroySwapchain(device, swapchain)); });
+		deletionQueue.push_func([=]() { skSwapchain.destroy(); });
 
 		/*COMMAND POOL*/
 		static auto createGeneralCommandPoolResult = sk::createCommandPool(device, queueFamilyIndexes, sk::QueueFamilyType::GENERAL);

@@ -1033,7 +1033,8 @@ namespace SOULKAN_NAMESPACE
 		DEVICE_DESTRUCTION_ERROR = 4,
 		QUEUE_CREATION_ERROR = 5,
 		QUEUE_SUBMIT_ERROR = 6,
-		QUEUE_PRESENT_ERROR = 7
+		QUEUE_PRESENT_ERROR = 7,
+		SWAPCHAIN_CREATION_ERROR = 8
 	};
 
 	/*@brief Enum containing error messages concerning device queues*/
@@ -1262,6 +1263,7 @@ namespace SOULKAN_NAMESPACE
 		case DeviceError::QUEUE_CREATION_ERROR: return "QUEUE_CREATION_ERROR";
 		case DeviceError::QUEUE_SUBMIT_ERROR: return "QUEUE_SUBMIT_ERROR";
 		case DeviceError::QUEUE_PRESENT_ERROR: return "QUEUE_PRESENT_ERROR";
+		case DeviceError::SWAPCHAIN_CREATION_ERROR: return "SWAPCHAIN_CREATION_ERROR";
 		default: return "Invalid enum value";
 		}
 	}
@@ -2800,10 +2802,10 @@ namespace SOULKAN_NAMESPACE
 
 	/*Swapchain*/
 
-	inline SkResult<vk::SwapchainCreateInfoKHR, SwapchainError> createSwapchainCreateInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, GLFWwindow* pWindow, vk::PresentModeKHR presentMode,
+	inline SkResult<vk::SwapchainCreateInfoKHR, DeviceError> createSwapchainCreateInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, GLFWwindow* pWindow, vk::PresentModeKHR presentMode,
 		vk::SurfaceFormatKHR surfaceFormat, vk::Extent2D extent, std::array<uint32_t, 6>& queueFamilyIndices)
 	{
-		SkResult result(vk::SwapchainCreateInfoKHR{}, SwapchainError::NO_ERROR);
+		SkResult result(vk::SwapchainCreateInfoKHR{}, DeviceError::NO_ERROR);
 
 		vk::SurfaceCapabilitiesKHR surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
 		uint32_t swapchainImageCount = surfaceCapabilities.minImageCount + 1;
@@ -2847,9 +2849,9 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	inline SkResult<vk::SwapchainKHR, SwapchainError> createSwapchain(vk::Device device, vk::SwapchainCreateInfoKHR swapchainCreateInfo)
+	inline SkResult<vk::SwapchainKHR, DeviceError> createVkSwapchain(vk::Device device, vk::SwapchainCreateInfoKHR swapchainCreateInfo)
 	{
-		SkResult result(vk::SwapchainKHR(nullptr), SwapchainError::NO_ERROR);
+		SkResult result(vk::SwapchainKHR(nullptr), DeviceError::NO_ERROR);
 
 		try
 		{
@@ -2857,7 +2859,7 @@ namespace SOULKAN_NAMESPACE
 		}
 		catch (vk::SystemError err)
 		{
-			result.error = SwapchainError::SWAPCHAIN_CREATION_ERROR;
+			result.error = DeviceError::SWAPCHAIN_CREATION_ERROR;
 		}
 
 		return result;
@@ -2877,7 +2879,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created swapchain, SwapchainError)
 	*/
-	inline SkResult<vk::SwapchainKHR, SwapchainError> createSwapchain(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface, GLFWwindow* pWindow, vk::PresentModeKHR presentMode,
+	inline SkResult<vk::SwapchainKHR, SwapchainError> createVkSwapchain(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface, GLFWwindow* pWindow, vk::PresentModeKHR presentMode,
 		vk::SurfaceFormatKHR surfaceFormat, vk::Extent2D extent, std::array<uint32_t, 6> queueFamilyIndices)
 	{
 		SkResult result(static_cast<vk::SwapchainKHR>(vk::SwapchainKHR(nullptr)), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
@@ -5519,7 +5521,7 @@ namespace SOULKAN_NAMESPACE
 			: mDevice(device), mPhysicalDevice(physicalDevice)
 		{}
 
-		Device(PhysicalDevice physicalDevice, std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions)
+		Device(PhysicalDevice& physicalDevice, std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions)
 			: mPhysicalDevice(physicalDevice)
 		{
 			auto createDeviceResult = createDevice(physicalDevice.get(), queueFamilyIndexes, extensions);
@@ -5528,7 +5530,7 @@ namespace SOULKAN_NAMESPACE
 			mDevice = retLog(createDeviceResult);
 		}
 
-		Device(PhysicalDevice physicalDevice, std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions, vk::PhysicalDeviceFeatures physicalDeviceFeatures)
+		Device(PhysicalDevice& physicalDevice, std::array<uint32_t, 6> queueFamilyIndexes, std::vector<const char*> extensions, vk::PhysicalDeviceFeatures physicalDeviceFeatures)
 			: mPhysicalDevice(physicalDevice)
 		{
 			auto createDeviceResult = createDevice(physicalDevice.get(), queueFamilyIndexes, extensions, physicalDeviceFeatures);
@@ -5553,6 +5555,9 @@ namespace SOULKAN_NAMESPACE
 		Queue getQueue(QueueFamilyType queueFamilyType, std::array<uint32_t, 6> queueFamilyIndexes, uint32_t queueIndex);
 		Queue getQueue(QueueFamilyType queueFamilyType, uint32_t queueFamilyIndex, uint32_t queueIndex);
 
+		Swapchain createSwapchain(vk::SwapchainCreateInfoKHR swapchainCreateInfo);
+		Swapchain createSwapchain(Window window, vk::SurfaceKHR surface, vk::PresentModeKHR presentMode, vk::SurfaceFormatKHR surfaceFormat, vk::Extent2D extent, std::array<uint32_t, 6> queueFamilyIndexes);
+
 		vk::Device get()
 		{
 			return mDevice;
@@ -5568,7 +5573,7 @@ namespace SOULKAN_NAMESPACE
 			return mPhysicalDevice;
 		}
 
-		void cleanup()
+		void destroy()
 		{
 			logError(destroyDevice(mDevice));
 		}
@@ -5688,18 +5693,65 @@ namespace SOULKAN_NAMESPACE
 	class Swapchain
 	{
 	public:
+		Swapchain()
+		{}
+
+		Swapchain(vk::SwapchainKHR swapchain, Device& device, vk::SwapchainCreateInfoKHR createInfo)
+			: mSwapchain(swapchain), mDevice(device), mInfos(createInfo)
+		{}
+
+		vk::SwapchainKHR get()
+		{
+			return mSwapchain;
+		}
+
+		Device getDevice()
+		{
+			return mDevice;
+		}
+
+		vk::SwapchainCreateInfoKHR getInfos()
+		{
+			return mInfos;
+		}
+
+		SwapchainError error()
+		{
+			return mError;
+		}
+
+		void destroy()
+		{
+			mDevice.get().destroySwapchainKHR(mSwapchain);
+		}
 
 	private:
 		vk::SwapchainKHR mSwapchain = nullptr;
-		Device device = Device();
+		Device mDevice = Device();
 
-		vk::PresentModeKHR mPresentMode     = vk::PresentModeKHR();
-		vk::SurfaceFormatKHR mSurfaceFormat = vk::SurfaceFormatKHR();
-		vk::Extent2D mExtent                = { 0, 0 };
+		SwapchainError mError = SwapchainError::NO_ERROR;
 
-		std::array<uint32_t, 6> queueFamilyIndexes = {std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max(),
-													  std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max(),
-													  std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max()};
+		vk::SwapchainCreateInfoKHR mInfos = {};
 	};
+
+	inline Swapchain Device::createSwapchain(vk::SwapchainCreateInfoKHR swapchainCreateInfo)
+	{
+		auto createSwapchainResult = createVkSwapchain(mDevice, swapchainCreateInfo);
+
+		return Swapchain(retLog(createSwapchainResult), *this, swapchainCreateInfo);
+	}
+
+	inline Swapchain Device::createSwapchain(Window window, vk::SurfaceKHR surface, vk::PresentModeKHR presentMode, vk::SurfaceFormatKHR surfaceFormat, vk::Extent2D extent, std::array<uint32_t, 6> queueFamilyIndexes)
+	{
+		auto createSwapchainCIResult = createSwapchainCreateInfo(mPhysicalDevice.get(), surface, window.get(), presentMode, surfaceFormat, extent, queueFamilyIndexes);
+		mError = affectError(createSwapchainCIResult, mError);
+		vk::SwapchainCreateInfoKHR swapchainCreateInfo = retLog(createSwapchainCIResult);
+
+		auto createSwapchainResult = createVkSwapchain(mDevice, retLog(createSwapchainCIResult));
+		mError = affectError(createSwapchainResult, mError);
+		vk::SwapchainKHR swapchain = retLog(createSwapchainResult);
+
+		return Swapchain(swapchain, *this, swapchainCreateInfo);
+	}
 }
 #endif

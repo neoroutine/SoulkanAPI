@@ -92,8 +92,7 @@ namespace SOULKAN_NAMESPACE
 		deletionQueue.push_func([=]() { sk::logError(sk::destroyRenderPass(device, renderPass)); });
 
 		/*FRAMEBUFFERS*/
-	    static auto getSwapchainImagesResult = sk::getSwapchainImages(device, swapchain);
-		static std::vector<vk::Image> swapchainImages = sk::retLog(getSwapchainImagesResult);
+		static std::vector<vk::Image> swapchainImages = skSwapchain.getImages();
 
 		static auto createSwapchainImageViewsResult = sk::createSwapchainImageViews(device, swapchainImages, surfaceFormat);
 		static std::vector<vk::ImageView> swapchainImageViews = sk::retLog(createSwapchainImageViewsResult);

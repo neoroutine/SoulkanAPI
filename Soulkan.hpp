@@ -49,7 +49,7 @@ namespace SOULKAN_MATHS_NAMESPACE
 	*@return Boolean indicating if result contains an error
 	*/
 	template<class V, class E>
-	constexpr inline bool error(SkResult<V, E> result) noexcept
+	constexpr inline bool error(const SkResult<V, E>& result) noexcept
 	{
 		if (result.error != E::NO_ERROR)
 		{
@@ -67,7 +67,7 @@ namespace SOULKAN_MATHS_NAMESPACE
 	*@return The value of result
 	*/
 	template<class V, class E>
-	inline V retLog(SkResult<V, E> result) noexcept
+	inline V retLog(const SkResult<V, E>& result) noexcept
 	{
 		if (error(result)) { std::cout << "Math error" << std::endl; }
 
@@ -80,7 +80,7 @@ namespace SOULKAN_MATHS_NAMESPACE
 	*@return The error of result if result contains an error, else returns err
 	*/
 	template<class V, class E>
-	inline E affectError(SkResult<V, E> result, E err) noexcept
+	inline E affectError(SkResult<V, E>& result, E& err) noexcept
 	{
 		if (error(result))
 		{
@@ -616,7 +616,7 @@ namespace SOULKAN_MATHS_NAMESPACE
 		return idMatrix;
 	}
 
-	inline SkResult<Mat4, MathError> orthoProjection(float left, float right, float top, float bottom, float near, float far)
+	inline SkResult<Mat4, MathError> orthoProjection(const float left, const float right, const float top, const float bottom, const float near, const float far)
 	{
 		SkResult result(Mat4(0.f), static_cast<MathError>(MathError::NO_ERROR));
 
@@ -643,7 +643,7 @@ namespace SOULKAN_MATHS_NAMESPACE
 		return result;
 	}
 
-	inline SkResult<Mat4, MathError> perspectiveProjection(float fovy, float aspect, float near, float far)
+	inline SkResult<Mat4, MathError> perspectiveProjection(const float fovy, const float aspect, const float near, const float far)
 	{
 		SkResult result(Mat4(0.f), MathError::NO_ERROR);
 
@@ -673,7 +673,7 @@ namespace SOULKAN_MATHS_NAMESPACE
 	*
 	* @return SkResult(FPS, MathError)
 	*/
-	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFramePerSecond(double frames, std::chrono::duration<double> delta) noexcept
+	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFramePerSecond(const double frames, const std::chrono::duration<double>& delta) noexcept
 	{
 		SkResult result(static_cast<double>(0.0f), static_cast<SOULKAN_MATHS_NAMESPACE::MathError>(SOULKAN_MATHS_NAMESPACE::MathError::NO_ERROR));
 
@@ -696,7 +696,7 @@ namespace SOULKAN_MATHS_NAMESPACE
 	*
 	* @return SkResult(frametime in miliseconds, MathError)
 	*/
-	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFrametime(double framePerSecond) noexcept
+	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFrametime(const double framePerSecond) noexcept
 	{
 		SkResult result(static_cast<double>(0.0f), static_cast<SOULKAN_MATHS_NAMESPACE::MathError>(SOULKAN_MATHS_NAMESPACE::MathError::NO_ERROR));
 
@@ -1167,7 +1167,7 @@ namespace SOULKAN_NAMESPACE
 	};
 
 	/*toString() implementation for every enum class, inspired by vulkan.hpp*/
-	inline std::string toString(QueueFamilyType value)
+	inline std::string toString(const QueueFamilyType value)
 	{
 		switch (value)
 		{
@@ -1180,8 +1180,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(UndefinedError value)
+								 
+	inline std::string toString(const UndefinedError value)
 	{
 		switch (value)
 		{
@@ -1190,8 +1190,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(TestError value)
+								 
+	inline std::string toString(const TestError value)
 	{
 		switch (value)
 		{
@@ -1199,8 +1199,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(GLFWError value)
+								 
+	inline std::string toString(const GLFWError value)
 	{
 		switch (value)
 		{
@@ -1211,8 +1211,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(DebugUtilsError value)
+								 
+	inline std::string toString(const DebugUtilsError value)
 	{
 		switch (value)
 		{
@@ -1221,8 +1221,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(InstanceError value)
+								 
+	inline std::string toString(const InstanceError value)
 	{
 		switch (value)
 		{
@@ -1234,8 +1234,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(PhysicalDeviceError value)
+								 
+	inline std::string toString(const PhysicalDeviceError value)
 	{
 		switch (value)
 		{
@@ -1250,8 +1250,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(DeviceError value)
+								 
+	inline std::string toString(const DeviceError value)
 	{
 		switch (value)
 		{
@@ -1268,7 +1268,7 @@ namespace SOULKAN_NAMESPACE
 		}
 	}
 
-	inline std::string toString(QueueError value)
+	inline std::string toString(const QueueError value)
 	{
 		switch (value)
 		{
@@ -1277,8 +1277,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(SwapchainError value)
+								 
+	inline std::string toString(const SwapchainError value)
 	{
 		switch (value)
 		{
@@ -1292,8 +1292,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(CommandPoolError value)
+								 
+	inline std::string toString(const CommandPoolError value)
 	{
 		switch (value)
 		{
@@ -1304,8 +1304,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(CommandBufferError value)
+								 
+	inline std::string toString(const CommandBufferError value)
 	{
 		switch (value)
 		{
@@ -1316,8 +1316,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(RenderPassError value)
+								 
+	inline std::string toString(const RenderPassError value)
 	{
 		switch (value)
 		{
@@ -1329,8 +1329,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(FramebufferError value)
+								 
+	inline std::string toString(const FramebufferError value)
 	{
 		switch (value)
 		{
@@ -1341,8 +1341,8 @@ namespace SOULKAN_NAMESPACE
 		}
 
 	}
-
-	inline std::string toString(SyncError value)
+								 
+	inline std::string toString(const SyncError value)
 	{
 		switch (value)
 		{
@@ -1355,8 +1355,8 @@ namespace SOULKAN_NAMESPACE
 		}
 
 	}
-
-	inline std::string toString(DrawingError value)
+								 
+	inline std::string toString(const DrawingError value)
 	{
 		switch (value)
 		{
@@ -1364,8 +1364,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(ShaderError value)
+								 
+	inline std::string toString(const ShaderError value)
 	{
 		switch (value)
 		{
@@ -1375,8 +1375,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(SOULKAN_MATHS_NAMESPACE::MathError value)
+								 
+	inline std::string toString(const SOULKAN_MATHS_NAMESPACE::MathError value)
 	{
 		switch (value)
 		{
@@ -1385,8 +1385,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(GraphicsPipelineError value)
+								 
+	inline std::string toString(const GraphicsPipelineError value)
 	{
 		switch (value)
 		{
@@ -1409,8 +1409,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(AllocationError value)
+								 
+	inline std::string toString(const AllocationError value)
 	{
 		switch (value)
 		{
@@ -1424,8 +1424,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(BufferError value)
+								 
+	inline std::string toString(const BufferError value)
 	{
 		switch (value)
 		{
@@ -1435,8 +1435,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string toString(MeshError value)
+								 
+	inline std::string toString(const MeshError value)
 	{
 		switch (value)
 		{
@@ -1453,7 +1453,7 @@ namespace SOULKAN_NAMESPACE
 	*@return Boolean indicating if result contains an error
 	*/
 	template<class V, class E>
-	constexpr inline bool error(SkResult<V, E> result) noexcept
+	constexpr inline bool error(const SkResult<V, E>& result) noexcept
 	{
 		if (result.error != E::NO_ERROR)
 		{
@@ -1471,7 +1471,7 @@ namespace SOULKAN_NAMESPACE
 	*@return Formatted error message as std::string
 	*/
 	template<class V, class E>
-	constexpr inline std::string returnError(SkResult<V, E> result) noexcept
+	constexpr inline std::string returnError(const SkResult<V, E>& result) noexcept
 	{
 		return std::string("ERROR : " + toString(static_cast<E>(result.error)) + " when returning SkResult(" + typeid(V).name() + ", " + typeid(E).name() + ")\n");
 	}
@@ -1481,7 +1481,7 @@ namespace SOULKAN_NAMESPACE
 	*@return Boolean indicating if result contains an error
 	*/
 	template<class V, class E>
-	constexpr inline bool logError(SkResult<V, E> result) noexcept
+	constexpr inline bool logError(const SkResult<V, E>& result) noexcept
 	{
 		if (error(result))
 		{
@@ -1497,7 +1497,7 @@ namespace SOULKAN_NAMESPACE
 	*@return The value of result
 	*/
 	template<class V, class E>
-	inline V retLog(SkResult<V, E> result) noexcept
+	inline V retLog(const SkResult<V, E>& result) noexcept
 	{
 		logError(result);
 
@@ -1510,7 +1510,7 @@ namespace SOULKAN_NAMESPACE
 	*@return The error of result if result contains an error, else returns err
 	*/
 	template<class V, class E>
-	inline E affectError(SkResult<V, E> result, E err) noexcept
+	inline E affectError(const SkResult<V, E>& result, E& err) noexcept
 	{
 		if (error(result))
 		{
@@ -1700,7 +1700,7 @@ namespace SOULKAN_NAMESPACE
 		* @return inline SkResult<Pointer to the GLFW window, GLFWError>
 		*
 		*/
-	inline SkResult<GLFWwindow*, GLFWError> createGlfwWindow(uint32_t width, uint32_t height, std::string_view title, bool resizable) noexcept
+	inline SkResult<GLFWwindow*, GLFWError> createGlfwWindow(const uint32_t width, const uint32_t height, std::string_view title, bool resizable) noexcept
 	{
 		SkResult result(static_cast<GLFWwindow*>(nullptr), static_cast<GLFWError>(GLFWError::NO_ERROR));
 
@@ -1723,7 +1723,7 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	inline SkResult<GLFWwindow*, GLFWError> createWindow(uint32_t width, uint32_t height, std::string title, bool resizable) noexcept
+	inline SkResult<GLFWwindow*, GLFWError> createWindow(const uint32_t width, const uint32_t height, std::string_view title, bool resizable) noexcept
 	{
 		SkResult result(static_cast<GLFWwindow*>(nullptr), static_cast<GLFWError>(GLFWError::NO_ERROR));
 
@@ -1895,7 +1895,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(application info, InstanceError)
 	*/
-	inline SkResult<vk::ApplicationInfo, InstanceError> createApplicationInfo(std::string_view appName, std::string_view engineName) noexcept
+	inline SkResult<vk::ApplicationInfo, InstanceError> createApplicationInfo(const std::string_view appName, const std::string_view engineName) noexcept
 	{
 		SkResult result(static_cast<vk::ApplicationInfo>(vk::ApplicationInfo{}), static_cast<InstanceError>(InstanceError::NO_ERROR));
 
@@ -1927,8 +1927,8 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vulkan instance, InstanceError)
 	*/
-	inline SkResult<vk::Instance, InstanceError> createInstance(vk::ApplicationInfo applicationInfo, std::vector<const char*> extensions = std::vector<const char*>(), std::vector<const char*> validationLayers = std::vector<const char*>(),
-		PFN_vkDebugUtilsMessengerCallbackEXT debugUtilsMessenger = nullptr)
+	inline SkResult<vk::Instance, InstanceError> createInstance(const vk::ApplicationInfo& applicationInfo, const std::vector<const char*>& extensions = std::vector<const char*>(), const std::vector<const char*>& validationLayers = std::vector<const char*>(),
+		const PFN_vkDebugUtilsMessengerCallbackEXT debugUtilsMessenger = nullptr)
 	{
 		SkResult result(static_cast<vk::Instance>(vk::Instance(nullptr)), static_cast<InstanceError>(InstanceError::NO_ERROR));
 
@@ -1996,8 +1996,8 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	inline SkResult<vk::Instance, InstanceError> createInstance(std::string_view appName, std::string_view engineName, std::vector<const char*> extensions = std::vector<const char*>(),
-		std::vector<const char*> validationLayers = std::vector<const char*>(), PFN_vkDebugUtilsMessengerCallbackEXT debugUtilsMessenger = nullptr) noexcept
+	inline SkResult<vk::Instance, InstanceError> createInstance(const std::string_view appName, const std::string_view engineName, const std::vector<const char*>& extensions = std::vector<const char*>(),
+		const std::vector<const char*>& validationLayers = std::vector<const char*>(), const PFN_vkDebugUtilsMessengerCallbackEXT debugUtilsMessenger = nullptr) noexcept
 	{
 		SkResult result(vk::Instance(nullptr), InstanceError::NO_ERROR);
 
@@ -2023,7 +2023,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(
 	*/
-	inline SkResult<vk::SurfaceKHR, InstanceError> createGLFWWindowSurface(vk::Instance instance, GLFWwindow* pWindow) noexcept
+	inline SkResult<vk::SurfaceKHR, InstanceError> createGLFWWindowSurface(const vk::Instance& instance, GLFWwindow* pWindow) noexcept
 	{
 		SkResult result(static_cast<vk::SurfaceKHR>(vk::SurfaceKHR(nullptr)), static_cast<InstanceError>(InstanceError::NO_ERROR));
 
@@ -2048,7 +2048,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of physical devices, PhysicalDeviceError)
 	*/
-	inline SkResult<std::vector<vk::PhysicalDevice>, PhysicalDeviceError> getAvailablePhysicalDevices(vk::Instance instance) noexcept
+	inline SkResult<std::vector<vk::PhysicalDevice>, PhysicalDeviceError> getAvailablePhysicalDevices(const vk::Instance& instance) noexcept
 	{
 		SkResult result(static_cast<std::vector<vk::PhysicalDevice>>(std::vector<vk::PhysicalDevice>()), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
 
@@ -2940,7 +2940,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), SwapchainError)
 	*/
-	inline SkResult<bool, SwapchainError> destroySwapchain(vk::Device device, vk::SwapchainKHR swapchain)
+	inline SkResult<bool, SwapchainError> destroySwapchain(const vk::Device& device, vk::SwapchainKHR swapchain)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
 
@@ -2964,7 +2964,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of swapchain images, SwapchainError)
 	*/
-	inline SkResult<std::vector<vk::Image>, SwapchainError> getSwapchainImages(vk::Device device, vk::SwapchainKHR swapchain)
+	inline SkResult<std::vector<vk::Image>, SwapchainError> getSwapchainImages(const vk::Device& device, const vk::SwapchainKHR& swapchain)
 	{
 		SkResult result(static_cast<std::vector<vk::Image>>(std::vector<vk::Image>()), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
 
@@ -2982,57 +2982,6 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	/*@brief (Not the recommended way of creating image views, please refer to createSwapchainImageViews() using a vector of swapchainImages instead of the swapchain itself)
-	* Creates swapchain image views from swapchain images using a given vulkan device and a given vulkan surface format
-	*
-	* @param device the vulkan device used to create these image views
-	* @param swapchain the vulkan swapchain from which the original images are queried
-	* @param surfaceFormat the vulkan surface format used for created image views
-	*
-	* @return SkResult(vector of created image views, SwapchainError)
-	*/
-	inline SkResult<std::vector<vk::ImageView>, SwapchainError> createSwapchainImageViews(vk::Device device, vk::SwapchainKHR swapchain, vk::SurfaceFormatKHR surfaceFormat)
-	{
-		SkResult result(static_cast<std::vector<vk::ImageView>>(std::vector<vk::ImageView>()), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
-
-		std::vector<vk::Image> swapchainImages = retLog(getSwapchainImages(device, swapchain));
-
-		uint32_t swapchainImageCount = static_cast<uint32_t>(swapchainImages.size());
-		std::vector<vk::ImageView> swapchainImageViews;
-		swapchainImageViews.reserve(swapchainImageCount);
-
-		for (uint32_t i = 0; i < swapchainImageCount; i++)
-		{
-			vk::ImageViewCreateInfo imageViewCreateInfo = {};
-
-			imageViewCreateInfo.image = swapchainImages[i];
-			imageViewCreateInfo.viewType = vk::ImageViewType::e2D;
-			imageViewCreateInfo.format = surfaceFormat.format;
-
-			imageViewCreateInfo.components.r = vk::ComponentSwizzle::eIdentity;
-			imageViewCreateInfo.components.g = vk::ComponentSwizzle::eIdentity;
-			imageViewCreateInfo.components.g = vk::ComponentSwizzle::eIdentity;
-
-			imageViewCreateInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-			imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-			imageViewCreateInfo.subresourceRange.levelCount = 1;
-			imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-			imageViewCreateInfo.subresourceRange.layerCount = 1;
-
-			try
-			{
-				swapchainImageViews.emplace_back(vk::ImageView(device.createImageView(imageViewCreateInfo)));
-			}
-			catch (vk::SystemError err)
-			{
-				result.error = SwapchainError::SWAPCHAIN_IMAGE_VIEW_CREATION_ERROR;
-			}
-		}
-
-		result.value = std::move(swapchainImageViews);
-		return result;
-	}
-
 	/*@brief Creates swapchain image views from given swapchain images using a given vulkan device and a given vulkan surface format
 	*
 	* @param device the vulkan device used to create these image views
@@ -3041,7 +2990,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of created image views, SwapchainError)
 	*/
-	inline SkResult<std::vector<vk::ImageView>, SwapchainError> createSwapchainImageViews(vk::Device device, std::vector<vk::Image>& swapchainImages, vk::SurfaceFormatKHR& surfaceFormat)
+	inline SkResult<std::vector<vk::ImageView>, SwapchainError> createSwapchainImageViews(const vk::Device& device, const std::vector<vk::Image>& swapchainImages, const vk::SurfaceFormatKHR& surfaceFormat)
 	{
 		SkResult result(static_cast<std::vector<vk::ImageView>>(std::vector<vk::ImageView>()), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
 
@@ -3749,9 +3698,9 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), DrawingError)
 	*/
-	inline SkResult<bool, DrawingError> draw(vk::Device device, vk::CommandBuffer commandBuffer, vk::SwapchainKHR swapchain, vk::Queue queue, vk::Pipeline pipeline, vk::Fence renderFence, vk::Semaphore presentSemaphore,
-		vk::Semaphore renderSemaphore, vk::RenderPass renderPass, vk::Extent2D extent, std::vector<vk::Framebuffer> framebuffers, std::vector<vk::Buffer> vertexBuffers,
-		std::vector<Vertex> vertices, double& frameNumber)
+	inline SkResult<bool, DrawingError> draw(const vk::Device& device, const vk::CommandBuffer& commandBuffer, const vk::SwapchainKHR& swapchain, const vk::Queue& queue, const vk::Pipeline& pipeline, vk::Fence& renderFence, vk::Semaphore& presentSemaphore,
+		vk::Semaphore& renderSemaphore, const vk::RenderPass& renderPass, const vk::Extent2D& extent, const std::vector<vk::Framebuffer>& framebuffers, const std::vector<vk::Buffer>& vertexBuffers,
+		const std::vector<Vertex>& vertices, double& frameNumber)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<DrawingError>(DrawingError::NO_ERROR));
 
@@ -5699,6 +5648,27 @@ namespace SOULKAN_NAMESPACE
 		Swapchain(vk::SwapchainKHR swapchain, Device& device, vk::SwapchainCreateInfoKHR createInfo)
 			: mSwapchain(swapchain), mDevice(device), mInfos(createInfo)
 		{}
+
+		std::vector<vk::Image> getImages()
+		{
+			auto getImagesResult = getSwapchainImages(mDevice.get(), mSwapchain);
+
+			return retLog(getImagesResult);
+		}
+
+		std::vector<vk::ImageView> createImageViews(const std::vector<vk::Image>& images, vk::SurfaceFormatKHR surfaceFormat)
+		{
+			auto createImageViewsResult = createSwapchainImageViews(mDevice.get(), images, surfaceFormat);
+
+			return retLog(createImageViewsResult);
+		}
+
+		std::vector<vk::ImageView> createImageViews()
+		{
+			auto createImageViewsResult = createSwapchainImageViews(mDevice.get(), getImages(), vk::SurfaceFormatKHR{ mInfos.imageFormat, mInfos.imageColorSpace });
+
+			return retLog(createImageViewsResult);
+		}
 
 		vk::SwapchainKHR get()
 		{

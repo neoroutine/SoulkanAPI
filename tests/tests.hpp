@@ -201,6 +201,8 @@ namespace SOULKAN_NAMESPACE
 		std::cout << "180 deg : " << skm::toRad(180.f) << " rad" << std::endl;
 		std::cout << "360 deg : " << skm::toRad(360.f) << " rad" << std::endl;
 
+		//std::cout << "sizeof(T) : " << sizeof(vk::Device) << "\tsizeof(T*) : " << sizeof(vk::Device*) << std::endl;
+
 		auto initEnd = std::chrono::steady_clock::now();
 		auto frameStart = std::chrono::steady_clock::now();
 		while (!glfwWindowShouldClose(pWindow))

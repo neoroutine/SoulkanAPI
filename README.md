@@ -31,8 +31,11 @@ Here, **API** stands for **Abridged Programming Interface** !
 - More infos in `Soulkan.hpp`
 
 ## Examples
-![SkResult example](img/instance_creation_example.png)
 - Here is an example of how to create a vulkan instance
+![SkResult example](img/instance_creation_example.png)
+-Here is the recommended way using convenience classes
+![Convience classes example](img/instance_creation_convenience.png)
+`test/tests.hpp` for more examples and informations
 
 ## Big thanks to :
 

@@ -11,7 +11,7 @@ namespace SOULKAN_NAMESPACE
 {
 	inline sk::SkResult<sk::SkTestData, sk::TestError> mainSoulkanTest(bool debug)
 	{
-		sk::SkResult result(static_cast<sk::SkTestData>(sk::SkTestData()), static_cast<sk::TestError>(sk::TestError::NO_ERROR));
+		sk::SkResult result(sk::SkTestData(), sk::TestError::NO_ERROR);
 
 		/*TEST DATA*/
 		auto initStart = std::chrono::steady_clock::now();
@@ -23,58 +23,57 @@ namespace SOULKAN_NAMESPACE
 		static sk::DeletionQueue deletionQueue;
 
 		/*GLFW*/
-		static auto createWindowResult = sk::createWindow(800, 600, "Soulkan", false);
-		static GLFWwindow* pWindow = sk::retLog(createWindowResult);
+		static auto initResult = sk::initGlfw();
+		static auto isInit     = sk::retLog(initResult);
+		static sk::Window skWindow(800, 600, "Soulkan");
+		static GLFWwindow* pWindow = skWindow.get();
+
 
 		/*INSTANCE*/
 
-		static vk::Instance instance;
+		static sk::Instance skInstance;
 		if (debug)
 		{
 			static std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_api_dump" };
-			static auto createInstanceResult = sk::createInstance("Soulkan", "Soulkan", std::vector<const char*>(), validationLayers);
-			instance = sk::retLog(createInstanceResult);
-
+			skInstance = sk::Instance("Soulkan", "Soulkan", std::vector<const char*>(), validationLayers);
 		}
 		else
 		{
-			static auto createInstanceResult = sk::createInstance("Soulkan", "Soulkan");
-			instance = sk::retLog(createInstanceResult);
+			skInstance = sk::Instance("Soulkan", "Soulkan");
 		}
 
+		static vk::Instance instance = skInstance.get();
+
 		/*PHYSICAL DEVICE*/
-		static auto getPhysicalDeviceResult = sk::getPhysicalDevice(instance);
-		static vk::PhysicalDevice physicalDevice = sk::retLog(getPhysicalDeviceResult);
+		static sk::PhysicalDevice skPhysicalDevice(skInstance);
+		static vk::PhysicalDevice physicalDevice = skPhysicalDevice.get();
 		std::cout << "Physical device name : " << physicalDevice.getProperties().deviceName << std::endl;
 
-		static auto createGLFWWindowSurfaceResult = sk::createGLFWWindowSurface(instance, pWindow);
-		static vk::SurfaceKHR surface = sk::retLog(createGLFWWindowSurfaceResult);
+		static vk::SurfaceKHR surface = skInstance.createSurface(skWindow);
 
-		static auto queueFamilyIndexesResult = sk::getQueueFamilyIndexes(physicalDevice, surface);
-		static std::vector<uint32_t> queueFamilyIndexes = sk::retLog(queueFamilyIndexesResult);
-
-		static sk::SkResult<vk::SurfaceFormatKHR, sk::PhysicalDeviceError> getBestAvailableSurfaceFormatResult = sk::getBestAvailableSurfaceFormat(physicalDevice, surface);
-		static vk::SurfaceFormatKHR surfaceFormat = sk::retLog(getBestAvailableSurfaceFormatResult);
+		static std::array<uint32_t, 6> queueFamilyIndexes = skPhysicalDevice.getQFIndexes(surface);
 
 		/*DEVICE*/
 		static std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-		static auto createDeviceResult = sk::createDevice(physicalDevice, queueFamilyIndexes, deviceExtensions, vk::PhysicalDeviceFeatures{});
-		static vk::Device device = sk::retLog(createDeviceResult);
+		static Device skDevice = skPhysicalDevice.createDevice(queueFamilyIndexes, deviceExtensions);
+		static vk::Device device = skDevice.get();
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroyDevice(device)); });
+		deletionQueue.push_func([=]() { skDevice.destroy(); });
 
 		/*QUEUE*/
-		static auto generalQueueResult = sk::getQueue(device, queueFamilyIndexes[static_cast<uint32_t>(sk::QueueFamilyType::GENERAL)], 0);
-		static vk::Queue generalQueue = sk::retLog(generalQueueResult);
+		sk::Queue skQueue = skDevice.getQueue(QueueFamilyType::GENERAL, queueFamilyIndexes, 0);
+		static vk::Queue generalQueue = skQueue.get();
 
 		/*SWAPCHAIN*/
-		static auto createSwapchainResult = sk::createSwapchain(physicalDevice, device, surface, pWindow, vk::PresentModeKHR::eMailbox, queueFamilyIndexes);
-		static vk::SwapchainKHR swapchain = sk::retLog(createSwapchainResult);
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroySwapchain(device, swapchain)); });
+		static vk::PresentModeKHR presentMode     = skPhysicalDevice.getAppropriatePresentMode(surface, vk::PresentModeKHR::eMailbox);
+		static vk::SurfaceFormatKHR surfaceFormat = skPhysicalDevice.getAppropriateSurfaceFormat(surface);
+		static vk::Extent2D extent                = skPhysicalDevice.getAppropriateExtent(surface, skWindow);
 
-		static auto getSwapchainExtentResult = sk::getSwapchainExtent(physicalDevice, surface, pWindow);
-		static vk::Extent2D extent = sk::retLog(getSwapchainExtentResult);
+		static sk::Swapchain skSwapchain = skDevice.createSwapchain(skWindow, surface, presentMode, surfaceFormat, extent, queueFamilyIndexes);
+		static vk::SwapchainKHR swapchain = skSwapchain.get();
+
+		deletionQueue.push_func([=]() { skSwapchain.destroy(); });
 
 		/*COMMAND POOL*/
 		static auto createGeneralCommandPoolResult = sk::createCommandPool(device, queueFamilyIndexes, sk::QueueFamilyType::GENERAL);
@@ -93,8 +92,7 @@ namespace SOULKAN_NAMESPACE
 		deletionQueue.push_func([=]() { sk::logError(sk::destroyRenderPass(device, renderPass)); });
 
 		/*FRAMEBUFFERS*/
-		static auto getSwapchainImagesResult          = sk::getSwapchainImages(device, swapchain);
-		static std::vector<vk::Image> swapchainImages = sk::retLog(getSwapchainImagesResult);
+		static std::vector<vk::Image> swapchainImages = skSwapchain.getImages();
 
 		static auto createSwapchainImageViewsResult = sk::createSwapchainImageViews(device, swapchainImages, surfaceFormat);
 		static std::vector<vk::ImageView> swapchainImageViews = sk::retLog(createSwapchainImageViewsResult);
@@ -194,14 +192,16 @@ namespace SOULKAN_NAMESPACE
 
 		std::vector<sk::Vertex> verticesToBeDrawn = std::move(triangleMeshVertices);
 
-		sk::Mat4 equality(1.0f);
-		std::cout << equality.asString() << std::endl;
+		skm::Mat4 translation = skm::translation(1.f, 2.f, 3.f);
+		std::cout << translation.asString() << std::endl;
 
-		sk::Mat4 squaredEquality = equality * equality;
-		std::cout << squaredEquality.asString() << std::endl;
+		std::cout << "45 deg  : " << skm::toRad(45.f)  << " rad" << std::endl;
+		std::cout << "90 deg  : " << skm::toRad(90.f)  << " rad" << std::endl;
+		std::cout << "135 deg : " << skm::toRad(135.f) << " rad" << std::endl;
+		std::cout << "180 deg : " << skm::toRad(180.f) << " rad" << std::endl;
+		std::cout << "360 deg : " << skm::toRad(360.f) << " rad" << std::endl;
 
-		sk::Mat4 squaredEqualityTimes2 = squaredEquality * 2.0f;
-		std::cout << squaredEqualityTimes2.asString() << std::endl;
+		//std::cout << "sizeof(T) : " << sizeof(vk::Device) << "\tsizeof(T*) : " << sizeof(vk::Device*) << std::endl;
 
 		auto initEnd = std::chrono::steady_clock::now();
 		auto frameStart = std::chrono::steady_clock::now();
@@ -214,15 +214,15 @@ namespace SOULKAN_NAMESPACE
 			auto now = std::chrono::steady_clock::now();
 			std::chrono::duration<double> delta = now - frameStart;
 
-			double framesPerSecond = std::move(sk::retLog(sk::getFramePerSecond(frameNumber, delta)));
-			double frametime       = std::move(sk::retLog(sk::getFrametime(framesPerSecond)));
+			double framesPerSecond = skm::retLog(skm::getFramePerSecond(frameNumber, delta));
+			double frametime       = skm::retLog(skm::getFrametime(framesPerSecond));
 
 			averageFramesPerSecond += framesPerSecond;
 			averageFrametime += frametime;
 
-			std::string title = std::move("Frame " + std::to_string(frameNumber).substr(0, 10) + " (" + std::to_string(framesPerSecond).substr(0, 5) + 
+			std::string title = ("Frame " + std::to_string(frameNumber).substr(0, 10) + " (" + std::to_string(framesPerSecond).substr(0, 5) + 
 				                          " fps or frametime : " + std::to_string(frametime).substr(0, 5) + " ms) DEBUG : ");
-			title += std::move(debug ? "ON" : "OFF");
+			title += (debug ? "ON" : "OFF");
 
 			glfwSetWindowTitle(pWindow, title.c_str());
 		}

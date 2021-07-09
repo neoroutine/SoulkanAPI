@@ -3,12 +3,12 @@
 #define SOULKAN_HPP
 #pragma once
 
-/*Defining namespace as a macro so that the user can change it*/
+/*Defining namespaces as macros so that the user can change them*/
 #define SOULKAN_NAMESPACE sk
+#define SOULKAN_MATHS_NAMESPACE skm
 
 
 /*Includes from the std library or from needed tools*/
-#include <cstdarg>
 #include <chrono>
 #include <fstream>
 #include <deque>
@@ -16,6 +16,796 @@
 #include <GLFW/glfw3.h>
 #define GLFW_INCLUDE_VULKAN
 
+namespace SOULKAN_MATHS_NAMESPACE
+{
+	const double pi = 3.141592653589793238462;
+	/*@brief The main return value of soulkan functions, containing :
+	*@param value, the variable containing the actual return value
+	*@param error, the variable containing the error message
+	*/
+	template<class V, class E>
+	struct SkResult
+	{
+		V value;
+		E error;
+
+		SkResult(V val, E err)
+			: value(std::move(val)), error(std::move(err))
+		{}
+
+	};
+
+	/*@brief Enum containing error messages concerning the maths*/
+	enum class MathError
+	{
+		NO_ERROR = 0,
+		DIVIDING_BY_ZERO_ERROR = 1
+	};
+
+	/*Debug / Util functions*/
+
+	/*@brief Checks if a given SkResult contains an error
+	*@param result SkResult, containing value and error, returned from a function
+	*@return Boolean indicating if result contains an error
+	*/
+	template<class V, class E>
+	constexpr inline bool error(const SkResult<V, E>& result) noexcept
+	{
+		if (result.error != E::NO_ERROR)
+		{
+			return true;
+		}
+
+		else
+		{
+			return false;
+		}
+	}
+
+	/*@brief Calls logError() on result and then returns the value of the result
+	*@param result  SkResult, containing value and error, returned from a function
+	*@return The value of result
+	*/
+	template<class V, class E>
+	inline V retLog(const SkResult<V, E>& result) noexcept
+	{
+		if (error(result)) { std::cout << "Math error" << std::endl; }
+
+		return result.value;
+	}
+
+	/*@brief Checks if result contains an error using error() and then returns it if it does, else return the current error
+	*@param result SkResult, containing value and error, returned from a function
+	*@param err the current error to be compared against result.error
+	*@return The error of result if result contains an error, else returns err
+	*/
+	template<class V, class E>
+	inline E affectError(SkResult<V, E>& result, E& err) noexcept
+	{
+		if (error(result))
+		{
+			return result.error;
+		}
+		else
+		{
+			return err;
+		}
+	}
+
+	inline constexpr float toRad(float degrees)
+	{
+		return (static_cast<float>(degrees * (pi / 180)));
+	}
+
+	inline constexpr float toDeg(float radians)
+	{
+		return (static_cast<float>(radians * (180 / pi)));
+	}
+
+	/*struct Quat
+	{
+		Quat()
+			: x(0.f), y(0.f), z(0.f), w(0.f)
+		{}
+
+		Quat(float coorX, float coorY, float coorZ, float scalar)
+			: x(coorX), y(coorY), z(coorZ), w(scalar)
+		{}
+
+		Quat(Vec3 xyz, float scalar)
+			: x(xyz.x), y(xyz.y), z(xyz.z), w(scalar)
+		{}
+
+		float x;
+		float y;
+		float z;
+		float w;
+	};*/
+
+	/*Typical Vec2 holding x and y values*/
+	struct Vec2
+	{
+		Vec2(float posX, float posY)
+		{
+			x = posX;
+			y = posY;
+		}
+
+		Vec2()
+		{
+			x = 0.0f;
+			y = 0.0f;
+		}
+
+		/*Operators*/
+		friend bool operator==(const Vec2 lhs, const Vec2 rhs)
+		{
+			return ((lhs.x == rhs.x) && (lhs.y == rhs.y));
+		}
+
+		friend bool operator!=(const Vec2 lhs, const Vec2 rhs)
+		{
+			return !(lhs == rhs);
+		}
+
+		Vec2& operator+=(const Vec2& rhs)
+		{
+			x += rhs.x;
+			y += rhs.y;
+
+			return *this;
+		}
+
+		Vec2& operator-=(const Vec2& rhs)
+		{
+			x -= rhs.x;
+			y -= rhs.y;
+
+			return *this;
+		}
+
+		friend Vec2 operator+(Vec2& lhs, const Vec2& rhs)
+		{
+			lhs += rhs;
+			return lhs;
+		}
+
+		friend Vec2 operator-(Vec2& lhs, const Vec2& rhs)
+		{
+			lhs -= rhs;
+			return lhs;
+		}
+
+		float x;
+		float y;
+	};
+
+	/*Typical Vec3 holding x, y and z values, constructor accepts Vec2 if needed*/
+	struct Vec3
+	{
+		Vec3(float posX, float posY, float posZ)
+			: x(posX), y(posY), z(posZ)
+		{
+		}
+
+		Vec3(Vec2 vec2, float posZ)
+			: x(vec2.x), y(vec2.y), z(posZ)
+		{
+		}
+
+		Vec3()
+			: x(0.0f), y(0.0f), z(0.0f)
+		{
+		}
+
+		friend bool operator==(const Vec3 lhs, const Vec3 rhs)
+		{
+			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z));
+		}
+
+		friend bool operator!=(const Vec3 lhs, const Vec3 rhs)
+		{
+			return !(lhs == rhs);
+		}
+
+		Vec3& operator+=(const Vec3& rhs)
+		{
+			x += rhs.x;
+			y += rhs.y;
+			z += rhs.z;
+
+			return *this;
+		}
+
+		Vec3& operator-=(const Vec3& rhs)
+		{
+			x -= rhs.x;
+			y -= rhs.y;
+			z -= rhs.z;
+
+			return *this;
+		}
+
+		friend Vec3 operator+(Vec3& lhs, const Vec3& rhs)
+		{
+			lhs += rhs;
+			return lhs;
+		}
+
+		friend Vec3 operator-(Vec3& lhs, const Vec3& rhs)
+		{
+			lhs -= rhs;
+			return lhs;
+		}
+
+		float x;
+		float y;
+		float z;
+	};
+
+	/*4 by 4 matrix*/
+	struct Mat4
+	{
+		Mat4(std::array<std::array<float, 4>, 4> matrixValues)
+			: matrix(matrixValues)
+		{}
+
+		Mat4(std::array<std::array<float, 4>, 4>&& matrixValues)
+			: matrix(std::move(matrixValues))
+		{}
+
+		Mat4(Mat4& mat4)
+			: matrix(mat4.matrix)
+		{}
+
+		Mat4(Mat4&& mat4)
+			: matrix(std::move(mat4.matrix))
+		{}
+
+		Mat4(const float value)
+			: matrix({ { {value, 0.0f, 0.0f, 0.0f},
+						 {0.0f, value, 0.0f , 0.0f},
+						 {0.0f, 0.0f, value , 0.0f},
+						 {0.0f, 0.0f, 0.0f , value} } })
+		{}
+
+		Mat4()
+			: matrix({ {{0.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 0.0f}} })
+		{}
+
+		Mat4& operator=(Mat4 other)
+		{
+			std::swap(matrix, other.matrix);
+
+			return *this;
+		}
+
+		Mat4& operator=(std::array<std::array<float, 4>, 4> other)
+		{
+			std::swap(matrix, other);
+			return *this;
+		}
+
+		friend bool operator==(const Mat4& lhs, const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (lhs.matrix[i][j] != rhs.matrix[i][j])
+					{
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		friend bool operator!=(const Mat4& lhs, const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (lhs.matrix[i][j] != rhs.matrix[i][j])
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		std::array<float, 4>& operator[](const uint8_t index)
+		{
+			return matrix[index];
+		}
+
+		Mat4& operator+=(const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] += rhs.matrix[i][j];
+				}
+			}
+
+			return *this;
+		}
+
+		Mat4& operator-=(const Mat4& rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] -= rhs.matrix[i][j];
+				}
+			}
+
+			return *this;
+		}
+
+		Mat4& operator*=(const Mat4& rhs)
+		{
+			std::array<std::array<float, 4>, 4> matrixValues;
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrixValues[i][j] = matrix[i][0] * rhs.matrix[0][i] +
+						matrix[i][1] * rhs.matrix[1][i] +
+						matrix[i][2] * rhs.matrix[2][i] +
+						matrix[i][3] * rhs.matrix[3][i];
+
+				}
+			}
+
+			matrix = matrixValues;
+			return *this;
+		}
+
+		Mat4& operator*=(const float rhs)
+		{
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					matrix[i][j] *= rhs;
+				}
+			}
+
+			return *this;
+		}
+
+		friend Mat4 operator+(Mat4& lhs, const Mat4& rhs)
+		{
+			lhs += rhs;
+
+			return lhs;
+		}
+
+		friend Mat4 operator-(Mat4& lhs, const Mat4& rhs)
+		{
+			lhs -= rhs;
+
+			return lhs;
+		}
+
+		friend Mat4 operator*(Mat4& lhs, const Mat4& rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		friend Mat4 operator*(Mat4 lhs, const float rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		inline std::string asString()
+		{
+			std::string matrixAsString = std::string("");
+			matrixAsString.append("Matrix 4x4 = [ ");
+			for (uint32_t i = 0; i < 4; i++)
+			{
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					if (i == (4 - 1) && j == (4 - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]));
+					}
+					else if (j == (4 - 1))
+					{
+						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t     ");
+					}
+					else
+					{
+						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
+					}
+				}
+				matrixAsString.append("  ");
+			}
+			matrixAsString.append("]");
+
+			return matrixAsString;
+		}
+
+		std::array<std::array<float, 4>, 4> matrix;
+	};
+
+	/*Typical Vec4 holding x, y and z values, constructor accepts Vec2, Vec3, ... if needed*/
+	struct Vec4
+	{
+		Vec4(float posX, float posY, float posZ, float posW)
+			: x(posX), y(posY), z(posZ), w(posW)
+		{}
+
+		Vec4(Vec2 xy, float posZ, float posW)
+			: x(xy.x), y(xy.y), z(posZ), w(posW)
+		{}
+
+		Vec4(Vec2 xy, Vec2 zw)
+			: x(xy.x), y(xy.y), z(zw.x), w(zw.y)
+		{}
+
+		Vec4(Vec3 xyz, float posW)
+			: x(xyz.x), y(xyz.y), z(xyz.z), w(posW)
+		{}
+
+		Vec4()
+			: x(0.0f), y(0.0f), z(0.0f), w(0.0f)
+		{}
+
+		friend bool operator==(const Vec4& lhs, const Vec4& rhs)
+		{
+			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z) && (lhs.w == rhs.w));
+		}
+
+		friend bool operator!=(const Vec4& lhs, const Vec4& rhs)
+		{
+			return !(lhs == rhs);
+		}
+
+		Vec4& operator+=(const Vec4& rhs)
+		{
+			x += rhs.x;
+			y += rhs.y;
+			z += rhs.z;
+			w += rhs.w;
+
+			return *this;
+		}
+
+		Vec4& operator-=(const Vec4& rhs)
+		{
+			x -= rhs.x;
+			y -= rhs.y;
+			z -= rhs.z;
+			w -= rhs.w;
+
+			return *this;
+		}
+
+		Vec4& operator*=(const float rhs)
+		{
+			x *= rhs;
+			y *= rhs;
+			z *= rhs;
+			w *= rhs;
+
+			return *this;
+		}
+
+		Vec4& operator*=(const Mat4& rhs)
+		{
+			Vec4 product(x, y, z, w);
+
+			product.x = rhs.matrix[0][0] * x +
+				rhs.matrix[0][1] * x +
+				rhs.matrix[0][2] * x +
+				rhs.matrix[0][3] * x;
+
+			product.y = rhs.matrix[1][0] * y +
+				rhs.matrix[1][1] * y +
+				rhs.matrix[1][2] * y +
+				rhs.matrix[1][3] * y;
+
+			product.z = rhs.matrix[2][0] * z +
+				rhs.matrix[2][1] * z +
+				rhs.matrix[2][2] * z +
+				rhs.matrix[2][3] * z;
+
+			product.w = rhs.matrix[3][0] * w +
+				rhs.matrix[3][1] * w +
+				rhs.matrix[3][2] * w +
+				rhs.matrix[3][3] * w;
+
+			x = product.x;
+			y = product.y;
+			z = product.z;
+			w = product.w;
+
+			return *this;
+		}
+
+		friend Vec4 operator+(Vec4& lhs, const Vec4& rhs)
+		{
+			lhs += rhs;
+			return lhs;
+		}
+
+		friend Vec4 operator-(Vec4& lhs, const Vec4& rhs)
+		{
+			lhs -= rhs;
+			return lhs;
+		}
+
+		friend Vec4 operator*(Vec4& lhs, const float rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		friend Vec4 operator*(Vec4& lhs, const Mat4& rhs)
+		{
+			lhs *= rhs;
+
+			return lhs;
+		}
+
+		inline bool isDirection() noexcept
+		{
+			return (w == 0);
+		}
+
+		inline bool isPosition() noexcept
+		{
+			return (w == 1);
+		}
+
+		float x;
+		float y;
+		float z;
+		float w;
+	};
+
+	/*Translation matrix with a Vec3 for xyz coordinates*/
+	inline Mat4 translation(const Vec3& xyz) noexcept
+	{
+		Mat4 idMatrix(1.0f);
+
+		idMatrix.matrix[0][3] = xyz.x;
+		idMatrix.matrix[1][3] = xyz.y;
+		idMatrix.matrix[1][3] = xyz.z;
+
+		return idMatrix;
+	}
+
+	/*Translation matrix with floats for xyz coordinates*/
+	inline Mat4 translation(const float x, const float y, const float z) noexcept
+	{
+		Mat4 idMatrix(1.0f);
+
+		idMatrix.matrix[0][3] = x;
+		idMatrix.matrix[1][3] = y;
+		idMatrix.matrix[2][3] = z;
+
+		return idMatrix;
+	}
+
+	/*Scaling matrix with floats for xyz scaling*/
+	inline Mat4 scale(const float x, const float y, const float z)
+	{
+		Mat4 idMatrix(1.0f);
+
+		idMatrix.matrix[0][0] = x;
+		idMatrix.matrix[1][1] = y;
+		idMatrix.matrix[2][2] = z;
+
+		return idMatrix;
+	}
+
+	inline SkResult<Mat4, MathError> orthoProjection(const float left, const float right, const float top, const float bottom, const float near, const float far)
+	{
+		SkResult result(Mat4(0.f), static_cast<MathError>(MathError::NO_ERROR));
+
+		if ((right - left) == 0.f || (bottom - top) == 0.f || (far - near) == 0.f) 
+		{ 
+
+			result.error = MathError::DIVIDING_BY_ZERO_ERROR;
+		}
+
+		else
+		{
+			Mat4 projectionMatrix(1.0f);
+			projectionMatrix[0][0] = 2.0f / (right - left);
+			projectionMatrix[1][1] = 2.0f / (bottom - top);
+			projectionMatrix[2][2] = 1.0f / (far - near);
+
+			projectionMatrix[3][0] = -(right + left) / (right - left);
+			projectionMatrix[3][1] = -(bottom + top) / (bottom - top);
+			projectionMatrix[3][2] = -near / (far - near);
+
+			result.value = projectionMatrix;
+		}
+
+		return result;
+	}
+
+	inline SkResult<Mat4, MathError> perspectiveProjection(const float fovy, const float aspect, const float near, const float far)
+	{
+		SkResult result(Mat4(0.f), MathError::NO_ERROR);
+
+		if (aspect == 0.0f || std::abs(aspect - std::numeric_limits<float>::epsilon()) == 0.0f || (far -near) == 0.f)
+		{
+			result.error = MathError::DIVIDING_BY_ZERO_ERROR;
+		}
+		else
+		{
+			Mat4 projectionMatrix(0.0f);
+
+			const float tanHalfFovy = tan(fovy / 2.f);
+			projectionMatrix[0][0] = 1.f / (aspect * tanHalfFovy);
+			projectionMatrix[1][1] = 1.f / (tanHalfFovy);
+			projectionMatrix[2][2] = far / (far - near);
+			projectionMatrix[2][3] = 1.f;
+			projectionMatrix[3][2] = -(far * near) / (far - near);
+		}
+
+		return result;
+	}
+
+	/*@brief Calculates the FPS given a number of frames elapsed in delta time
+	*
+	* @param frames The number of frames elapsed during delta time
+	* @param delta The elapsed time
+	*
+	* @return SkResult(FPS, MathError)
+	*/
+	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFramePerSecond(const double frames, const std::chrono::duration<double>& delta) noexcept
+	{
+		SkResult result(static_cast<double>(0.0f), static_cast<SOULKAN_MATHS_NAMESPACE::MathError>(SOULKAN_MATHS_NAMESPACE::MathError::NO_ERROR));
+
+		if (delta.count() == 0)
+		{
+			result.value = 0;
+			result.error = SOULKAN_MATHS_NAMESPACE::MathError::DIVIDING_BY_ZERO_ERROR;
+		}
+		else
+		{
+			result.value = frames / delta.count();
+		}
+
+		return result;
+	}
+
+	/*@brief Calculates the frametime with a given FPS value
+	*
+	* @param framePerSecond The given FPS
+	*
+	* @return SkResult(frametime in miliseconds, MathError)
+	*/
+	inline SkResult<double, SOULKAN_MATHS_NAMESPACE::MathError> getFrametime(const double framePerSecond) noexcept
+	{
+		SkResult result(static_cast<double>(0.0f), static_cast<SOULKAN_MATHS_NAMESPACE::MathError>(SOULKAN_MATHS_NAMESPACE::MathError::NO_ERROR));
+
+		if (framePerSecond == 0)
+		{
+			result.value = 0;
+			result.error = SOULKAN_MATHS_NAMESPACE::MathError::DIVIDING_BY_ZERO_ERROR;
+		}
+		else
+		{
+			result.value = 1000.0 / framePerSecond;
+		}
+
+		return result;
+	}
+
+	/*General purpose matrix, not to be used for serious stuff*/
+	/*struct Mat
+	{
+		//Default is float
+		Mat(std::vector<std::vector<float>> values)
+		{
+			matrix = SOULKAN_NAMESPACE::retLog(fillMatrix(values));
+		}
+
+		inline SOULKAN_NAMESPACE::SkResult<std::string, SOULKAN_NAMESPACE::UndefinedError> asString()
+		{
+			SOULKAN_NAMESPACE::SkResult result(static_cast<std::string>(std::string()), static_cast<SOULKAN_NAMESPACE::UndefinedError>(SOULKAN_NAMESPACE::UndefinedError::NO_ERROR));
+
+			uint32_t numberOfRows = SOULKAN_NAMESPACE::retLog(rowSize(matrix));
+			uint32_t numberOfColumns = SOULKAN_NAMESPACE::retLog(columnSize(matrix));
+
+			std::string matrixAsString = std::string("");
+			matrixAsString.append("Matrix " + std::toString(numberOfRows) + "x" + std::toString(numberOfColumns) + " = [ ");
+			for (uint32_t i = 0; i < numberOfRows; i++)
+			{
+				for (uint32_t j = 0; j < numberOfColumns; j++)
+				{
+					if (i == (numberOfRows - 1) && j == (numberOfColumns - 1))
+					{
+						matrixAsString.append(" " + std::toString(matrix[i][j]));
+					}
+					else if (j == (numberOfColumns - 1))
+					{
+						matrixAsString.append(" " + std::toString(matrix[i][j]) + ", \n\t       ");
+					}
+					else
+					{
+						matrixAsString.append(std::toString(matrix[i][j]) + ", ");
+					}
+				}
+				matrixAsString.append("  ");
+			}
+			matrixAsString.append("]");
+
+			result.value = matrixAsString;
+			return result;
+		}
+
+		inline SOULKAN_NAMESPACE::SkResult<uint32_t, SOULKAN_NAMESPACE::UndefinedError> rowSize(std::vector<std::vector<float>> mat)
+		{
+			SOULKAN_NAMESPACE::SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<SOULKAN_NAMESPACE::UndefinedError>(SOULKAN_NAMESPACE::UndefinedError::NO_ERROR));
+
+			uint32_t numberOfRows = static_cast<uint32_t>(mat.size());
+
+			result.value = numberOfRows;
+			return result;
+		}
+
+		inline SOULKAN_NAMESPACE::SkResult<uint32_t, SOULKAN_NAMESPACE::UndefinedError> columnSize(std::vector<std::vector<float>> mat)
+		{
+			SOULKAN_NAMESPACE::SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<SOULKAN_NAMESPACE::UndefinedError>(SOULKAN_NAMESPACE::UndefinedError::NO_ERROR));
+
+			uint32_t highestNumberOfColumns = 0;
+			for (uint32_t i = 0; i < mat.size(); i++)
+			{
+				if (mat[i].size() > highestNumberOfColumns)
+				{
+					highestNumberOfColumns = static_cast<uint32_t>(mat[i].size());
+				}
+			}
+
+			result.value = highestNumberOfColumns;
+			return result;
+		}
+
+		inline SOULKAN_NAMESPACE::SkResult<std::vector<std::vector<float>>, SOULKAN_NAMESPACE::UndefinedError> fillMatrix(std::vector<std::vector<float>> mat)
+		{
+			SOULKAN_NAMESPACE::SkResult result(static_cast<std::vector<std::vector<float>>>(std::vector<std::vector<float>>()), static_cast<SOULKAN_NAMESPACE::UndefinedError>(SOULKAN_NAMESPACE::UndefinedError::NO_ERROR));
+
+			uint32_t numberOfRows = SOULKAN_NAMESPACE::retLog(rowSize(mat));
+			uint32_t numberOfColumns = SOULKAN_NAMESPACE::retLog(columnSize(mat));
+
+			std::vector<std::vector<float>> filledMatrix(numberOfRows, std::vector<float>(numberOfColumns, 0.0f));
+			for (uint32_t i = 0; i < mat.size(); i++)
+			{
+				for (uint32_t j = 0; j < mat[i].size(); j++)
+				{
+					filledMatrix[i][j] = mat[i][j];
+				}
+			}
+
+			result.value = filledMatrix;
+			return result;
+		}
+
+		std::vector<std::vector<float>> matrix;
+	};*/
+}
 
 namespace SOULKAN_NAMESPACE
 {
@@ -37,8 +827,7 @@ namespace SOULKAN_NAMESPACE
 
 		SkResult(V val, E err)
 			: value(std::move(val)), error(std::move(err))
-		{
-		}
+		{}
 
 	};
 
@@ -244,7 +1033,8 @@ namespace SOULKAN_NAMESPACE
 		DEVICE_DESTRUCTION_ERROR = 4,
 		QUEUE_CREATION_ERROR = 5,
 		QUEUE_SUBMIT_ERROR = 6,
-		QUEUE_PRESENT_ERROR = 7
+		QUEUE_PRESENT_ERROR = 7,
+		SWAPCHAIN_CREATION_ERROR = 8
 	};
 
 	/*@brief Enum containing error messages concerning device queues*/
@@ -376,15 +1166,8 @@ namespace SOULKAN_NAMESPACE
 		TRIANGLE_MESH_LOADING_ERROR = 1
 	};
 
-	/*@brief Enum containing error messages concerning the maths*/
-	enum class MathError
-	{
-		NO_ERROR = 0,
-		DIVIDING_BY_ZERO_ERROR = 1
-	};
-
-	/*to_string() implementation for every enum class, inspired by vulkan.hpp*/
-	inline std::string to_string(QueueFamilyType value)
+	/*toString() implementation for every enum class, inspired by vulkan.hpp*/
+	inline std::string toString(const QueueFamilyType value)
 	{
 		switch (value)
 		{
@@ -397,8 +1180,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(UndefinedError value)
+								 
+	inline std::string toString(const UndefinedError value)
 	{
 		switch (value)
 		{
@@ -407,8 +1190,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(TestError value)
+								 
+	inline std::string toString(const TestError value)
 	{
 		switch (value)
 		{
@@ -416,8 +1199,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(GLFWError value)
+								 
+	inline std::string toString(const GLFWError value)
 	{
 		switch (value)
 		{
@@ -428,8 +1211,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(DebugUtilsError value)
+								 
+	inline std::string toString(const DebugUtilsError value)
 	{
 		switch (value)
 		{
@@ -438,8 +1221,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(InstanceError value)
+								 
+	inline std::string toString(const InstanceError value)
 	{
 		switch (value)
 		{
@@ -451,8 +1234,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(PhysicalDeviceError value)
+								 
+	inline std::string toString(const PhysicalDeviceError value)
 	{
 		switch (value)
 		{
@@ -467,8 +1250,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(DeviceError value)
+								 
+	inline std::string toString(const DeviceError value)
 	{
 		switch (value)
 		{
@@ -480,11 +1263,12 @@ namespace SOULKAN_NAMESPACE
 		case DeviceError::QUEUE_CREATION_ERROR: return "QUEUE_CREATION_ERROR";
 		case DeviceError::QUEUE_SUBMIT_ERROR: return "QUEUE_SUBMIT_ERROR";
 		case DeviceError::QUEUE_PRESENT_ERROR: return "QUEUE_PRESENT_ERROR";
+		case DeviceError::SWAPCHAIN_CREATION_ERROR: return "SWAPCHAIN_CREATION_ERROR";
 		default: return "Invalid enum value";
 		}
 	}
 
-	inline std::string to_string(QueueError value)
+	inline std::string toString(const QueueError value)
 	{
 		switch (value)
 		{
@@ -493,8 +1277,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(SwapchainError value)
+								 
+	inline std::string toString(const SwapchainError value)
 	{
 		switch (value)
 		{
@@ -508,8 +1292,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(CommandPoolError value)
+								 
+	inline std::string toString(const CommandPoolError value)
 	{
 		switch (value)
 		{
@@ -520,8 +1304,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(CommandBufferError value)
+								 
+	inline std::string toString(const CommandBufferError value)
 	{
 		switch (value)
 		{
@@ -532,8 +1316,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(RenderPassError value)
+								 
+	inline std::string toString(const RenderPassError value)
 	{
 		switch (value)
 		{
@@ -545,8 +1329,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(FramebufferError value)
+								 
+	inline std::string toString(const FramebufferError value)
 	{
 		switch (value)
 		{
@@ -557,8 +1341,8 @@ namespace SOULKAN_NAMESPACE
 		}
 
 	}
-
-	inline std::string to_string(SyncError value)
+								 
+	inline std::string toString(const SyncError value)
 	{
 		switch (value)
 		{
@@ -571,8 +1355,8 @@ namespace SOULKAN_NAMESPACE
 		}
 
 	}
-
-	inline std::string to_string(DrawingError value)
+								 
+	inline std::string toString(const DrawingError value)
 	{
 		switch (value)
 		{
@@ -580,8 +1364,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(ShaderError value)
+								 
+	inline std::string toString(const ShaderError value)
 	{
 		switch (value)
 		{
@@ -591,18 +1375,18 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(MathError value)
+								 
+	inline std::string toString(const SOULKAN_MATHS_NAMESPACE::MathError value)
 	{
 		switch (value)
 		{
-		case MathError::NO_ERROR: return "NO_ERROR";
-		case MathError::DIVIDING_BY_ZERO_ERROR: return "DIVIDING_BY_ZERO_ERROR";
+		case SOULKAN_MATHS_NAMESPACE::MathError::NO_ERROR: return "NO_ERROR";
+		case SOULKAN_MATHS_NAMESPACE::MathError::DIVIDING_BY_ZERO_ERROR: return "DIVIDING_BY_ZERO_ERROR";
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(GraphicsPipelineError value)
+								 
+	inline std::string toString(const GraphicsPipelineError value)
 	{
 		switch (value)
 		{
@@ -625,8 +1409,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(AllocationError value)
+								 
+	inline std::string toString(const AllocationError value)
 	{
 		switch (value)
 		{
@@ -640,8 +1424,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(BufferError value)
+								 
+	inline std::string toString(const BufferError value)
 	{
 		switch (value)
 		{
@@ -651,8 +1435,8 @@ namespace SOULKAN_NAMESPACE
 		default: return "Invalid enum value";
 		}
 	}
-
-	inline std::string to_string(MeshError value)
+								 
+	inline std::string toString(const MeshError value)
 	{
 		switch (value)
 		{
@@ -669,7 +1453,7 @@ namespace SOULKAN_NAMESPACE
 	*@return Boolean indicating if result contains an error
 	*/
 	template<class V, class E>
-	constexpr inline bool error(SkResult<V, E> result) noexcept
+	constexpr inline bool error(const SkResult<V, E>& result) noexcept
 	{
 		if (result.error != E::NO_ERROR)
 		{
@@ -687,9 +1471,9 @@ namespace SOULKAN_NAMESPACE
 	*@return Formatted error message as std::string
 	*/
 	template<class V, class E>
-	constexpr inline std::string returnError(SkResult<V, E> result) noexcept
+	constexpr inline std::string returnError(const SkResult<V, E>& result) noexcept
 	{
-		return std::string("ERROR : " + to_string(static_cast<E>(result.error)) + " when returning SkResult(" + typeid(V).name() + ", " + typeid(E).name() + ")\n");
+		return std::string("ERROR : " + toString(static_cast<E>(result.error)) + " when returning SkResult(" + typeid(V).name() + ", " + typeid(E).name() + ")\n");
 	}
 
 	/*@brief Checks if a given SkResult contains an error using error() and then logs it
@@ -697,7 +1481,7 @@ namespace SOULKAN_NAMESPACE
 	*@return Boolean indicating if result contains an error
 	*/
 	template<class V, class E>
-	constexpr inline bool logError(SkResult<V, E> result) noexcept
+	constexpr inline bool logError(const SkResult<V, E>& result) noexcept
 	{
 		if (error(result))
 		{
@@ -713,7 +1497,7 @@ namespace SOULKAN_NAMESPACE
 	*@return The value of result
 	*/
 	template<class V, class E>
-	inline V retLog(SkResult<V, E> result) noexcept
+	inline V retLog(const SkResult<V, E>& result) noexcept
 	{
 		logError(result);
 
@@ -726,7 +1510,7 @@ namespace SOULKAN_NAMESPACE
 	*@return The error of result if result contains an error, else returns err
 	*/
 	template<class V, class E>
-	inline E affectError(SkResult<V, E> result, E err) noexcept
+	inline E affectError(const SkResult<V, E>& result, E& err) noexcept
 	{
 		if (error(result))
 		{
@@ -763,499 +1547,21 @@ namespace SOULKAN_NAMESPACE
 		}
 	};
 
-	/*****************************************************************Maths structs and functions******************************************************************************/
-
-	/*Structs first*/
-
-	/*Typical Vec2 holding x and y values*/
-	struct Vec2
-	{
-		Vec2(float posX, float posY)
-		{
-			x = posX;
-			y = posY;
-		}
-
-		Vec2()
-		{
-			x = 0.0f;
-			y = 0.0f;
-		}
-
-		/*Operators*/
-		friend bool operator==(const Vec2 lhs, const Vec2 rhs)
-		{
-			return ((lhs.x == rhs.x) && (lhs.y == rhs.y));
-		}
-
-		friend bool operator!=(const Vec2 lhs, const Vec2 rhs)
-		{
-			return !(lhs == rhs);
-		}
-
-		Vec2& operator+=(const Vec2& rhs)
-		{
-			x += rhs.x;
-			y += rhs.y;
-
-			return *this;
-		}
-
-		Vec2& operator-=(const Vec2& rhs)
-		{
-			x -= rhs.x;
-			y -= rhs.y;
-
-			return *this;
-		}
-
-		friend Vec2 operator+(Vec2& lhs, const Vec2& rhs)
-		{
-			lhs += rhs;
-			return lhs;
-		}
-
-		friend Vec2 operator-(Vec2& lhs, const Vec2& rhs)
-		{
-			lhs -= rhs;
-			return lhs;
-		}
-
-		float x;
-		float y;
-	};
-
-	/*Typical Vec3 holding x, y and z values, constructor accepts Vec2 if needed*/
-	struct Vec3
-	{
-		Vec3(float posX, float posY, float posZ)
-			: x(posX), y(posY), z(posZ)
-		{
-		}
-
-		Vec3(Vec2 vec2, float posZ)
-			: x(vec2.x), y(vec2.y), z(posZ)
-		{
-		}
-
-		Vec3()
-			: x(0.0f), y(0.0f), z(0.0f)
-		{
-		}
-
-		friend bool operator==(const Vec3 lhs, const Vec3 rhs)
-		{
-			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z));
-		}
-
-		friend bool operator!=(const Vec3 lhs, const Vec3 rhs)
-		{
-			return !(lhs == rhs);
-		}
-
-		Vec3& operator+=(const Vec3& rhs)
-		{
-			x += rhs.x;
-			y += rhs.y;
-			z += rhs.z;
-
-			return *this;
-		}
-
-		Vec3& operator-=(const Vec3& rhs)
-		{
-			x -= rhs.x;
-			y -= rhs.y;
-			z -= rhs.z;
-
-			return *this;
-		}
-
-		friend Vec3 operator+(Vec3& lhs, const Vec3& rhs)
-		{
-			lhs += rhs;
-			return lhs;
-		}
-
-		friend Vec3 operator-(Vec3& lhs, const Vec3& rhs)
-		{
-			lhs -= rhs;
-			return lhs;
-		}
-
-		float x;
-		float y;
-		float z;
-	};
-
-	/*4 by 4 matrix*/
-	struct Mat4
-	{
-		Mat4(std::array<std::array<float, 4>, 4> matrixValues)
-			: matrix(matrixValues)
-		{}
-
-		Mat4(std::array<std::array<float, 4>, 4>&& matrixValues)
-			: matrix(std::move(matrixValues))
-		{}
-
-		Mat4(Mat4& mat4)
-			: matrix(mat4.matrix)
-		{}
-
-		Mat4(Mat4&& mat4)
-			: matrix(std::move(mat4.matrix))
-		{}
-
-		Mat4(const float value)
-			: matrix({ { {value, 0.0f, 0.0f, 0.0f},
-						 {0.0f, value, 0.0f , 0.0f},
-						 {0.0f, 0.0f, value , 0.0f},
-						 {0.0f, 0.0f, 0.0f , value} } })
-		{}
-
-		Mat4()
-			: matrix({ {{0.0f, 0.0f, 0.0f, 0.0f},
-						{0.0f, 0.0f, 0.0f, 0.0f},
-						{0.0f, 0.0f, 0.0f, 0.0f},
-						{0.0f, 0.0f, 0.0f, 0.0f}} })
-		{}
-
-		friend bool operator==(const Mat4& lhs, const Mat4& rhs)
-		{
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					if (lhs.matrix[i][j] != rhs.matrix[i][j])
-					{
-						return false;
-					}
-				}
-			}
-
-			return true;
-		}
-
-		friend bool operator!=(const Mat4& lhs, const Mat4& rhs)
-		{
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					if (lhs.matrix[i][j] != rhs.matrix[i][j])
-					{
-						return true;
-					}
-				}
-			}
-
-			return false;
-		}
-
-		Mat4& operator+=(const Mat4& rhs)
-		{
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					matrix[i][j] += rhs.matrix[i][j];
-				}
-			}
-
-			return *this;
-		}
-
-		Mat4& operator-=(const Mat4& rhs)
-		{
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					matrix[i][j] -= rhs.matrix[i][j];
-				}
-			}
-
-			return *this;
-		}
-
-		Mat4& operator*=(const Mat4& rhs)
-		{
-			std::array<std::array<float, 4>, 4> matrixValues;
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					matrixValues[i][j] = matrix[i][0] * rhs.matrix[0][i] +
-						matrix[i][1] * rhs.matrix[1][i] +
-						matrix[i][2] * rhs.matrix[2][i] +
-						matrix[i][3] * rhs.matrix[3][i];
-
-				}
-			}
-
-			matrix = matrixValues;
-			return *this;
-		}
-
-		Mat4& operator*=(const float rhs)
-		{
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					matrix[i][j] *= rhs;
-				}
-			}
-
-			return *this;
-		}
-
-		friend Mat4 operator+(Mat4& lhs, const Mat4& rhs)
-		{
-			lhs += rhs;
-
-			return lhs;
-		}
-
-		friend Mat4 operator-(Mat4& lhs, const Mat4& rhs)
-		{
-			lhs -= rhs;
-
-			return lhs;
-		}
-
-		friend Mat4 operator*(Mat4& lhs, const Mat4& rhs)
-		{
-			lhs *= rhs;
-
-			return lhs;
-		}
-
-		friend Mat4 operator*(Mat4 lhs, const float rhs)
-		{
-			lhs *= rhs;
-
-			return lhs;
-		}
-
-		/*Should be used like this Mat4 myTranslationMatrix = Mat4::translation(myXyzVector)*/
-		inline Mat4 translation(const Vec3& xyz) noexcept
-		{
-			Mat4 idMatrix(1.0f);
-
-			idMatrix.matrix[0][3] = xyz.x;
-			idMatrix.matrix[1][3] = xyz.y;
-			idMatrix.matrix[1][3] = xyz.z;
-
-			return idMatrix;
-		}
-
-		/*Should be used like this Mat4 myTranslationMatrix = Mat4::translation(x, y, z)*/
-		inline Mat4 translation(const float x, const float y, const float z) noexcept
-		{
-			Mat4 idMatrix(1.0f);
-
-			idMatrix.matrix[0][3] = x;
-			idMatrix.matrix[1][3] = y;
-			idMatrix.matrix[1][3] = z;
-
-			return idMatrix;
-		}
-
-		/*Should be used like this Mat4 myScaleMatrix = Mat4::scale(xScaling, yScaling, zScaling)*/
-		inline Mat4 scale(const float x, const float y, const float z)
-		{
-			Mat4 idMatrix(1.0f);
-
-			idMatrix.matrix[0][0] = x;
-			idMatrix.matrix[1][1] = y;
-			idMatrix.matrix[2][2] = z;
-
-			return idMatrix;
-		}
-
-		inline std::string asString()
-		{
-			std::string matrixAsString = std::string("");
-			matrixAsString.append("Matrix 4x4 = [ ");
-			for (uint32_t i = 0; i < 4; i++)
-			{
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					if (i == (4 - 1) && j == (4 - 1))
-					{
-						matrixAsString.append(" " + std::to_string(matrix[i][j]));
-					}
-					else if (j == (4 - 1))
-					{
-						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t     ");
-					}
-					else
-					{
-						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
-					}
-				}
-				matrixAsString.append("  ");
-			}
-			matrixAsString.append("]");
-
-			return matrixAsString;
-		}
-
-		std::array<std::array<float, 4>, 4> matrix;
-	};
-
-	/*Typical Vec4 holding x, y and z values, constructor accepts Vec2, Vec3, ... if needed*/
-	struct Vec4
-	{
-		Vec4(float posX, float posY, float posZ, float posW)
-			: x(posX), y(posY), z(posZ), w(posW)
-		{}
-
-		Vec4(Vec2 xy, float posZ, float posW)
-			: x(xy.x), y(xy.y), z(posZ), w(posW)
-		{}
-
-		Vec4(Vec2 xy, Vec2 zw)
-			: x(xy.x), y(xy.y), z(zw.x), w(zw.y)
-		{}
-
-		Vec4(Vec3 xyz, float posW)
-			: x(xyz.x), y(xyz.y), z(xyz.z), w(posW)
-		{}
-
-		Vec4()
-			: x(0.0f), y(0.0f), z(0.0f), w(0.0f)
-		{}
-
-		friend bool operator==(const Vec4& lhs, const Vec4& rhs)
-		{
-			return ((lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z) && (lhs.w == rhs.w));
-		}
-
-		friend bool operator!=(const Vec4& lhs, const Vec4& rhs)
-		{
-			return !(lhs == rhs);
-		}
-
-		Vec4& operator+=(const Vec4& rhs)
-		{
-			x += rhs.x;
-			y += rhs.y;
-			z += rhs.z;
-			w += rhs.w;
-
-			return *this;
-		}
-
-		Vec4& operator-=(const Vec4& rhs)
-		{
-			x -= rhs.x;
-			y -= rhs.y;
-			z -= rhs.z;
-			w -= rhs.w;
-
-			return *this;
-		}
-
-		Vec4& operator*=(const float rhs)
-		{
-			x *= rhs;
-			y *= rhs;
-			z *= rhs;
-			w *= rhs;
-
-			return *this;
-		}
-
-		Vec4& operator*=(const Mat4& rhs)
-		{
-			Vec4 product(x, y, z, w);
-
-			product.x = rhs.matrix[0][0] * x +
-				        rhs.matrix[0][1] * x +
-				        rhs.matrix[0][2] * x +
-				        rhs.matrix[0][3] * x;
-
-			product.y = rhs.matrix[1][0] * y +
-				        rhs.matrix[1][1] * y +
-				        rhs.matrix[1][2] * y +
-				        rhs.matrix[1][3] * y;
-
-			product.z = rhs.matrix[2][0] * z +
-				        rhs.matrix[2][1] * z +
-				        rhs.matrix[2][2] * z +
-				        rhs.matrix[2][3] * z;
-
-			product.w = rhs.matrix[3][0] * w +
-				        rhs.matrix[3][1] * w +
-				        rhs.matrix[3][2] * w +
-				        rhs.matrix[3][3] * w;
-
-			x = product.x;
-			y = product.y;
-			z = product.z;
-			w = product.w;
-
-			return *this;
-		}
-
-		friend Vec4 operator+(Vec4& lhs, const Vec4& rhs)
-		{
-			lhs += rhs;
-			return lhs;
-		}
-
-		friend Vec4 operator-(Vec4& lhs, const Vec4& rhs)
-		{
-			lhs -= rhs;
-			return lhs;
-		}
-
-		friend Vec4 operator*(Vec4& lhs, const float rhs)
-		{
-			lhs *= rhs;
-			
-			return lhs;
-		}
-
-		friend Vec4 operator*(Vec4& lhs, const Mat4& rhs)
-		{
-			lhs *= rhs;
-
-			return lhs;
-		}
-
-		inline bool isDirection() noexcept
-		{
-			return (w == 0);
-		}
-
-		inline bool isPosition() noexcept
-		{
-			return (w == 1);
-		}
-
-		float x;
-		float y;
-		float z;
-		float w;
-	};
+	/*Data structs*/
 
 
 	/*Typical Vertex holding Vec3 position(x, y, z), normal(x, y, z) and color(r, g, b)*/
 	struct Vertex
 	{
 		Vertex()
-			: position(std::move(Vec3(0.0f, 0.0f, 0.0f))),
-			normal(std::move(Vec3(0.0f, 0.0f, 0.0f))),
-			color(std::move(Vec3(0.0f, 0.0f, 0.0f)))
+			: position(std::move(SOULKAN_MATHS_NAMESPACE::Vec3(0.0f, 0.0f, 0.0f))),
+			normal(std::move(SOULKAN_MATHS_NAMESPACE::Vec3(0.0f, 0.0f, 0.0f))),
+			color(std::move(SOULKAN_MATHS_NAMESPACE::Vec3(0.0f, 0.0f, 0.0f)))
 		{
 
 		}
 
-		Vertex(Vec3&& vecPosition, Vec3&& vecNormal, Vec3&& vecColor)
+		Vertex(SOULKAN_MATHS_NAMESPACE::Vec3&& vecPosition, SOULKAN_MATHS_NAMESPACE::Vec3&& vecNormal, SOULKAN_MATHS_NAMESPACE::Vec3&& vecColor)
 			: position(std::move(vecPosition)),
 			normal(std::move(vecNormal)),
 			color(std::move(vecColor))
@@ -1263,7 +1569,7 @@ namespace SOULKAN_NAMESPACE
 
 		}
 
-		Vertex(Vec3 vecPosition, Vec3 vecNormal, Vec3 vecColor)
+		Vertex(SOULKAN_MATHS_NAMESPACE::Vec3 vecPosition, SOULKAN_MATHS_NAMESPACE::Vec3 vecNormal, SOULKAN_MATHS_NAMESPACE::Vec3 vecColor)
 			: position(vecPosition), normal(vecNormal), color(vecColor)
 		{
 		}
@@ -1314,9 +1620,9 @@ namespace SOULKAN_NAMESPACE
 			return SkResult(value, error);
 		}
 
-		Vec3 position;
-		Vec3 normal;
-		Vec3 color;
+		SOULKAN_MATHS_NAMESPACE::Vec3 position;
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal;
+		SOULKAN_MATHS_NAMESPACE::Vec3 color;
 	};
 
 	/*Typical Mesh holding a list of Vertices*/
@@ -1343,147 +1649,6 @@ namespace SOULKAN_NAMESPACE
 		std::vector<Vertex> vertices;
 	};
 
-	struct Mat
-	{
-		//Default is float
-		Mat(std::vector<std::vector<float>> values)
-		{
-			matrix = retLog(fillMatrix(values));
-		}
-
-		inline SkResult<std::string, UndefinedError> asString()
-		{
-			SkResult result(static_cast<std::string>(std::string()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
-
-			uint32_t numberOfRows          = retLog(rowSize(matrix));
-			uint32_t numberOfColumns       = retLog(columnSize(matrix));
-
-			std::string matrixAsString = std::string("");
-			matrixAsString.append("Matrix " + std::to_string(numberOfRows) + "x" + std::to_string(numberOfColumns) + " = [ ");
-			for (uint32_t i = 0; i < numberOfRows; i++)
-			{
-				for (uint32_t j = 0; j < numberOfColumns; j++)
-				{
-					if (i == (numberOfRows - 1) && j == (numberOfColumns - 1))
-					{
-						matrixAsString.append(" " + std::to_string(matrix[i][j]));
-					}
-					else if (j == (numberOfColumns - 1))
-					{
-						matrixAsString.append(" " + std::to_string(matrix[i][j]) + ", \n\t       ");
-					}
-					else
-					{
-						matrixAsString.append(std::to_string(matrix[i][j]) + ", ");
-					}
-				}
-				matrixAsString.append("  ");
-			}
-			matrixAsString.append("]");
-
-			result.value = matrixAsString;
-			return result;
-		}
-
-		inline SkResult<uint32_t, UndefinedError> rowSize(std::vector<std::vector<float>> mat)
-		{
-			SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
-
-			uint32_t numberOfRows = static_cast<uint32_t>(mat.size());
-
-			result.value = numberOfRows;
-			return result;
-		}
-
-		inline SkResult<uint32_t, UndefinedError> columnSize(std::vector<std::vector<float>> mat)
-		{
-			SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
-
-			uint32_t highestNumberOfColumns = 0;
-			for (uint32_t i = 0; i < mat.size(); i++)
-			{
-				if (mat[i].size() > highestNumberOfColumns)
-				{
-					highestNumberOfColumns = static_cast<uint32_t>(mat[i].size());
-				}
-			}
-
-			result.value = highestNumberOfColumns;
-			return result;
-		}
-
-		inline SkResult<std::vector<std::vector<float>>, UndefinedError> fillMatrix(std::vector<std::vector<float>> mat)
-		{
-			SkResult result(static_cast<std::vector<std::vector<float>>>(std::vector<std::vector<float>>()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
-
-			uint32_t numberOfRows = retLog(rowSize(mat));
-			uint32_t numberOfColumns = retLog(columnSize(mat));
-
-			std::vector<std::vector<float>> filledMatrix(numberOfRows, std::vector<float>(numberOfColumns, 0.0f));
-			for (uint32_t i = 0; i < mat.size(); i++)
-			{
-				for (uint32_t j = 0; j < mat[i].size(); j++)
-				{
-					filledMatrix[i][j] = mat[i][j];
-				}
-			}
-
-			result.value = filledMatrix;
-			return result;
-		}
-
-		std::vector<std::vector<float>> matrix;
-	};
-
-	/*Frame and frametime stuf*/
-
-	/*@brief Calculates the FPS given a number of frames elapsed in delta time
-	*
-	* @param frames The number of frames elapsed during delta time
-	* @param delta The elapsed time
-	*
-	* @return SkResult(FPS, MathError)
-	*/
-	inline SkResult<double, MathError> getFramePerSecond(double frames, std::chrono::duration<double> delta) noexcept
-	{
-		SkResult result(static_cast<double>(0.0f), static_cast<MathError>(MathError::NO_ERROR));
-
-		if (delta.count() == 0)
-		{
-			result.value = 0;
-			result.error = MathError::DIVIDING_BY_ZERO_ERROR;
-		}
-		else
-		{
-			result.value = frames / delta.count();
-		}
-
-		return result;
-	}
-
-	/*@brief Calculates the frametime with a given FPS value
-	*
-	* @param framePerSecond The given FPS
-	*
-	* @return SkResult(frametime in miliseconds, MathError)
-	*/
-	inline SkResult<double, MathError> getFrametime(double framePerSecond) noexcept
-	{
-		SkResult result(static_cast<double>(0.0f), static_cast<MathError>(MathError::NO_ERROR));
-
-		if (framePerSecond == 0)
-		{
-			result.value = 0;
-			result.error = MathError::DIVIDING_BY_ZERO_ERROR;
-		}
-		else
-		{
-			result.value = 1000.0 / framePerSecond;
-		}
-
-		return result;
-	}
-
 	/*GLFW
 	* Main functions concerning init and terminate, window creation.
 	*/
@@ -1499,7 +1664,7 @@ namespace SOULKAN_NAMESPACE
 
 		if (!result.value)
 		{
-			result.error = std::move(GLFWError::INIT_ERROR);
+			result.error = GLFWError::INIT_ERROR;
 
 		}
 		else
@@ -1535,7 +1700,7 @@ namespace SOULKAN_NAMESPACE
 		* @return inline SkResult<Pointer to the GLFW window, GLFWError>
 		*
 		*/
-	inline SkResult<GLFWwindow*, GLFWError> createGlfwWindow(uint32_t width, uint32_t height, std::string title, bool resizable) noexcept
+	inline SkResult<GLFWwindow*, GLFWError> createGlfwWindow(const uint32_t width, const uint32_t height, std::string_view title, bool resizable) noexcept
 	{
 		SkResult result(static_cast<GLFWwindow*>(nullptr), static_cast<GLFWError>(GLFWError::NO_ERROR));
 
@@ -1548,7 +1713,7 @@ namespace SOULKAN_NAMESPACE
 			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		}
 
-		result.value = glfwCreateWindow(width, height, title.c_str(), 0, nullptr);
+		result.value = glfwCreateWindow(width, height, std::string(title).c_str(), 0, nullptr);
 
 		if (result.value == nullptr)
 		{
@@ -1558,21 +1723,19 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	inline SkResult<GLFWwindow*, GLFWError> createWindow(uint32_t width, uint32_t height, std::string title, bool resizable) noexcept
+	inline SkResult<GLFWwindow*, GLFWError> createWindow(const uint32_t width, const uint32_t height, std::string_view title, bool resizable) noexcept
 	{
 		SkResult result(static_cast<GLFWwindow*>(nullptr), static_cast<GLFWError>(GLFWError::NO_ERROR));
 
 		auto initGlfwResult = initGlfw();
-		result.error = std::move(affectError(initGlfwResult, result.error));
+		result.error = affectError(initGlfwResult, result.error);
 
 		auto createGlfwWindowResult = createGlfwWindow(width, height, title, resizable);
-		result.error = std::move(affectError(createGlfwWindowResult, result.error));
-		result.value = std::move(retLog(createGlfwWindowResult));
+		result.error = affectError(createGlfwWindowResult, result.error);
+		result.value = retLog(createGlfwWindowResult);
 
 		return result;
 	}
-
-
 
 	/*DEBUG UTILS
 	 *Useful functions concerning the debug utils messenger from vulkan.
@@ -1732,17 +1895,17 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(application info, InstanceError)
 	*/
-	inline SkResult<vk::ApplicationInfo, InstanceError> createApplicationInfo(const char* pApplicationName, const char* pEngineName) noexcept
+	inline SkResult<vk::ApplicationInfo, InstanceError> createApplicationInfo(const std::string_view appName, const std::string_view engineName) noexcept
 	{
 		SkResult result(static_cast<vk::ApplicationInfo>(vk::ApplicationInfo{}), static_cast<InstanceError>(InstanceError::NO_ERROR));
 
 		try
 		{
-			result.value = vk::ApplicationInfo(pApplicationName,
-				VK_MAKE_VERSION(1, 0, 0),
-				pEngineName,
-				VK_MAKE_VERSION(1, 0, 0),
-				VK_API_VERSION_1_0);
+			result.value = vk::ApplicationInfo(std::string(appName).c_str(),
+				                               VK_MAKE_VERSION(1, 0, 0),
+				                               std::string(engineName).c_str(),
+				                               VK_MAKE_VERSION(1, 0, 0),
+				                               VK_API_VERSION_1_0);
 		}
 		catch (vk::SystemError err)
 		{
@@ -1764,8 +1927,8 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vulkan instance, InstanceError)
 	*/
-	inline SkResult<vk::Instance, InstanceError> createInstance(vk::ApplicationInfo applicationInfo, std::vector<const char*> extensions = std::vector<const char*>(), std::vector<const char*> validationLayers = std::vector<const char*>(),
-		PFN_vkDebugUtilsMessengerCallbackEXT debugUtilsMessenger = nullptr)
+	inline SkResult<vk::Instance, InstanceError> createInstance(const vk::ApplicationInfo& applicationInfo, std::vector<const char*> extensions = std::vector<const char*>(), const std::vector<const char*>& validationLayers = std::vector<const char*>(),
+		const PFN_vkDebugUtilsMessengerCallbackEXT debugUtilsMessenger = nullptr)
 	{
 		SkResult result(static_cast<vk::Instance>(vk::Instance(nullptr)), static_cast<InstanceError>(InstanceError::NO_ERROR));
 
@@ -1776,14 +1939,14 @@ namespace SOULKAN_NAMESPACE
 				auto getRequiredExtensionsResult = getRequiredInstanceExtensions(true);
 				result.error = std::move(affectError(getRequiredExtensionsResult, result.error));
 
-				extensions = std::move(retLog(getRequiredExtensionsResult));
+				extensions = retLog(getRequiredExtensionsResult);
 			}
 			else
 			{
 				auto getRequiredExtensionsResult = getRequiredInstanceExtensions(false);
 				result.error = std::move(affectError(getRequiredExtensionsResult, result.error));
 
-				extensions = std::move(retLog(getRequiredExtensionsResult));
+				extensions = retLog(getRequiredExtensionsResult);
 			}
 		}
 
@@ -1833,18 +1996,18 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	inline SkResult<vk::Instance, InstanceError> createInstance(const char* pApplicationName, const char* pEngineName, std::vector<const char*> extensions = std::vector<const char*>(),
-		std::vector<const char*> validationLayers = std::vector<const char*>(), PFN_vkDebugUtilsMessengerCallbackEXT debugUtilsMessenger = nullptr) noexcept
+	inline SkResult<vk::Instance, InstanceError> createInstance(const std::string_view appName, const std::string_view engineName, const std::vector<const char*>& extensions = std::vector<const char*>(),
+		const std::vector<const char*>& validationLayers = std::vector<const char*>(), const PFN_vkDebugUtilsMessengerCallbackEXT debugUtilsMessenger = nullptr) noexcept
 	{
-		SkResult result(static_cast<vk::Instance>(vk::Instance(nullptr)), static_cast<InstanceError>(InstanceError::NO_ERROR));
+		SkResult result(vk::Instance(nullptr), InstanceError::NO_ERROR);
 
-		auto createApplicationInfoResult = createApplicationInfo(pApplicationName, pEngineName);
-		result.error = std::move(affectError(createApplicationInfoResult, result.error));
-		vk::ApplicationInfo applicationInfo = std::move(retLog(createApplicationInfoResult));
+		auto createApplicationInfoResult = createApplicationInfo(appName, engineName);
+		result.error = affectError(createApplicationInfoResult, result.error);
+		vk::ApplicationInfo applicationInfo = retLog(createApplicationInfoResult);
 
 		auto createInstanceResult = createInstance(applicationInfo, extensions, validationLayers, debugUtilsMessenger);
 		result.error = std::move(affectError(createInstanceResult, result.error));
-		vk::Instance instance = std::move(retLog(createInstanceResult));
+		vk::Instance instance = retLog(createInstanceResult);
 
 		result.value = std::move(instance);
 		return result;
@@ -1860,12 +2023,12 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(
 	*/
-	inline SkResult<vk::SurfaceKHR, InstanceError> createGLFWWindowSurface(vk::Instance instance, GLFWwindow* pWindow) noexcept
+	inline SkResult<vk::SurfaceKHR, InstanceError> createGLFWWindowSurface(const vk::Instance& instance, GLFWwindow* pWindow) noexcept
 	{
 		SkResult result(static_cast<vk::SurfaceKHR>(vk::SurfaceKHR(nullptr)), static_cast<InstanceError>(InstanceError::NO_ERROR));
 
 		VkSurfaceKHR rawSurface;
-		VkResult res = std::move(glfwCreateWindowSurface(instance, pWindow, nullptr, &rawSurface));
+		VkResult res = glfwCreateWindowSurface(instance, pWindow, nullptr, &rawSurface);
 
 		if (res != VK_SUCCESS || rawSurface == VK_NULL_HANDLE)
 		{
@@ -1885,7 +2048,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of physical devices, PhysicalDeviceError)
 	*/
-	inline SkResult<std::vector<vk::PhysicalDevice>, PhysicalDeviceError> getAvailablePhysicalDevices(vk::Instance instance) noexcept
+	inline SkResult<std::vector<vk::PhysicalDevice>, PhysicalDeviceError> getAvailablePhysicalDevices(const vk::Instance& instance) noexcept
 	{
 		SkResult result(static_cast<std::vector<vk::PhysicalDevice>>(std::vector<vk::PhysicalDevice>()), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
 
@@ -1906,7 +2069,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return boolean indicating if a given vulkan device is suitable(true) or not(false)
 	*/
-	constexpr inline bool isDeviceSuitable(vk::PhysicalDevice physicalDevice) noexcept
+	constexpr inline bool isDeviceSuitable(const vk::PhysicalDevice& physicalDevice) noexcept
 	{
 		return true;
 	}
@@ -1917,7 +2080,7 @@ namespace SOULKAN_NAMESPACE
 	 *
 	 * @return SkResult(Vector of physical devices, PhysicalDeviceError)
 	 */
-	inline SkResult<std::vector<vk::PhysicalDevice>, PhysicalDeviceError> getSuitablePhysicalDevices(std::vector<vk::PhysicalDevice> availablePhysicalDevices)
+	inline SkResult<std::vector<vk::PhysicalDevice>, PhysicalDeviceError> getSuitablePhysicalDevices(const std::vector<vk::PhysicalDevice>& availablePhysicalDevices)
 	{
 		SkResult result(static_cast<std::vector<vk::PhysicalDevice>>(std::vector<vk::PhysicalDevice>()), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
 
@@ -1941,7 +2104,7 @@ namespace SOULKAN_NAMESPACE
 	 *
 	 * @return SkResult(Vulkan physical device, PhysicalDeviceError)
 	 */
-	inline SkResult<vk::PhysicalDevice, PhysicalDeviceError> getBestPhysicalDeviceByScore(std::vector<vk::PhysicalDevice> suitablePhysicalDevices)
+	inline SkResult<vk::PhysicalDevice, PhysicalDeviceError> getBestPhysicalDeviceByScore(const std::vector<vk::PhysicalDevice>& suitablePhysicalDevices)
 	{
 		SkResult result(static_cast<vk::PhysicalDevice>(vk::PhysicalDevice(nullptr)), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
 
@@ -1994,7 +2157,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vulkan physical device, PhysicalDeviceError)
 	*/
-	inline SkResult<vk::PhysicalDevice, PhysicalDeviceError> getBestPhysicalDevice(std::vector<vk::PhysicalDevice> suitablePhysicalDevices)
+	inline SkResult<vk::PhysicalDevice, PhysicalDeviceError> getBestPhysicalDevice(const std::vector<vk::PhysicalDevice>& suitablePhysicalDevices)
 	{
 		SkResult result(static_cast<vk::PhysicalDevice>(vk::PhysicalDevice(nullptr)), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
 
@@ -2025,7 +2188,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vulkan physical device, PhysicalDeviceError)
 	*/
-	inline SkResult<vk::PhysicalDevice, PhysicalDeviceError> getPhysicalDevice(vk::Instance instance)
+	inline SkResult<vk::PhysicalDevice, PhysicalDeviceError> getPhysicalDevice(const vk::Instance& instance)
 	{
 		SkResult result(static_cast<vk::PhysicalDevice>(vk::PhysicalDevice(nullptr)), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
 
@@ -2054,12 +2217,12 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of queue family indexes, PhysicalDeviceError)
 	*/
-	inline SkResult<std::vector<uint32_t>, PhysicalDeviceError> getQueueFamilyIndexes(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
+	inline SkResult<std::array<uint32_t, 6>, PhysicalDeviceError> getQueueFamilyIndexes(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface)
 	{
-		SkResult result(static_cast<std::vector<uint32_t>>(std::vector<uint32_t>()), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
+		SkResult result(std::array<uint32_t, 6>(), PhysicalDeviceError::NO_ERROR);
 
 		uint32_t uint32_tMax = std::move(std::numeric_limits<uint32_t>::max());
-		std::vector<uint32_t> queueFamilyIndexes = { uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax };
+		std::array<uint32_t, 6> queueFamilyIndexes = { uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax, uint32_tMax };
 
 		auto availableQueueFamilies = physicalDevice.getQueueFamilyProperties();
 
@@ -2124,7 +2287,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of concentrated queue family indexes, PhysicalDeviceError)
 	*/
-	inline SkResult<std::vector<uint32_t>, QueueError> concentrateQueueFamilyIndexes(std::vector<uint32_t> queueFamilyIndexes)
+	inline SkResult<std::vector<uint32_t>, QueueError> concentrateQueueFamilyIndexes(const std::array<uint32_t, 6>& queueFamilyIndexes)
 	{
 		SkResult result(static_cast<std::vector<uint32_t>>(std::vector<uint32_t>()), static_cast<QueueError>(QueueError::NO_ERROR));
 
@@ -2165,9 +2328,9 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(best available present mode, PhysicalDeviceError)
 	*/
-	inline SkResult<vk::PresentModeKHR, PhysicalDeviceError> getBestAvailablePresentMode(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, vk::PresentModeKHR presentMode)
+	inline SkResult<vk::PresentModeKHR, PhysicalDeviceError> getBestAvailablePresentMode(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface, const vk::PresentModeKHR& presentMode)
 	{
-		SkResult result(static_cast<vk::PresentModeKHR>(vk::PresentModeKHR::eImmediate), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR)); //Could not find an acceptable default value for PresentModeKHR
+		SkResult result(vk::PresentModeKHR::eImmediate, PhysicalDeviceError::NO_ERROR); //Could not find an acceptable default value for PresentModeKHR
 
 		std::vector<vk::PresentModeKHR> presentModes = physicalDevice.getSurfacePresentModesKHR(surface);
 		if (presentModes.size() == 0)
@@ -2250,7 +2413,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(best available surface format, PhysicalDeviceError)
 	*/
-	inline SkResult<vk::SurfaceFormatKHR, PhysicalDeviceError> getBestAvailableSurfaceFormat(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
+	inline SkResult<vk::SurfaceFormatKHR, PhysicalDeviceError> getBestAvailableSurfaceFormat(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface)
 	{
 		SkResult result(static_cast<vk::SurfaceFormatKHR>(vk::SurfaceFormatKHR()), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR)); // No default value for vk::SurfaceFormatKHR
 
@@ -2279,7 +2442,7 @@ namespace SOULKAN_NAMESPACE
 			{
 				if (surfaceFormat.format == vk::Format::eB8G8R8A8Unorm && surfaceFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
 				{
-					result.value = std::move(surfaceFormat);
+					result.value = surfaceFormat;
 				}
 			}
 		}
@@ -2295,7 +2458,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(2D extent of the swapchain, PhysicalDeviceError)
 	*/
-	inline SkResult<vk::Extent2D, PhysicalDeviceError> getSwapchainExtent(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, GLFWwindow* pWindow)
+	inline SkResult<vk::Extent2D, PhysicalDeviceError> getSwapchainExtent(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface, GLFWwindow* pWindow)
 	{
 		SkResult result(static_cast<vk::Extent2D>(vk::Extent2D()), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
 
@@ -2303,7 +2466,7 @@ namespace SOULKAN_NAMESPACE
 
 		if (surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
 		{
-			result.value = std::move(surfaceCapabilities.currentExtent);
+			result.value = surfaceCapabilities.currentExtent;
 		}
 		else
 		{
@@ -2326,7 +2489,7 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	inline SkResult<std::string, PhysicalDeviceError> getMemoryInformations(vk::PhysicalDevice physicalDevice)
+	inline SkResult<std::string, PhysicalDeviceError> getMemoryInformations(const vk::PhysicalDevice& physicalDevice)
 	{
 		SkResult result(static_cast<std::string>(std::string()), static_cast<PhysicalDeviceError>(PhysicalDeviceError::NO_ERROR));
 
@@ -2370,7 +2533,7 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	inline SkResult<uint32_t, PhysicalDeviceError> getHeapIndexByTypeIndex(vk::PhysicalDevice physicalDevice, uint32_t memoryTypeIndex)
+	inline SkResult<uint32_t, PhysicalDeviceError> getHeapIndexByTypeIndex(const vk::PhysicalDevice& physicalDevice, const uint32_t& memoryTypeIndex)
 	{
 		uint32_t value = std::numeric_limits<uint32_t>::max();
 		PhysicalDeviceError error = PhysicalDeviceError::NO_ERROR;
@@ -2400,25 +2563,25 @@ namespace SOULKAN_NAMESPACE
 	* @param physicalDeviceFeatures vulkan physical device features to be enabled on the dedvice
 	* @param specificQueueFamilyIndex the index of the queue family to be enabled on the device (default is -1), -1 value means all the indexes from queueFamilyIndexes are used for device creation
 	*/
-	inline SkResult<vk::Device, DeviceError> createDevice(vk::PhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndexes, std::vector<const char*> deviceExtensions,
-		vk::PhysicalDeviceFeatures physicalDeviceFeatures = vk::PhysicalDeviceFeatures{}, int32_t specificQueueFamilyIndex = -1)
+	inline SkResult<vk::Device, DeviceError> createDevice(const vk::PhysicalDevice& physicalDevice, const std::array<uint32_t, 6>& queueFamilyIndexes, const std::vector<const char*>& deviceExtensions,
+		vk::PhysicalDeviceFeatures physicalDeviceFeatures = vk::PhysicalDeviceFeatures{}, uint32_t specificQueueFamilyIndex = std::numeric_limits<uint32_t>::max())
 	{
 		SkResult result(static_cast<vk::Device>(vk::Device(nullptr)), static_cast<DeviceError>(DeviceError::NO_ERROR));
 
 		//DeviceQueueCreateInfos
 		auto concentrateQueueFamilyIndexesResult = concentrateQueueFamilyIndexes(queueFamilyIndexes);
-		std::vector<uint32_t> concentratedQueueFamilyIndexes = std::move(retLog(concentrateQueueFamilyIndexesResult));
+		std::vector<uint32_t> concentratedQueueFamilyIndexes = retLog(concentrateQueueFamilyIndexesResult);
 
 		std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos;
 		deviceQueueCreateInfos.reserve(concentratedQueueFamilyIndexes.size());
 
 		float queuePriority = 1.0f;
 
-		if (specificQueueFamilyIndex == -1)
+		if (specificQueueFamilyIndex == std::numeric_limits<uint32_t>::max())
 		{
 			for (const auto queueFamilyIndex : concentratedQueueFamilyIndexes)
 			{
-				uint32_t index = std::move(static_cast<uint32_t>(queueFamilyIndex));
+				uint32_t index = static_cast<uint32_t>(queueFamilyIndex);
 				deviceQueueCreateInfos.emplace_back(vk::DeviceQueueCreateFlags(), index, 1, &(queuePriority));
 			}
 		}
@@ -2432,13 +2595,13 @@ namespace SOULKAN_NAMESPACE
 
 			else
 			{
-				uint32_t index = std::move(static_cast<uint32_t>(queueFamilyIndexes[specificQueueFamilyIndex]));
+				uint32_t index = static_cast<uint32_t>(queueFamilyIndexes[specificQueueFamilyIndex]);
 				deviceQueueCreateInfos.emplace_back(vk::DeviceQueueCreateFlags(), index, 1, &(queuePriority));
 			}
 		}
 
 		//DeviceCreateInfo
-		vk::DeviceCreateInfo deviceCreateInfo = std::move(vk::DeviceCreateInfo(vk::DeviceCreateFlags(), static_cast<uint32_t>(deviceQueueCreateInfos.size()), deviceQueueCreateInfos.data()));
+		vk::DeviceCreateInfo deviceCreateInfo = vk::DeviceCreateInfo(vk::DeviceCreateFlags(), static_cast<uint32_t>(deviceQueueCreateInfos.size()), deviceQueueCreateInfos.data());
 
 		if (deviceExtensions.size() == 0)
 		{
@@ -2455,7 +2618,7 @@ namespace SOULKAN_NAMESPACE
 
 		try
 		{
-			device = std::move(physicalDevice.createDevice(deviceCreateInfo));
+			device = physicalDevice.createDevice(deviceCreateInfo);
 		}
 		catch (vk::SystemError err)
 		{
@@ -2472,7 +2635,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), DeviceError)
 	*/
-	inline SkResult<bool, DeviceError> destroyDevice(vk::Device device)
+	inline SkResult<bool, DeviceError> destroyDevice(vk::Device& device)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<DeviceError>(DeviceError::NO_ERROR));
 
@@ -2495,7 +2658,7 @@ namespace SOULKAN_NAMESPACE
 	* @param queueFamilyIndex the index of the queueFamily from which the queue will stem from
 	* @param queueIndex the index of the queue from the queueFamily
 	*/
-	inline SkResult<vk::Queue, DeviceError> getQueue(vk::Device device, uint32_t queueFamilyIndex, uint32_t queueIndex)
+	inline SkResult<vk::Queue, DeviceError> getQueue(const vk::Device& device, uint32_t queueFamilyIndex, uint32_t queueIndex)
 	{
 		SkResult result(static_cast<vk::Queue>(vk::Queue(nullptr)), static_cast<DeviceError>(DeviceError::NO_ERROR));
 
@@ -2523,7 +2686,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), DeviceError)
 	*/
-	inline SkResult<bool, DeviceError> queueSubmit(vk::Queue queue, std::vector<vk::CommandBuffer> commandBuffer, std::vector<vk::Semaphore> waitSemaphores, std::vector<vk::Semaphore> signalSemaphore, vk::Fence renderFence)
+	inline SkResult<bool, DeviceError> queueSubmit(const vk::Queue& queue, const std::vector<vk::CommandBuffer>& commandBuffer, std::vector<vk::Semaphore>& waitSemaphores, std::vector<vk::Semaphore>& signalSemaphore, vk::Fence& renderFence)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<DeviceError>(DeviceError::NO_ERROR));
 
@@ -2565,7 +2728,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), DeviceError)
 	*/
-	inline SkResult<bool, DeviceError> queueSubmit(vk::Queue queue, vk::CommandBuffer commandBuffer, vk::Semaphore waitSemaphores, vk::Semaphore signalSemaphore, vk::Fence renderFence)
+	inline SkResult<bool, DeviceError> queueSubmit(const vk::Queue& queue, const vk::CommandBuffer& commandBuffer, vk::Semaphore& waitSemaphores, vk::Semaphore& signalSemaphore, vk::Fence& renderFence)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<DeviceError>(DeviceError::NO_ERROR));
 
@@ -2606,7 +2769,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), DeviceError)
 	*/
-	inline SkResult<bool, DeviceError> queuePresent(vk::Queue queue, vk::SwapchainKHR swapchain, vk::Semaphore waitSemaphore, uint32_t swapchainImageIndex)
+	inline SkResult<bool, DeviceError> queuePresent(const vk::Queue& queue, const vk::SwapchainKHR& swapchain, vk::Semaphore& waitSemaphore, uint32_t swapchainImageIndex)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<DeviceError>(DeviceError::NO_ERROR));
 
@@ -2639,52 +2802,31 @@ namespace SOULKAN_NAMESPACE
 
 	/*Swapchain*/
 
-	/*@brief (No the recommended function, please refer to the createSwapchain() using a present mode, surface format and 2D extent as parameters)
-	* Creates a vulkan swapchain from a given vulkan device using a given vulkan physicalDevice, surface, present mode, a GLFW window and a vector of allowed queue family indices
-	*
-	* @param physicalDevice the vulkan physical device used to query surface capabilities
-	* @param device the vulkan device from which the swapchain is created
-	* @param surface the vulkan surface used to get its capabilities
-	* @param pWindow the GLFW window used to query the swapchain 2D extent
-	* @param chosenPresentMode the preferred present mode to use over the other is it's available
-	* @param allowedQueueIndices a vector of all the allowed queue indices for swapchain creation
-	*
-	* @return SkResult(created swapchain, SwapchainError)
-	*/
-	inline SkResult<vk::SwapchainKHR, SwapchainError> createSwapchain(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface, GLFWwindow* pWindow, vk::PresentModeKHR chosenPresentMode,
-		std::vector<uint32_t> allowedQueueIndices)
+	inline SkResult<vk::SwapchainCreateInfoKHR, DeviceError> createSwapchainCreateInfo(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface, GLFWwindow* pWindow, const vk::PresentModeKHR& presentMode,
+		const vk::SurfaceFormatKHR& surfaceFormat, const vk::Extent2D& extent, const std::array<uint32_t, 6>& queueFamilyIndices)
 	{
-		SkResult result(static_cast<vk::SwapchainKHR>(vk::SwapchainKHR(nullptr)), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
-
-		SkResult<std::vector<uint32_t>, QueueError> concentrateQueueFamilyIndexesResult = concentrateQueueFamilyIndexes(allowedQueueIndices);
-		//incompatible enum class error so no affectError() here
-		allowedQueueIndices = std::move(retLog(concentrateQueueFamilyIndexesResult));
-
+		SkResult result(vk::SwapchainCreateInfoKHR{}, DeviceError::NO_ERROR);
 
 		vk::SurfaceCapabilitiesKHR surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
-		uint32_t swapchainImageCount = std::move(surfaceCapabilities.minImageCount + 1);
+		uint32_t swapchainImageCount = surfaceCapabilities.minImageCount + 1;
 		if (surfaceCapabilities.maxImageCount > 0 && swapchainImageCount > surfaceCapabilities.maxImageCount)
 		{
 			swapchainImageCount = surfaceCapabilities.maxImageCount;
 		}
 
-		vk::PresentModeKHR presentMode = std::move(retLog(getBestAvailablePresentMode(physicalDevice, surface, chosenPresentMode)));
-		vk::SurfaceFormatKHR surfaceFormat = std::move(retLog(getBestAvailableSurfaceFormat(physicalDevice, surface)));
-		vk::Extent2D extent = std::move(retLog(getSwapchainExtent(physicalDevice, surface, pWindow)));
+		vk::SwapchainCreateInfoKHR swapchainCreateInfo = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(),
+			                                                                        surface,
+			                                                                        swapchainImageCount,
+			                                                                        surfaceFormat.format,
+			                                                                        surfaceFormat.colorSpace,
+			                                                                        extent,
+			                                                                        1,
+			                                                                        vk::ImageUsageFlagBits::eColorAttachment);
 
-		vk::SwapchainCreateInfoKHR swapchainCreateInfo = std::move(vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(),
-			surface,
-			swapchainImageCount,
-			surfaceFormat.format,
-			surfaceFormat.colorSpace,
-			extent,
-			1,
-			vk::ImageUsageFlagBits::eColorAttachment));
+		swapchainCreateInfo.queueFamilyIndexCount = static_cast<uint32_t>(queueFamilyIndices.size());
+		swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices.data();
 
-		swapchainCreateInfo.queueFamilyIndexCount = std::move(static_cast<uint32_t>(allowedQueueIndices.size()));
-		swapchainCreateInfo.pQueueFamilyIndices = std::move(allowedQueueIndices.data());
-
-		if (allowedQueueIndices.size() > 1)
+		if (queueFamilyIndices.size() > 1)
 		{
 			swapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
 		}
@@ -2694,14 +2836,22 @@ namespace SOULKAN_NAMESPACE
 			swapchainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
 		}
 
-		swapchainCreateInfo.preTransform = std::move(surfaceCapabilities.currentTransform);
-
+		swapchainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
 		swapchainCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
-		swapchainCreateInfo.presentMode = std::move(presentMode);
+		swapchainCreateInfo.presentMode = presentMode;
 
 		swapchainCreateInfo.clipped = VK_TRUE;
-		swapchainCreateInfo.oldSwapchain = std::move(vk::SwapchainKHR(nullptr));
+		swapchainCreateInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
+
+		result.value = std::move(swapchainCreateInfo);
+
+		return result;
+	}
+
+	inline SkResult<vk::SwapchainKHR, DeviceError> createVkSwapchain(const vk::Device& device, const vk::SwapchainCreateInfoKHR& swapchainCreateInfo)
+	{
+		SkResult result(vk::SwapchainKHR(nullptr), DeviceError::NO_ERROR);
 
 		try
 		{
@@ -2709,7 +2859,7 @@ namespace SOULKAN_NAMESPACE
 		}
 		catch (vk::SystemError err)
 		{
-			result.error = SwapchainError::SWAPCHAIN_CREATION_ERROR;
+			result.error = DeviceError::SWAPCHAIN_CREATION_ERROR;
 		}
 
 		return result;
@@ -2729,8 +2879,8 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created swapchain, SwapchainError)
 	*/
-	inline SkResult<vk::SwapchainKHR, SwapchainError> createSwapchain(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface, GLFWwindow* pWindow, vk::PresentModeKHR presentMode,
-		vk::SurfaceFormatKHR surfaceFormat, vk::Extent2D extent, std::vector<uint32_t> allowedQueueIndices)
+	inline SkResult<vk::SwapchainKHR, SwapchainError> createVkSwapchain(const vk::PhysicalDevice& physicalDevice, const vk::Device& device, const vk::SurfaceKHR surface, 
+		const GLFWwindow* pWindow, const vk::PresentModeKHR& presentMode, const vk::SurfaceFormatKHR& surfaceFormat, const vk::Extent2D& extent, const std::array<uint32_t, 6>& queueFamilyIndices)
 	{
 		SkResult result(static_cast<vk::SwapchainKHR>(vk::SwapchainKHR(nullptr)), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
 
@@ -2738,22 +2888,22 @@ namespace SOULKAN_NAMESPACE
 		uint32_t swapchainImageCount = surfaceCapabilities.minImageCount + 1;
 		if (surfaceCapabilities.maxImageCount > 0 && swapchainImageCount > surfaceCapabilities.maxImageCount)
 		{
-			swapchainImageCount = std::move(surfaceCapabilities.maxImageCount);
+			swapchainImageCount = surfaceCapabilities.maxImageCount;
 		}
 
-		vk::SwapchainCreateInfoKHR swapchainCreateInfo = std::move(vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(),
-			surface,
-			swapchainImageCount,
-			surfaceFormat.format,
-			surfaceFormat.colorSpace,
-			extent,
-			1,
-			vk::ImageUsageFlagBits::eColorAttachment));
+		vk::SwapchainCreateInfoKHR swapchainCreateInfo = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(),
+			                                                                        surface,
+			                                                                        swapchainImageCount,
+			                                                                        surfaceFormat.format,
+			                                                                        surfaceFormat.colorSpace,
+			                                                                        extent,
+			                                                                        1,
+			                                                                        vk::ImageUsageFlagBits::eColorAttachment);
 
-		swapchainCreateInfo.queueFamilyIndexCount = std::move(static_cast<uint32_t>(allowedQueueIndices.size()));
-		swapchainCreateInfo.pQueueFamilyIndices = std::move(allowedQueueIndices.data());
+		swapchainCreateInfo.queueFamilyIndexCount = std::move(static_cast<uint32_t>(queueFamilyIndices.size()));
+		swapchainCreateInfo.pQueueFamilyIndices = std::move(queueFamilyIndices.data());
 
-		if (allowedQueueIndices.size() > 1)
+		if (queueFamilyIndices.size() > 1)
 		{
 			swapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
 		}
@@ -2763,13 +2913,13 @@ namespace SOULKAN_NAMESPACE
 			swapchainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
 		}
 
-		swapchainCreateInfo.preTransform = std::move(surfaceCapabilities.currentTransform);
+		swapchainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
 		swapchainCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
 		swapchainCreateInfo.presentMode = std::move(presentMode);
 
 		swapchainCreateInfo.clipped = VK_TRUE;
-		swapchainCreateInfo.oldSwapchain = std::move(vk::SwapchainKHR(nullptr));
+		swapchainCreateInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
 
 		try
 		{
@@ -2790,7 +2940,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), SwapchainError)
 	*/
-	inline SkResult<bool, SwapchainError> destroySwapchain(vk::Device device, vk::SwapchainKHR swapchain)
+	inline SkResult<bool, SwapchainError> destroySwapchain(const vk::Device& device, vk::SwapchainKHR& swapchain)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
 
@@ -2814,7 +2964,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of swapchain images, SwapchainError)
 	*/
-	inline SkResult<std::vector<vk::Image>, SwapchainError> getSwapchainImages(vk::Device device, vk::SwapchainKHR swapchain)
+	inline SkResult<std::vector<vk::Image>, SwapchainError> getSwapchainImages(const vk::Device& device, const vk::SwapchainKHR& swapchain)
 	{
 		SkResult result(static_cast<std::vector<vk::Image>>(std::vector<vk::Image>()), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
 
@@ -2832,57 +2982,6 @@ namespace SOULKAN_NAMESPACE
 		return result;
 	}
 
-	/*@brief (Not the recommended way of creating image views, please refer to createSwapchainImageViews() using a vector of swapchainImages instead of the swapchain itself)
-	* Creates swapchain image views from swapchain images using a given vulkan device and a given vulkan surface format
-	*
-	* @param device the vulkan device used to create these image views
-	* @param swapchain the vulkan swapchain from which the original images are queried
-	* @param surfaceFormat the vulkan surface format used for created image views
-	*
-	* @return SkResult(vector of created image views, SwapchainError)
-	*/
-	inline SkResult<std::vector<vk::ImageView>, SwapchainError> createSwapchainImageViews(vk::Device device, vk::SwapchainKHR swapchain, vk::SurfaceFormatKHR surfaceFormat)
-	{
-		SkResult result(static_cast<std::vector<vk::ImageView>>(std::vector<vk::ImageView>()), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
-
-		std::vector<vk::Image> swapchainImages = retLog(getSwapchainImages(device, swapchain));
-
-		uint32_t swapchainImageCount = static_cast<uint32_t>(swapchainImages.size());
-		std::vector<vk::ImageView> swapchainImageViews;
-		swapchainImageViews.reserve(swapchainImageCount);
-
-		for (uint32_t i = 0; i < swapchainImageCount; i++)
-		{
-			vk::ImageViewCreateInfo imageViewCreateInfo = {};
-
-			imageViewCreateInfo.image = swapchainImages[i];
-			imageViewCreateInfo.viewType = vk::ImageViewType::e2D;
-			imageViewCreateInfo.format = surfaceFormat.format;
-
-			imageViewCreateInfo.components.r = vk::ComponentSwizzle::eIdentity;
-			imageViewCreateInfo.components.g = vk::ComponentSwizzle::eIdentity;
-			imageViewCreateInfo.components.g = vk::ComponentSwizzle::eIdentity;
-
-			imageViewCreateInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-			imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-			imageViewCreateInfo.subresourceRange.levelCount = 1;
-			imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-			imageViewCreateInfo.subresourceRange.layerCount = 1;
-
-			try
-			{
-				swapchainImageViews.emplace_back(vk::ImageView(device.createImageView(imageViewCreateInfo)));
-			}
-			catch (vk::SystemError err)
-			{
-				result.error = SwapchainError::SWAPCHAIN_IMAGE_VIEW_CREATION_ERROR;
-			}
-		}
-
-		result.value = std::move(swapchainImageViews);
-		return result;
-	}
-
 	/*@brief Creates swapchain image views from given swapchain images using a given vulkan device and a given vulkan surface format
 	*
 	* @param device the vulkan device used to create these image views
@@ -2891,7 +2990,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of created image views, SwapchainError)
 	*/
-	inline SkResult<std::vector<vk::ImageView>, SwapchainError> createSwapchainImageViews(vk::Device device, std::vector<vk::Image>& swapchainImages, vk::SurfaceFormatKHR& surfaceFormat)
+	inline SkResult<std::vector<vk::ImageView>, SwapchainError> createSwapchainImageViews(const vk::Device& device, const std::vector<vk::Image>& swapchainImages, const vk::SurfaceFormatKHR& surfaceFormat)
 	{
 		SkResult result(static_cast<std::vector<vk::ImageView>>(std::vector<vk::ImageView>()), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
 
@@ -2938,7 +3037,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), SwapchainError>
 	*/
-	inline SkResult<bool, SwapchainError> destroySwapchainImageViews(vk::Device device, std::vector<vk::ImageView> swapchainImageViews)
+	inline SkResult<bool, SwapchainError> destroySwapchainImageViews(const vk::Device& device, std::vector<vk::ImageView>& swapchainImageViews)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<SwapchainError>(SwapchainError::NO_ERROR));
 
@@ -2955,6 +3054,8 @@ namespace SOULKAN_NAMESPACE
 			}
 		}
 
+
+
 		return result;
 	}
 
@@ -2968,7 +3069,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created command pool, CommandPoolError)
 	*/
-	inline SkResult<vk::CommandPool, CommandPoolError> createCommandPool(vk::Device device, std::vector<uint32_t> queueFamilyIndexes, QueueFamilyType queueFamilyType)
+	inline SkResult<vk::CommandPool, CommandPoolError> createCommandPool(const vk::Device& device, const std::array<uint32_t, 6>& queueFamilyIndexes, QueueFamilyType queueFamilyType)
 	{
 		SkResult result(static_cast<vk::CommandPool>(vk::CommandPool(nullptr)), static_cast<CommandPoolError>(CommandPoolError::NO_ERROR));
 
@@ -3003,7 +3104,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of created command pools, CommandPoolError)
 	*/
-	inline SkResult<std::vector<vk::CommandPool>, CommandPoolError> createCommandPools(vk::Device device, std::vector<uint32_t> queueFamilyIndexes)
+	inline SkResult<std::vector<vk::CommandPool>, CommandPoolError> createCommandPools(const vk::Device& device, const std::array<uint32_t, 6>& queueFamilyIndexes)
 	{
 		SkResult result(static_cast<std::vector<vk::CommandPool>>(std::vector<vk::CommandPool>()), static_cast<CommandPoolError>(CommandPoolError::NO_ERROR));
 
@@ -3031,7 +3132,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), CommandPoolError)
 	*/
-	inline SkResult<bool, CommandPoolError> destroyCommandPool(vk::Device device, vk::CommandPool commandPool)
+	inline SkResult<bool, CommandPoolError> destroyCommandPool(const vk::Device& device, vk::CommandPool& commandPool)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<CommandPoolError>(CommandPoolError::NO_ERROR));
 
@@ -3055,11 +3156,11 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), CommandPoolError)
 	*/
-	inline SkResult<bool, CommandPoolError> destroyCommandPools(vk::Device device, std::vector<vk::CommandPool> commandPools)
+	inline SkResult<bool, CommandPoolError> destroyCommandPools(const vk::Device& device, std::vector<vk::CommandPool>& commandPools)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<CommandPoolError>(CommandPoolError::NO_ERROR));
 
-		for (const auto& commandPool : commandPools)
+		for (auto& commandPool : commandPools)
 		{
 			auto destroyResult = destroyCommandPool(device, commandPool);
 			result.error = affectError(destroyResult, result.error);
@@ -3082,7 +3183,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vulkan command buffer, CommandBufferError)
 	*/
-	inline SkResult<vk::CommandBuffer, CommandBufferError> allocateCommandBuffer(vk::Device device, vk::CommandPool commandPool)
+	inline SkResult<vk::CommandBuffer, CommandBufferError> allocateCommandBuffer(const vk::Device& device, const vk::CommandPool& commandPool)
 	{
 		SkResult result(static_cast<vk::CommandBuffer>(vk::CommandBuffer(nullptr)), static_cast<CommandBufferError>(CommandBufferError::NO_ERROR));
 
@@ -3111,7 +3212,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of vulkan command buffers, CommandBufferError)
 	*/
-	inline SkResult<std::vector<vk::CommandBuffer>, CommandBufferError> allocateCommandBuffers(vk::Device device, vk::CommandPool commandPool, uint32_t commandBufferCount)
+	inline SkResult<std::vector<vk::CommandBuffer>, CommandBufferError> allocateCommandBuffers(const vk::Device& device, const vk::CommandPool& commandPool, const uint32_t commandBufferCount)
 	{
 		SkResult result(static_cast<std::vector<vk::CommandBuffer>>(std::vector<vk::CommandBuffer>()), static_cast<CommandBufferError>(CommandBufferError::NO_ERROR));
 
@@ -3138,7 +3239,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool, CommandBufferError)
 	*/
-	inline SkResult<bool, CommandBufferError> beginCommandBuffer(vk::CommandBuffer commandBuffer)
+	inline SkResult<bool, CommandBufferError> beginCommandBuffer(const vk::CommandBuffer& commandBuffer)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<CommandBufferError>(CommandBufferError::NO_ERROR));
 
@@ -3164,7 +3265,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool, CommandBufferError)
 	*/
-	inline SkResult<bool, CommandBufferError> endCommandBuffer(vk::CommandBuffer commandBuffer)
+	inline SkResult<bool, CommandBufferError> endCommandBuffer(const vk::CommandBuffer& commandBuffer)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<CommandBufferError>(CommandBufferError::NO_ERROR));
 
@@ -3191,7 +3292,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created attachment description, RenderPassError)
 	*/
-	inline SkResult<vk::AttachmentDescription, RenderPassError> createAttachmentDescription(vk::SurfaceFormatKHR surfaceFormat, vk::ImageLayout initialImageLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalImageLayout = vk::ImageLayout::ePresentSrcKHR) noexcept
+	inline SkResult<vk::AttachmentDescription, RenderPassError> createAttachmentDescription(const vk::SurfaceFormatKHR& surfaceFormat, const vk::ImageLayout initialImageLayout = vk::ImageLayout::eUndefined, const vk::ImageLayout finalImageLayout = vk::ImageLayout::ePresentSrcKHR) noexcept
 	{
 		SkResult result(static_cast<vk::AttachmentDescription>(vk::AttachmentDescription{}), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3219,7 +3320,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created attachment reference, RenderPassError)
 	*/
-	inline SkResult<vk::AttachmentReference, RenderPassError> createAttachmentReference(uint32_t attachmentIndex = 0, vk::ImageLayout imageLayout = vk::ImageLayout::eColorAttachmentOptimal) noexcept
+	inline SkResult<vk::AttachmentReference, RenderPassError> createAttachmentReference(const uint32_t attachmentIndex = 0, const vk::ImageLayout imageLayout = vk::ImageLayout::eColorAttachmentOptimal) noexcept
 	{
 		SkResult result(static_cast<vk::AttachmentReference>(vk::AttachmentReference()), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3239,7 +3340,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created subpass description, RenderPassError)
 	*/
-	inline SkResult<vk::SubpassDescription, RenderPassError> createSubpassDescription(std::vector<vk::AttachmentReference>& colorAttachments, vk::PipelineBindPoint pipelineBindPoint = vk::PipelineBindPoint::eGraphics) noexcept
+	inline SkResult<vk::SubpassDescription, RenderPassError> createSubpassDescription(std::vector<vk::AttachmentReference>& colorAttachments, const vk::PipelineBindPoint pipelineBindPoint = vk::PipelineBindPoint::eGraphics) noexcept
 	{
 		SkResult result(static_cast<vk::SubpassDescription>(vk::SubpassDescription()), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3261,7 +3362,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created vulkan renderPass, RenderPassError)
 	*/
-	inline SkResult<vk::RenderPass, RenderPassError> createRenderPass(vk::Device device, std::vector<vk::AttachmentDescription>& attachmentDescriptions, std::vector<vk::SubpassDescription>& subpassDescriptions)
+	inline SkResult<vk::RenderPass, RenderPassError> createRenderPass(const vk::Device& device, const std::vector<vk::AttachmentDescription>& attachmentDescriptions, const std::vector<vk::SubpassDescription>& subpassDescriptions)
 	{
 		SkResult result(static_cast<vk::RenderPass>(vk::RenderPass(nullptr)), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3291,7 +3392,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created vulkan render pass, RenderPassError)
 	*/
-	inline SkResult<vk::RenderPass, RenderPassError> createBasicRenderPass(vk::Device device, vk::SurfaceFormatKHR surfaceFormat)
+	inline SkResult<vk::RenderPass, RenderPassError> createBasicRenderPass(const vk::Device& device, const vk::SurfaceFormatKHR& surfaceFormat)
 	{
 		SkResult result(static_cast<vk::RenderPass>(vk::RenderPass(nullptr)), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3324,7 +3425,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), RenderPassError)
 	*/
-	inline SkResult<bool, RenderPassError> destroyRenderPass(vk::Device device, vk::RenderPass renderPass)
+	inline SkResult<bool, RenderPassError> destroyRenderPass(const vk::Device& device, const vk::RenderPass& renderPass)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3351,7 +3452,8 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), RenderPassError)
 	*/
-	inline SkResult<bool, RenderPassError> beginRenderPass(vk::CommandBuffer commandBuffer, vk::RenderPass renderPass, vk::Extent2D extent, vk::Framebuffer framebuffer, vk::ClearValue clearValue)
+	inline SkResult<bool, RenderPassError> beginRenderPass(const vk::CommandBuffer& commandBuffer, const vk::RenderPass& renderPass, const vk::Extent2D& extent, 
+		                                                   const vk::Framebuffer& framebuffer, const vk::ClearValue& clearValue)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3386,7 +3488,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), RenderPassError)
 	*/
-	inline SkResult<bool, RenderPassError> endRenderPass(vk::CommandBuffer commandBuffer)
+	inline SkResult<bool, RenderPassError> endRenderPass(const vk::CommandBuffer& commandBuffer)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3415,8 +3517,8 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created framebuffers, FramebufferError)
 	*/
-	inline SkResult<std::vector<vk::Framebuffer>, FramebufferError> createFramebuffers(vk::Device device, vk::RenderPass renderPass, uint32_t attachmentCount, vk::Extent2D windowExtent, vk::SwapchainKHR swapchain,
-		std::vector<vk::ImageView> swapchainImageViews)
+	inline SkResult<std::vector<vk::Framebuffer>, FramebufferError> createFramebuffers(const vk::Device& device, const vk::RenderPass& renderPass, const uint32_t attachmentCount, const vk::Extent2D &windowExtent, 
+		const vk::SwapchainKHR& swapchain, const std::vector<vk::ImageView>& swapchainImageViews)
 	{
 		SkResult result(static_cast<std::vector<vk::Framebuffer>>(std::vector<vk::Framebuffer>()), static_cast<FramebufferError>(FramebufferError::NO_ERROR));
 
@@ -3457,7 +3559,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), FramebufferError)
 	*/
-	inline SkResult<bool, FramebufferError> destroyFramebuffers(vk::Device device, std::vector<vk::Framebuffer> framebuffers)
+	inline SkResult<bool, FramebufferError> destroyFramebuffers(const vk::Device& device, const std::vector<vk::Framebuffer>& framebuffers)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<FramebufferError>(FramebufferError::NO_ERROR));
 
@@ -3485,7 +3587,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created fence, SyncError)
 	*/
-	inline SkResult<vk::Fence, SyncError> createFence(vk::Device device)
+	inline SkResult<vk::Fence, SyncError> createFence(const vk::Device& device)
 	{
 		SkResult result(static_cast<vk::Fence>(vk::Fence(nullptr)), static_cast<SyncError>(SyncError::NO_ERROR));
 
@@ -3511,7 +3613,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), SyncError)
 	*/
-	inline SkResult<bool, SyncError> destroyFence(vk::Device device, vk::Fence fence)
+	inline SkResult<bool, SyncError> destroyFence(const vk::Device& device, vk::Fence& fence)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<SyncError>(SyncError::NO_ERROR));
 
@@ -3534,7 +3636,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created semaphore, SyncError)
 	*/
-	inline SkResult<vk::Semaphore, SyncError> createSemaphore(vk::Device device)
+	inline SkResult<vk::Semaphore, SyncError> createSemaphore(const vk::Device& device)
 	{
 		SkResult result(static_cast<vk::Semaphore>(vk::Semaphore(nullptr)), static_cast<SyncError>(SyncError::NO_ERROR));
 
@@ -3560,7 +3662,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), SyncError)
 	*/
-	inline SkResult<bool, SyncError> destroySemaphore(vk::Device device, vk::Semaphore semaphore)
+	inline SkResult<bool, SyncError> destroySemaphore(const vk::Device& device, vk::Semaphore& semaphore)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<SyncError>(SyncError::NO_ERROR));
 
@@ -3599,9 +3701,9 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), DrawingError)
 	*/
-	inline SkResult<bool, DrawingError> draw(vk::Device device, vk::CommandBuffer commandBuffer, vk::SwapchainKHR swapchain, vk::Queue queue, vk::Pipeline pipeline, vk::Fence renderFence, vk::Semaphore presentSemaphore,
-		vk::Semaphore renderSemaphore, vk::RenderPass renderPass, vk::Extent2D extent, std::vector<vk::Framebuffer> framebuffers, std::vector<vk::Buffer> vertexBuffers,
-		std::vector<Vertex> vertices, double& frameNumber)
+	inline SkResult<bool, DrawingError> draw(const vk::Device& device, const vk::CommandBuffer& commandBuffer, const vk::SwapchainKHR& swapchain, const vk::Queue& queue, const vk::Pipeline& pipeline, vk::Fence& renderFence, vk::Semaphore& presentSemaphore,
+		vk::Semaphore& renderSemaphore, const vk::RenderPass& renderPass, const vk::Extent2D& extent, const std::vector<vk::Framebuffer>& framebuffers, const std::vector<vk::Buffer>& vertexBuffers,
+		const std::vector<Vertex>& vertices, double& frameNumber)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<DrawingError>(DrawingError::NO_ERROR));
 
@@ -3650,11 +3752,11 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(actual buffer holding shader file, ShaderError)
 	*/
-	inline SkResult<std::vector<uint32_t>, ShaderError> loadShaderFileInBuffer(std::string shaderFilename) noexcept
+	inline SkResult<std::vector<uint32_t>, ShaderError> loadShaderFileInBuffer(const std::string_view shaderFilename) noexcept
 	{
 		SkResult result(static_cast<std::vector<uint32_t>>(std::vector<uint32_t>()), static_cast<ShaderError>(ShaderError::NO_ERROR));
 
-		std::ifstream shaderFile(shaderFilename, std::ios::ate | std::ios::binary);
+		std::ifstream shaderFile(std::string(shaderFilename), std::ios::ate | std::ios::binary);
 
 		if (!shaderFile.is_open())
 		{
@@ -3682,7 +3784,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created shader module, ShaderError)
 	*/
-	inline SkResult<vk::ShaderModule, ShaderError> createShaderModule(vk::Device device, std::vector<uint32_t> shaderBuffer)
+	inline SkResult<vk::ShaderModule, ShaderError> createShaderModule(const vk::Device& device, const std::vector<uint32_t>& shaderBuffer)
 	{
 		SkResult result(static_cast<vk::ShaderModule>(vk::ShaderModule(nullptr)), static_cast<ShaderError>(ShaderError::NO_ERROR));
 
@@ -3709,11 +3811,11 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created shader module, ShaderError)
 	*/
-	inline SkResult<vk::ShaderModule, ShaderError> createShaderModule(vk::Device device, std::string shaderFilename)
+	inline SkResult<vk::ShaderModule, ShaderError> createShaderModule(const vk::Device& device, const std::string_view shaderFilename)
 	{
 		SkResult result(static_cast<vk::ShaderModule>(vk::ShaderModule(nullptr)), static_cast<ShaderError>(ShaderError::NO_ERROR));
 
-		auto loadShaderFileInBufferResult = loadShaderFileInBuffer(shaderFilename);
+		auto loadShaderFileInBufferResult = loadShaderFileInBuffer(std::string(shaderFilename));
 		result.error = affectError(loadShaderFileInBufferResult, result.error);
 		std::vector<uint32_t> shaderBuffer = retLog(loadShaderFileInBufferResult);
 
@@ -3732,7 +3834,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool indicating if the operation worked(true) or not(false), ShaderError)
 	*/
-	inline SkResult<bool, ShaderError> destroyShaderModule(vk::Device device, vk::ShaderModule shaderModule)
+	inline SkResult<bool, ShaderError> destroyShaderModule(const vk::Device& device, vk::ShaderModule& shaderModule)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<ShaderError>(ShaderError::NO_ERROR));
 
@@ -3759,8 +3861,8 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created shader stage, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineShaderStageCreateInfo, GraphicsPipelineError> createPipelineShaderStageCreateInfo(vk::ShaderStageFlagBits& shaderStageFlag, vk::ShaderModule& shaderModule,
-		std::string& entryName)
+	inline SkResult<vk::PipelineShaderStageCreateInfo, GraphicsPipelineError> createPipelineShaderStageCreateInfo(const vk::ShaderStageFlagBits& shaderStageFlag, const vk::ShaderModule& shaderModule,
+		const std::string& entryName)
 	{
 		SkResult result(static_cast<vk::PipelineShaderStageCreateInfo>(vk::PipelineShaderStageCreateInfo{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -3788,8 +3890,8 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created shader stage, GraphicsPipelineError)
 	*/
-	inline SkResult<std::vector<vk::PipelineShaderStageCreateInfo>, GraphicsPipelineError> createPipelineShaderStageCreateInfos(std::vector<vk::ShaderStageFlagBits>& shaderStageFlags,
-		std::vector<vk::ShaderModule>& shaderModules, std::vector<std::string>& entryNames)
+	inline SkResult<std::vector<vk::PipelineShaderStageCreateInfo>, GraphicsPipelineError> createPipelineShaderStageCreateInfos(const std::vector<vk::ShaderStageFlagBits>& shaderStageFlags,
+		const std::vector<vk::ShaderModule>& shaderModules, const std::vector<std::string>& entryNames)
 	{
 		SkResult result(static_cast<std::vector<vk::PipelineShaderStageCreateInfo>>(std::vector<vk::PipelineShaderStageCreateInfo>()), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -3814,8 +3916,8 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created vector of shader stages, GraphicsPipelineError)
 	*/
-	inline SkResult<std::vector<vk::PipelineShaderStageCreateInfo>, GraphicsPipelineError> createShaderStages(vk::Device device, std::vector<std::string>& shaderFilenames,
-		std::vector<vk::ShaderStageFlagBits>& shaderStageFlags, std::vector<std::string>& entryNames)
+	inline SkResult<std::vector<vk::PipelineShaderStageCreateInfo>, GraphicsPipelineError> createShaderStages(const vk::Device& device, const std::vector<std::string>& shaderFilenames,
+		const std::vector<vk::ShaderStageFlagBits>& shaderStageFlags, const std::vector<std::string>& entryNames)
 	{
 		SkResult result(static_cast<std::vector<vk::PipelineShaderStageCreateInfo>>(std::vector<vk::PipelineShaderStageCreateInfo>()), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -3848,8 +3950,8 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created vertex input state, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineVertexInputStateCreateInfo, GraphicsPipelineError> createPipelineVertexInputStateCreateInfo(std::vector<vk::VertexInputBindingDescription>& vertexInputBindingDescriptions,
-		std::vector<vk::VertexInputAttributeDescription>& vertexInputAttributeDescriptions)
+	inline SkResult<vk::PipelineVertexInputStateCreateInfo, GraphicsPipelineError> createPipelineVertexInputStateCreateInfo(const std::vector<vk::VertexInputBindingDescription>& vertexInputBindingDescriptions,
+		const std::vector<vk::VertexInputAttributeDescription>& vertexInputAttributeDescriptions)
 	{
 		SkResult result(static_cast<vk::PipelineVertexInputStateCreateInfo>(vk::PipelineVertexInputStateCreateInfo{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));;
 
@@ -3877,7 +3979,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created assembly state, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineInputAssemblyStateCreateInfo, GraphicsPipelineError> createPipelineInputAssemblyStateCreateInfo(vk::PrimitiveTopology& primitiveTopology)
+	inline SkResult<vk::PipelineInputAssemblyStateCreateInfo, GraphicsPipelineError> createPipelineInputAssemblyStateCreateInfo(const vk::PrimitiveTopology primitiveTopology)
 	{
 		SkResult result(static_cast<vk::PipelineInputAssemblyStateCreateInfo>(vk::PipelineInputAssemblyStateCreateInfo{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -3902,7 +4004,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created rasterization state, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineRasterizationStateCreateInfo, GraphicsPipelineError> createPipelineRasterizationStateCreateInfo(vk::PolygonMode& polygonMode)
+	inline SkResult<vk::PipelineRasterizationStateCreateInfo, GraphicsPipelineError> createPipelineRasterizationStateCreateInfo(const vk::PolygonMode polygonMode)
 	{
 		SkResult result(static_cast<vk::PipelineRasterizationStateCreateInfo>(vk::PipelineRasterizationStateCreateInfo{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -3980,7 +4082,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created viewport, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::Viewport, GraphicsPipelineError> createViewport(vk::Extent2D& extent)
+	inline SkResult<vk::Viewport, GraphicsPipelineError> createViewport(const vk::Extent2D& extent)
 	{
 		SkResult result(static_cast<vk::Viewport>(vk::Viewport{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -4011,7 +4113,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created scissor, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::Rect2D, GraphicsPipelineError> createScissor(vk::Extent2D& extent)
+	inline SkResult<vk::Rect2D, GraphicsPipelineError> createScissor(const vk::Extent2D& extent)
 	{
 		SkResult result(static_cast<vk::Rect2D>(vk::Rect2D{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -4038,7 +4140,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created viewport state, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineViewportStateCreateInfo, GraphicsPipelineError> createPipelineViewportStateCreateInfo(std::vector<vk::Viewport>& viewports, std::vector<vk::Rect2D>& scissors)
+	inline SkResult<vk::PipelineViewportStateCreateInfo, GraphicsPipelineError> createPipelineViewportStateCreateInfo(const std::vector<vk::Viewport>& viewports, const std::vector<vk::Rect2D>& scissors)
 	{
 		vk::PipelineViewportStateCreateInfo value = vk::PipelineViewportStateCreateInfo{};
 		GraphicsPipelineError error = GraphicsPipelineError::NO_ERROR;
@@ -4090,7 +4192,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created color blend state, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineColorBlendStateCreateInfo, GraphicsPipelineError> createPipelineColorBlendStateCreateInfo(std::vector<vk::PipelineColorBlendAttachmentState>& colorBlendAttachments)
+	inline SkResult<vk::PipelineColorBlendStateCreateInfo, GraphicsPipelineError> createPipelineColorBlendStateCreateInfo(const std::vector<vk::PipelineColorBlendAttachmentState>& colorBlendAttachments)
 	{
 		SkResult result(static_cast<vk::PipelineColorBlendStateCreateInfo>(vk::PipelineColorBlendStateCreateInfo{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -4118,7 +4220,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created pipeline layout, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineLayout, GraphicsPipelineError> createPipelineLayout(vk::Device device)
+	inline SkResult<vk::PipelineLayout, GraphicsPipelineError> createPipelineLayout(const vk::Device& device)
 	{
 		SkResult result(static_cast<vk::PipelineLayout>(vk::PipelineLayout(nullptr)), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -4157,7 +4259,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(boolean indicating if the operation worked(true) or not(false), GraphicsPipelineError)
 	*/
-	inline SkResult<bool, GraphicsPipelineError> destroyPipelineLayout(vk::Device device, vk::PipelineLayout pipelineLayout)
+	inline SkResult<bool, GraphicsPipelineError> destroyPipelineLayout(const vk::Device& device, const vk::PipelineLayout& pipelineLayout)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -4194,17 +4296,17 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created graphics pipeline, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::Pipeline, GraphicsPipelineError> createGraphicsPipeline(vk::Device device, vk::RenderPass renderPass, vk::PipelineLayout pipelineLayout, vk::Extent2D extent,
-		std::vector<vk::ShaderStageFlagBits> shaderStageFlags, std::vector<vk::ShaderModule> shaderModules, std::vector<std::string>& entryNames,
-		std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = std::vector<vk::VertexInputBindingDescription>(),
-		std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = std::vector<vk::VertexInputAttributeDescription>(),
-		vk::PrimitiveTopology primitiveTopology = vk::PrimitiveTopology::eTriangleList, vk::PolygonMode polygonMode = vk::PolygonMode::eFill,
-		bool sampleShadingEnabled = false, vk::SampleCountFlagBits sampleCountFlag = vk::SampleCountFlagBits::e1,
-		vk::Flags<vk::ColorComponentFlagBits> colorWriteMask = (vk::ColorComponentFlagBits::eR |
-			vk::ColorComponentFlagBits::eG |
-			vk::ColorComponentFlagBits::eG |
-			vk::ColorComponentFlagBits::eA),
-		bool blendEnabled = false)
+	inline SkResult<vk::Pipeline, GraphicsPipelineError> createGraphicsPipeline(const vk::Device& device, const vk::RenderPass& renderPass, const vk::PipelineLayout& pipelineLayout, const vk::Extent2D& extent,
+		                                                                        const std::vector<vk::ShaderStageFlagBits>& shaderStageFlags, const std::vector<vk::ShaderModule>& shaderModules, const std::vector<std::string>& entryNames,
+		                                                                        std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = std::vector<vk::VertexInputBindingDescription>(),
+		                                                                        std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = std::vector<vk::VertexInputAttributeDescription>(),
+		                                                                        vk::PrimitiveTopology primitiveTopology = vk::PrimitiveTopology::eTriangleList, vk::PolygonMode polygonMode = vk::PolygonMode::eFill,
+		                                                                        bool sampleShadingEnabled = false, vk::SampleCountFlagBits sampleCountFlag = vk::SampleCountFlagBits::e1,
+		                                                                        vk::Flags<vk::ColorComponentFlagBits> colorWriteMask = (vk::ColorComponentFlagBits::eR |
+		                                                                        	                                                    vk::ColorComponentFlagBits::eG |
+		                                                                        	                                                    vk::ColorComponentFlagBits::eG |
+		                                                                        	                                                    vk::ColorComponentFlagBits::eA),
+		                                                                        bool blendEnabled = false)
 	{
 		SkResult result(static_cast<vk::Pipeline>(vk::Pipeline(nullptr)), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -4317,7 +4419,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(boolean indicating if the operation worked(true) or not(false), GraphicsPipelineError)
 	*/
-	inline SkResult<bool, GraphicsPipelineError> destroyPipeline(vk::Device device, vk::Pipeline pipeline)
+	inline SkResult<bool, GraphicsPipelineError> destroyPipeline(const vk::Device& device, const vk::Pipeline& pipeline)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -4344,7 +4446,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(index of memory type, AllocationError)
 	*/
-	inline SkResult<uint32_t, AllocationError> getMemoryTypeIndex(vk::PhysicalDevice physicalDevice, uint32_t typeFilter, vk::Flags<vk::MemoryPropertyFlagBits> memoryProperties)
+	inline SkResult<uint32_t, AllocationError> getMemoryTypeIndex(const vk::PhysicalDevice& physicalDevice, uint32_t typeFilter, const vk::Flags<vk::MemoryPropertyFlagBits>& memoryProperties)
 	{
 		SkResult result(static_cast<uint32_t>(std::numeric_limits<uint32_t>::max()), static_cast<AllocationError>(AllocationError::NO_ERROR));
 
@@ -4377,7 +4479,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(aligned offset, AllocationError)
 	*/
-	inline SkResult<uint64_t, AllocationError> getAlignedOffset(vk::DeviceSize alignement, uint64_t currentOffset)
+	inline SkResult<uint64_t, AllocationError> getAlignedOffset(const vk::DeviceSize& alignement, uint64_t currentOffset)
 	{
 		SkResult result(static_cast<uint64_t>(std::numeric_limits<uint64_t>::max()), static_cast<AllocationError>(AllocationError::NO_ERROR));
 
@@ -4935,7 +5037,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created vertex buffer, BufferError)
 	*/
-	inline SkResult<vk::Buffer, BufferError> createVertexBuffer(vk::Device device, std::vector<Vertex> vertices, vk::SharingMode sharingMode)
+	inline SkResult<vk::Buffer, BufferError> createVertexBuffer(const vk::Device& device, const std::vector<Vertex>& vertices, const vk::SharingMode& sharingMode)
 	{
 		SkResult result(static_cast<vk::Buffer>(vk::Buffer(nullptr)), static_cast<BufferError>(BufferError::NO_ERROR));
 
@@ -4966,7 +5068,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created mesh buffer, BufferError)
 	*/
-	inline SkResult<vk::Buffer, BufferError> createMeshBuffer(vk::Device device, Mesh mesh, vk::SharingMode sharingMode)
+	inline SkResult<vk::Buffer, BufferError> createMeshBuffer(const vk::Device& device, const Mesh& mesh, const vk::SharingMode& sharingMode)
 	{
 		SkResult result(static_cast<vk::Buffer>(vk::Buffer(nullptr)), static_cast<BufferError>(BufferError::NO_ERROR));
 
@@ -4998,7 +5100,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(boolean indicating if the operation worked(true) or not(false), GraphicsPipelineError)
 	*/
-	inline SkResult<bool, BufferError> destroyBuffer(vk::Device device, vk::Buffer buffer)
+	inline SkResult<bool, BufferError> destroyBuffer(const vk::Device& device, vk::Buffer& buffer)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<BufferError>(BufferError::NO_ERROR));
 
@@ -5024,17 +5126,17 @@ namespace SOULKAN_NAMESPACE
 	{
 		SkResult result(static_cast<Mesh>(Mesh()), static_cast<MeshError>(MeshError::NO_ERROR));
 
-		Vec3 pos0(1.0f, 1.0f, 0.0f);
-		Vec3 pos1(-1.0f, 1.0f, 0.0f);
-		Vec3 pos2(0.0f, -1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos0(1.0f, 1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos1(-1.0f, 1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos2(0.0f, -1.0f, 0.0f);
 
-		Vec3 normal0(0.0f, 0.0f, 0.0f);
-		Vec3 normal1(0.0f, 0.0f, 0.0f);
-		Vec3 normal2(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal0(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal1(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal2(0.0f, 0.0f, 0.0f);
 
-		Vec3 color0(0.0f, 1.0f, 0.0f);
-		Vec3 color1(0.0f, 1.0f, 0.0f);
-		Vec3 color2(0.0f, 1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color0(0.0f, 1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color1(0.0f, 1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color2(0.0f, 1.0f, 0.0f);
 
 		std::vector<Vertex> vertices;
 		vertices.reserve(3); // A triangle has 3 vertices
@@ -5059,54 +5161,54 @@ namespace SOULKAN_NAMESPACE
 		SkResult result(static_cast<Mesh>(Mesh()), static_cast<MeshError>(MeshError::NO_ERROR));
 
 		//Need to invert around y axis in vert shader :(
-		Vec3 pos0(0.0f, 0.5f, 0.0f);
-		Vec3 pos1(0.5f, 1.0f, 0.0f);
-		Vec3 pos2(1.0f, 0.5f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos0(0.0f, 0.5f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos1(0.5f, 1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos2(1.0f, 0.5f, 0.0f);
 
-		Vec3 pos3(0.0f, 0.5f, 0.0f);
-		Vec3 pos4(1.0f, 0.5f, 0.0f);
-		Vec3 pos5(0.0f, -1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos3(0.0f, 0.5f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos4(1.0f, 0.5f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos5(0.0f, -1.0f, 0.0f);
 
-		Vec3 pos6(-1.0f, 0.5f, 0.0f);
-		Vec3 pos7(0.0f, 0.5f, 0.0f);
-		Vec3 pos8(0.0f, -1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos6(-1.0f, 0.5f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos7(0.0f, 0.5f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos8(0.0f, -1.0f, 0.0f);
 
-		Vec3 pos9(-1.0f, 0.5f, 0.0f);
-		Vec3 pos10(-0.5f, 1.0f, 0.0f);
-		Vec3 pos11(0.0f, 0.5f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos9(-1.0f, 0.5f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos10(-0.5f, 1.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 pos11(0.0f, 0.5f, 0.0f);
 
 
-		Vec3 normal0(0.0f, 0.0f, 0.0f);
-		Vec3 normal1(0.0f, 0.0f, 0.0f);
-		Vec3 normal2(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal0(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal1(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal2(0.0f, 0.0f, 0.0f);
 
-		Vec3 normal3(0.0f, 0.0f, 0.0f);
-		Vec3 normal4(0.0f, 0.0f, 0.0f);
-		Vec3 normal5(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal3(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal4(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal5(0.0f, 0.0f, 0.0f);
 
-		Vec3 normal6(0.0f, 0.0f, 0.0f);
-		Vec3 normal7(0.0f, 0.0f, 0.0f);
-		Vec3 normal8(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal6(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal7(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal8(0.0f, 0.0f, 0.0f);
 
-		Vec3 normal9(0.0f, 0.0f, 0.0f);
-		Vec3 normal10(0.0f, 0.0f, 0.0f);
-		Vec3 normal11(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal9(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal10(0.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal11(0.0f, 0.0f, 0.0f);
 
-		Vec3 color0(1.0f, 0.0f, 0.0f);
-		Vec3 color1(1.0f, 0.0f, 0.0f);
-		Vec3 color2(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color0(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color1(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color2(1.0f, 0.0f, 0.0f);
 
-		Vec3 color3(1.0f, 0.0f, 0.0f);
-		Vec3 color4(1.0f, 0.0f, 0.0f);
-		Vec3 color5(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color3(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color4(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color5(1.0f, 0.0f, 0.0f);
 
-		Vec3 color6(1.0f, 0.0f, 0.0f);
-		Vec3 color7(1.0f, 0.0f, 0.0f);
-		Vec3 color8(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color6(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color7(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color8(1.0f, 0.0f, 0.0f);
 
-		Vec3 color9(1.0f, 0.0f, 0.0f);
-		Vec3 color10(1.0f, 0.0f, 0.0f);
-		Vec3 color11(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color9(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color10(1.0f, 0.0f, 0.0f);
+		SOULKAN_MATHS_NAMESPACE::Vec3 color11(1.0f, 0.0f, 0.0f);
 
 		std::vector<Vertex> vertices;
 		vertices.reserve(12); // A basic heart mesh contains 12 vertices
@@ -5137,6 +5239,532 @@ namespace SOULKAN_NAMESPACE
 
 		result.value = std::move(Mesh(vertices));
 		return result;
+	}
+
+	//Convenient classes
+	class Window;
+	class Instance;
+	class PhysicalDevice;
+	class Device;
+	class Queue;
+	class Swapchain;
+	class CommandPool;
+
+	class Window
+	{
+	public:
+		Window()
+		{
+			auto createWindowResult = createGlfwWindow(800, 600, "Window title", false);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+		}
+
+		Window(GLFWwindow* pWindow)
+			: m_pWindow(pWindow)
+		{}
+
+		Window(uint32_t width, uint32_t height)
+		{
+			auto createWindowResult = createGlfwWindow(width, height, "Window title", false);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+
+		}
+
+		Window(uint32_t width, uint32_t height, std::string_view title)
+		{
+			auto createWindowResult = createGlfwWindow(width, height, title, false);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = createWindowResult.value;
+		}
+
+		Window(uint32_t width, uint32_t height, std::string_view title, bool resizable)
+		{
+			auto createWindowResult = createGlfwWindow(width, height, title, resizable);
+			m_error = affectError(createWindowResult, m_error);
+
+			m_pWindow = retLog(createWindowResult);
+		}
+
+		void rename(std::string_view newTitle)
+		{
+			glfwSetWindowTitle(m_pWindow, std::string(newTitle).c_str());
+		}
+
+		GLFWwindow* get() const
+		{
+			return m_pWindow;
+		}
+
+	private:
+		GLFWwindow* m_pWindow = nullptr;
+		GLFWError m_error = GLFWError::NO_ERROR;
+	};
+
+	class Instance
+	{
+	public:
+		Instance()
+		{}
+
+		Instance(const vk::Instance& newInstance)
+			: mInstance(newInstance)
+		{}
+
+		Instance(const vk::ApplicationInfo& appInfo)
+		{
+			auto createInstanceResult = createInstance(appInfo);
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		Instance(const std::string_view engineName, const std::string_view appName)
+		{
+			auto createInstanceResult = createInstance(std::string(engineName).c_str(), std::string(appName).c_str());
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = retLog(createInstanceResult);
+		}
+
+		Instance(const vk::ApplicationInfo& appInfo, const std::vector<const char*>& extensions, const std::vector<const char*>& validationLayers)
+		{
+			auto createInstanceResult = createInstance(appInfo, extensions, validationLayers);
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		Instance(const std::string_view engineName, const std::string_view appName, const std::vector<const char*>& extensions, const std::vector<const char*>& validationLayers)
+		{
+			auto createInstanceResult = createInstance(std::string(engineName).c_str(), std::string(appName).c_str(), extensions, validationLayers);
+			mError = affectError(createInstanceResult, mError);
+
+			mInstance = createInstanceResult.value;
+		}
+
+		bool operator==(Instance other)
+		{
+			return (mInstance == other.get());
+		}
+
+		bool operator!=(Instance other)
+		{
+			return !(*this == other);
+		}
+
+		vk::SurfaceKHR createSurface(const Window& window)
+		{
+			auto createWindowSurfaceResult = createGLFWWindowSurface(mInstance, window.get());
+			mError = affectError(createWindowSurfaceResult, mError);
+
+			return retLog(createWindowSurfaceResult);
+		}
+
+		vk::Instance get() const
+		{
+			return mInstance;
+		}
+
+		std::string error() const
+		{
+			return toString(mError);
+		}
+
+	private:
+		vk::Instance mInstance = nullptr;
+		InstanceError mError = InstanceError::NO_ERROR;
+	};
+
+	class PhysicalDevice
+	{
+	public:
+		PhysicalDevice()
+		{}
+
+		PhysicalDevice(const Instance& instance)
+			: mInstance(instance)
+		{
+			auto getPhysicalDeviceResult = getPhysicalDevice(mInstance.get());
+			mError = affectError(getPhysicalDeviceResult, mError);
+
+			mPhysicalDevice = retLog(getPhysicalDeviceResult);
+		}
+
+		bool operator==(PhysicalDevice other)
+		{
+			return (mPhysicalDevice == other.get() &&
+				    mInstance == other.getInstance());
+		}
+
+		bool operator!=(PhysicalDevice other)
+		{
+			return !(*this == other);
+		}
+
+		std::array<uint32_t, 6> getQFIndexes(const vk::SurfaceKHR& surface)
+		{
+			auto queueFamilyIndexesResult = getQueueFamilyIndexes(mPhysicalDevice, surface);
+			mError = affectError(queueFamilyIndexesResult, mError);
+
+			return retLog(queueFamilyIndexesResult);
+		}
+
+		Device createDevice(const std::array<uint32_t, 6>& queueFamilyIndexes, const std::vector<const char*>& extensions);
+		Device createDevice(const std::array<uint32_t, 6>& queueFamilyIndexes, const std::vector<const char*>& extensions, const vk::PhysicalDeviceFeatures& physicalDeviceFeatures);
+
+		vk::PresentModeKHR getAppropriatePresentMode(const vk::SurfaceKHR& surface, const vk::PresentModeKHR& chosenPresentMode)
+		{
+			auto getPresentModeResult = getBestAvailablePresentMode(mPhysicalDevice, surface, chosenPresentMode);
+			mError = affectError(getPresentModeResult, mError);
+
+			return retLog(getPresentModeResult);
+		}
+
+		vk::SurfaceFormatKHR getAppropriateSurfaceFormat(const vk::SurfaceKHR& surface)
+		{
+			auto getSurfaceFormatResult = getBestAvailableSurfaceFormat(mPhysicalDevice, surface);
+			mError = affectError(getSurfaceFormatResult, mError);
+
+			return retLog(getSurfaceFormatResult);
+		}
+
+		vk::Extent2D getAppropriateExtent(const vk::SurfaceKHR& surface, const Window& window)
+		{
+			auto getExtentResult = getSwapchainExtent(mPhysicalDevice, surface, window.get());
+			mError = affectError(getExtentResult, mError);
+
+			return retLog(getExtentResult);
+		}
+
+		vk::PhysicalDevice get() const
+		{
+			return mPhysicalDevice;
+		}
+
+		Instance getInstance() const
+		{
+			return mInstance;
+		}
+
+		std::string error() const
+		{
+			return toString(mError);
+		}
+
+	private:
+		vk::PhysicalDevice mPhysicalDevice = nullptr;
+		Instance mInstance = Instance();
+
+		PhysicalDeviceError mError = PhysicalDeviceError::NO_ERROR;
+	};
+
+	class Device
+	{
+	public:
+		Device()
+		{}
+
+		Device(const vk::Device& device, const PhysicalDevice& physicalDevice)
+			: mDevice(device), mPhysicalDevice(physicalDevice)
+		{}
+
+		Device(const PhysicalDevice& physicalDevice, const std::array<uint32_t, 6>& queueFamilyIndexes, const std::vector<const char*>& extensions)
+			: mPhysicalDevice(physicalDevice)
+		{
+			auto createDeviceResult = createDevice(physicalDevice.get(), queueFamilyIndexes, extensions);
+			mError = affectError(createDeviceResult, mError);
+
+			mDevice = retLog(createDeviceResult);
+		}
+
+		Device(const PhysicalDevice& physicalDevice, const std::array<uint32_t, 6>& queueFamilyIndexes, const std::vector<const char*>& extensions, const vk::PhysicalDeviceFeatures& physicalDeviceFeatures)
+			: mPhysicalDevice(physicalDevice)
+		{
+			auto createDeviceResult = createDevice(physicalDevice.get(), queueFamilyIndexes, extensions, physicalDeviceFeatures);
+			mError = affectError(createDeviceResult, mError);
+
+			mDevice = retLog(createDeviceResult);
+		}
+
+		bool operator==(Device other)
+		{
+			return (mDevice == other.get() &&
+				    mPhysicalDevice == other.getPhysicalDevice());
+		}
+
+		bool operator!=(Device other)
+		{
+			return !(*this == other);
+		}
+
+		vk::Queue getVkQueue(const uint32_t familyIndex, const uint32_t index);
+
+		Queue getQueue(const QueueFamilyType queueFamilyType, const std::array<uint32_t, 6>& queueFamilyIndexes, const uint32_t queueIndex);
+		Queue getQueue(const QueueFamilyType queueFamilyType, const uint32_t queueFamilyIndex, const uint32_t queueIndex);
+
+		Swapchain createSwapchain(const vk::SwapchainCreateInfoKHR& swapchainCreateInfo);
+		Swapchain createSwapchain(const Window& window, const vk::SurfaceKHR& surface, const vk::PresentModeKHR& presentMode, const vk::SurfaceFormatKHR& surfaceFormat, 
+			                      const vk::Extent2D& extent, const std::array<uint32_t, 6>& queueFamilyIndexes);
+
+		CommandPool createCommandPool(const std::array<uint32_t, 6>& queueFamilyIndexes, const QueueFamilyType queueFamilyType);
+
+		vk::Device get() const
+		{
+			return mDevice;
+		}
+
+		DeviceError error() const
+		{
+			return mError;
+		}
+
+		PhysicalDevice getPhysicalDevice() const
+		{
+			return mPhysicalDevice;
+		}
+
+		void destroy()
+		{
+			logError(destroyDevice(mDevice));
+		}
+
+	private:
+		vk::Device mDevice = nullptr;
+		PhysicalDevice mPhysicalDevice = PhysicalDevice();
+
+		DeviceError mError = DeviceError::NO_ERROR;
+	};
+
+	inline Device PhysicalDevice::createDevice(const std::array<uint32_t, 6>& queueFamilyIndexes, const std::vector<const char*>& extensions)
+	{
+		return Device(*this, queueFamilyIndexes, extensions);
+	}
+											    												  								
+	inline Device PhysicalDevice::createDevice(const std::array<uint32_t, 6>& queueFamilyIndexes, const std::vector<const char*>& extensions, const vk::PhysicalDeviceFeatures& physicalDeviceFeatures)
+	{
+		return Device(*this, queueFamilyIndexes, extensions, physicalDeviceFeatures);
+	}
+
+	class Queue
+	{
+	public:
+		Queue(const vk::Queue& queue, const Device& device, const QueueFamilyType familyType, const uint32_t familyIndex, const uint32_t index)
+			: mQueue(queue), mDevice(device), mFamilyType(familyType), mFamilyIndex(familyIndex), mIndex(index)
+		{}
+
+		Queue(const vk::Queue& queue, const Device& device, const QueueFamilyType familyType, const std::array<uint32_t, 6>& familyIndexes, const uint32_t index)
+			: mQueue(queue), mDevice(device), mFamilyType(familyType), mFamilyIndex(familyIndexes[static_cast<uint32_t>(familyType)]), mIndex(index)
+		{}
+
+		bool operator==(Queue other)
+		{
+			return (mQueue == other.get() &&
+				    mDevice == other.getDevice() &&
+				    mFamilyType == other.getFamilyType() &&
+				    mFamilyIndex == other.getFamilyIndex() &&
+				    mIndex == other.getIndex());
+		}
+
+		bool operator!=(Queue other)
+		{
+			return !(*this == other);
+		}
+
+		vk::Queue get() const
+		{
+			return mQueue;
+		}
+
+		Device getDevice() const
+		{
+			return mDevice;
+		}
+
+		QueueFamilyType getFamilyType() const
+		{
+			return mFamilyType;
+		}
+
+		uint32_t getFamilyIndex() const
+		{
+			return mFamilyIndex;
+		}
+
+		uint32_t getIndex() const
+		{
+			return mIndex;
+		}
+
+		QueueError error() const
+		{
+			return mError;
+		}
+
+		std::string infos() const
+		{
+			return ("\nerror        = " + toString(mError) +
+				    "\nfamily type  = " + toString(mFamilyType) +
+				    "\nfamily index = " + std::to_string(mFamilyIndex) +
+				    "\nindex        = " + std::to_string(mIndex));
+		}
+
+	private:
+		vk::Queue mQueue = vk::Queue();
+		Device mDevice   = Device();
+
+		QueueError mError = QueueError::NO_ERROR;
+
+		QueueFamilyType mFamilyType = QueueFamilyType::DEBUG_TMP;
+
+		uint32_t mFamilyIndex = std::numeric_limits<uint32_t>::max();
+		uint32_t mIndex = std::numeric_limits<uint32_t>::max();
+	};
+
+	inline vk::Queue Device::getVkQueue(const uint32_t familyIndex, const uint32_t index)
+	{
+		auto getQueueResult = sk::getQueue(mDevice, familyIndex, index);
+		mError = affectError(getQueueResult, mError);
+
+		return retLog(getQueueResult);
+	}
+
+	inline Queue Device::getQueue(const QueueFamilyType queueFamilyType, const std::array<uint32_t, 6>& queueFamilyIndexes, const uint32_t queueIndex)
+	{
+		vk::Queue queue = getVkQueue(queueFamilyIndexes[static_cast<uint32_t>(queueFamilyType)], queueIndex);
+		return Queue(queue, *this, queueFamilyType, queueFamilyIndexes, queueIndex);
+	}
+
+	inline Queue Device::getQueue(const QueueFamilyType queueFamilyType, const uint32_t queueFamilyIndex, const uint32_t queueIndex)
+	{
+		vk::Queue queue = getVkQueue(queueFamilyIndex, queueIndex);
+		return Queue(queue, *this, queueFamilyType, queueFamilyIndex, queueIndex);
+	}
+
+	class Swapchain
+	{
+	public:
+		Swapchain()
+		{}
+
+		Swapchain(const vk::SwapchainKHR& swapchain, const Device& device, const vk::SwapchainCreateInfoKHR& createInfo)
+			: mSwapchain(swapchain), mDevice(device), mInfos(createInfo)
+		{}
+
+		std::vector<vk::Image> getImages() const
+		{
+			auto getImagesResult = getSwapchainImages(mDevice.get(), mSwapchain);
+
+			return retLog(getImagesResult);
+		}
+
+		std::vector<vk::ImageView> createImageViews(const std::vector<vk::Image>& images, const vk::SurfaceFormatKHR& surfaceFormat)
+		{
+			auto createImageViewsResult = createSwapchainImageViews(mDevice.get(), images, surfaceFormat);
+
+			return retLog(createImageViewsResult);
+		}
+
+		std::vector<vk::ImageView> createImageViews()
+		{
+			auto createImageViewsResult = createSwapchainImageViews(mDevice.get(), getImages(), vk::SurfaceFormatKHR{ mInfos.imageFormat, mInfos.imageColorSpace });
+
+			return retLog(createImageViewsResult);
+		}
+
+		vk::SwapchainKHR get() const
+		{
+			return mSwapchain;
+		}
+
+		Device getDevice() const
+		{
+			return mDevice;
+		}
+
+		vk::SwapchainCreateInfoKHR getInfos() const
+		{
+			return mInfos;
+		}
+
+		SwapchainError error() const
+		{
+			return mError;
+		}
+
+		void destroy()
+		{
+			mDevice.get().destroySwapchainKHR(mSwapchain);
+		}
+
+	private:
+		vk::SwapchainKHR mSwapchain = nullptr;
+		Device mDevice = Device();
+
+		SwapchainError mError = SwapchainError::NO_ERROR;
+
+		vk::SwapchainCreateInfoKHR mInfos = {};
+	};
+
+	inline Swapchain Device::createSwapchain(const vk::SwapchainCreateInfoKHR& swapchainCreateInfo)
+	{
+		auto createSwapchainResult = createVkSwapchain(mDevice, swapchainCreateInfo);
+
+		return Swapchain(retLog(createSwapchainResult), *this, swapchainCreateInfo);
+	}
+
+	inline Swapchain Device::createSwapchain(const  Window& window, const vk::SurfaceKHR& surface, const vk::PresentModeKHR& presentMode, const vk::SurfaceFormatKHR& surfaceFormat, 
+		                                     const vk::Extent2D& extent, const std::array<uint32_t, 6>& queueFamilyIndexes)
+	{
+		auto createSwapchainCIResult = createSwapchainCreateInfo(mPhysicalDevice.get(), surface, window.get(), presentMode, surfaceFormat, extent, queueFamilyIndexes);
+		mError = affectError(createSwapchainCIResult, mError);
+		vk::SwapchainCreateInfoKHR swapchainCreateInfo = retLog(createSwapchainCIResult);
+
+		auto createSwapchainResult = createVkSwapchain(mDevice, retLog(createSwapchainCIResult));
+		mError = affectError(createSwapchainResult, mError);
+		vk::SwapchainKHR swapchain = retLog(createSwapchainResult);
+
+		return Swapchain(swapchain, *this, swapchainCreateInfo);
+	}
+
+	class CommandPool
+	{
+	public:
+
+		vk::CommandPool get() const
+		{
+			return mCommandPool;
+		}
+
+		Device getDevice() const
+		{
+			return mDevice;
+		}
+
+		CommandPoolError error() const
+		{
+			return mError;
+		}
+
+		void destroy()
+		{
+			mDevice.get().destroyCommandPool(mCommandPool);
+		}
+
+	private:
+		vk::CommandPool mCommandPool = nullptr;
+		Device mDevice = Device();
+
+		CommandPoolError mError = CommandPoolError::NO_ERROR;
+	};
+
+	inline CommandPool Device::createCommandPool(const std::array<uint32_t, 6>& queueFamilyIndexes, const QueueFamilyType queueFamilyType)
+	{
+
 	}
 }
 #endif

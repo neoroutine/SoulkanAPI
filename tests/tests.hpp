@@ -76,28 +76,27 @@ namespace SOULKAN_NAMESPACE
 		deletionQueue.push_func([=]() { skSwapchain.destroy(); });
 
 		/*COMMAND POOL*/
-		static auto createGeneralCommandPoolResult = sk::createCommandPool(device, queueFamilyIndexes, sk::QueueFamilyType::GENERAL);
-		static vk::CommandPool generalCommandPool = sk::retLog(createGeneralCommandPoolResult);
+		static sk::CommandPool skGeneralCommandPool = skDevice.createCommandPool(queueFamilyIndexes, QueueFamilyType::GENERAL);
+		static vk::CommandPool generalCommandPool   = skGeneralCommandPool.get();
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroyCommandPool(device, generalCommandPool)); });
+		deletionQueue.push_func([=]() { skGeneralCommandPool.destroy(); });
 
 		/*COMMAND BUFFER*/
-		static auto allocateGeneralCommandBufferResult = sk::allocateCommandBuffer(device, generalCommandPool);
-		static vk::CommandBuffer generalCommandBuffer = sk::retLog(allocateGeneralCommandBufferResult);
+		static sk::CommandBuffer skGeneralCommandBuffer = skGeneralCommandPool.allocateCommandBuffer();
+		static vk::CommandBuffer generalCommandBuffer = skGeneralCommandBuffer.get();
 
 		/*RENDER PASS*/
-		static auto createBasicRenderPassResult = sk::createBasicRenderPass(device, surfaceFormat);
-		static vk::RenderPass renderPass = sk::retLog(createBasicRenderPassResult);
+		static sk::RenderPass skRenderPass = skDevice.createRenderPass(surfaceFormat);
+		static vk::RenderPass renderPass   = skRenderPass.get();
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroyRenderPass(device, renderPass)); });
+		deletionQueue.push_func([=]() { skRenderPass.destroy(); });
 
 		/*FRAMEBUFFERS*/
 		static std::vector<vk::Image> swapchainImages = skSwapchain.getImages();
 
-		static auto createSwapchainImageViewsResult = sk::createSwapchainImageViews(device, swapchainImages, surfaceFormat);
-		static std::vector<vk::ImageView> swapchainImageViews = sk::retLog(createSwapchainImageViewsResult);
+		static std::vector<vk::ImageView> swapchainImageViews = skSwapchain.createImageViews(swapchainImages, surfaceFormat);
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroySwapchainImageViews(device, swapchainImageViews)); });
+		deletionQueue.push_func([=]() { skSwapchain.destroyImageViews(swapchainImageViews); });
 
 		static sk::SkResult<std::vector<vk::Framebuffer>, sk::FramebufferError> createFramebuffersResult = sk::createFramebuffers(device, renderPass, 1, extent, swapchain, swapchainImageViews);
 		static std::vector<vk::Framebuffer> framebuffers = sk::retLog(createFramebuffersResult);

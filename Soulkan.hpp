@@ -3069,7 +3069,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created command pool, CommandPoolError)
 	*/
-	inline SkResult<vk::CommandPool, CommandPoolError> createCommandPool(const vk::Device& device, const std::array<uint32_t, 6>& queueFamilyIndexes, QueueFamilyType queueFamilyType)
+	inline SkResult<vk::CommandPool, CommandPoolError> createVkCommandPool(const vk::Device& device, const std::array<uint32_t, 6>& queueFamilyIndexes, QueueFamilyType queueFamilyType)
 	{
 		SkResult result(static_cast<vk::CommandPool>(vk::CommandPool(nullptr)), static_cast<CommandPoolError>(CommandPoolError::NO_ERROR));
 
@@ -3104,7 +3104,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of created command pools, CommandPoolError)
 	*/
-	inline SkResult<std::vector<vk::CommandPool>, CommandPoolError> createCommandPools(const vk::Device& device, const std::array<uint32_t, 6>& queueFamilyIndexes)
+	inline SkResult<std::vector<vk::CommandPool>, CommandPoolError> createVkCommandPools(const vk::Device& device, const std::array<uint32_t, 6>& queueFamilyIndexes)
 	{
 		SkResult result(static_cast<std::vector<vk::CommandPool>>(std::vector<vk::CommandPool>()), static_cast<CommandPoolError>(CommandPoolError::NO_ERROR));
 
@@ -3114,7 +3114,7 @@ namespace SOULKAN_NAMESPACE
 		//Implying use of the QueueFamilyType ordering, see QueueFamilyType
 		for (int i = 0; i < queueFamilyIndexes.size(); i++)
 		{
-			auto createCommandPoolResult = createCommandPool(device, queueFamilyIndexes, static_cast<QueueFamilyType>(i));
+			auto createCommandPoolResult = createVkCommandPool(device, queueFamilyIndexes, static_cast<QueueFamilyType>(i));
 			result.error = affectError(createCommandPoolResult, result.error);
 			vk::CommandPool commandPool = retLog(createCommandPoolResult);
 
@@ -3183,7 +3183,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vulkan command buffer, CommandBufferError)
 	*/
-	inline SkResult<vk::CommandBuffer, CommandBufferError> allocateCommandBuffer(const vk::Device& device, const vk::CommandPool& commandPool)
+	inline SkResult<vk::CommandBuffer, CommandBufferError> allocateVkCommandBuffer(const vk::Device& device, const vk::CommandPool& commandPool)
 	{
 		SkResult result(static_cast<vk::CommandBuffer>(vk::CommandBuffer(nullptr)), static_cast<CommandBufferError>(CommandBufferError::NO_ERROR));
 
@@ -3212,7 +3212,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(vector of vulkan command buffers, CommandBufferError)
 	*/
-	inline SkResult<std::vector<vk::CommandBuffer>, CommandBufferError> allocateCommandBuffers(const vk::Device& device, const vk::CommandPool& commandPool, const uint32_t commandBufferCount)
+	inline SkResult<std::vector<vk::CommandBuffer>, CommandBufferError> allocateVkCommandBuffers(const vk::Device& device, const vk::CommandPool& commandPool, const uint32_t commandBufferCount)
 	{
 		SkResult result(static_cast<std::vector<vk::CommandBuffer>>(std::vector<vk::CommandBuffer>()), static_cast<CommandBufferError>(CommandBufferError::NO_ERROR));
 
@@ -3362,7 +3362,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created vulkan renderPass, RenderPassError)
 	*/
-	inline SkResult<vk::RenderPass, RenderPassError> createRenderPass(const vk::Device& device, const std::vector<vk::AttachmentDescription>& attachmentDescriptions, const std::vector<vk::SubpassDescription>& subpassDescriptions)
+	inline SkResult<vk::RenderPass, RenderPassError> createVkRenderPass(const vk::Device& device, const std::vector<vk::AttachmentDescription>& attachmentDescriptions, const std::vector<vk::SubpassDescription>& subpassDescriptions)
 	{
 		SkResult result(static_cast<vk::RenderPass>(vk::RenderPass(nullptr)), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3392,7 +3392,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created vulkan render pass, RenderPassError)
 	*/
-	inline SkResult<vk::RenderPass, RenderPassError> createBasicRenderPass(const vk::Device& device, const vk::SurfaceFormatKHR& surfaceFormat)
+	inline SkResult<vk::RenderPass, RenderPassError> createBasicVkRenderPass(const vk::Device& device, const vk::SurfaceFormatKHR& surfaceFormat)
 	{
 		SkResult result(static_cast<vk::RenderPass>(vk::RenderPass(nullptr)), static_cast<RenderPassError>(RenderPassError::NO_ERROR));
 
@@ -3411,7 +3411,7 @@ namespace SOULKAN_NAMESPACE
 		vk::SubpassDescription subpassDescription = retLog(createSubpassDescriptionResult);
 		std::vector<vk::SubpassDescription> subpassDescriptions = { std::move(subpassDescription) };
 
-		auto createRenderPassResult = createRenderPass(device, attachmentDescriptions, subpassDescriptions);
+		auto createRenderPassResult = createVkRenderPass(device, attachmentDescriptions, subpassDescriptions);
 		result.error = affectError(createRenderPassResult, result.error);
 		vk::RenderPass renderPass = retLog(createRenderPassResult);
 
@@ -3517,7 +3517,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created framebuffers, FramebufferError)
 	*/
-	inline SkResult<std::vector<vk::Framebuffer>, FramebufferError> createFramebuffers(const vk::Device& device, const vk::RenderPass& renderPass, const uint32_t attachmentCount, const vk::Extent2D &windowExtent, 
+	inline SkResult<std::vector<vk::Framebuffer>, FramebufferError> createVkFramebuffers(const vk::Device& device, const vk::RenderPass& renderPass, const uint32_t attachmentCount, const vk::Extent2D &windowExtent, 
 		const vk::SwapchainKHR& swapchain, const std::vector<vk::ImageView>& swapchainImageViews)
 	{
 		SkResult result(static_cast<std::vector<vk::Framebuffer>>(std::vector<vk::Framebuffer>()), static_cast<FramebufferError>(FramebufferError::NO_ERROR));
@@ -5249,6 +5249,8 @@ namespace SOULKAN_NAMESPACE
 	class Queue;
 	class Swapchain;
 	class CommandPool;
+	class CommandBuffer;
+	class RenderPass;
 
 	class Window
 	{
@@ -5513,6 +5515,8 @@ namespace SOULKAN_NAMESPACE
 
 		CommandPool createCommandPool(const std::array<uint32_t, 6>& queueFamilyIndexes, const QueueFamilyType queueFamilyType);
 
+		RenderPass createRenderPass(const vk::SurfaceFormatKHR& surfaceFormat);
+
 		vk::Device get() const
 		{
 			return mDevice;
@@ -5701,6 +5705,14 @@ namespace SOULKAN_NAMESPACE
 			mDevice.get().destroySwapchainKHR(mSwapchain);
 		}
 
+		void destroyImageViews(std::vector<vk::ImageView>& imageViews)
+		{
+			for (auto& imageView : imageViews)
+			{
+				mDevice.get().destroyImageView(imageView);
+			}
+		}
+
 	private:
 		vk::SwapchainKHR mSwapchain = nullptr;
 		Device mDevice = Device();
@@ -5735,6 +5747,19 @@ namespace SOULKAN_NAMESPACE
 	{
 	public:
 
+		CommandPool()
+		{}
+
+		CommandPool(const vk::CommandPool& commandPool, const Device device, const std::array<uint32_t, 6>& queueFamilyIndexes, const QueueFamilyType queueFamilyType)
+			: mCommandPool(commandPool), mDevice(device), mQueueFamilyIndex(queueFamilyIndexes[static_cast<uint32_t>(queueFamilyType)]), mQueueFamilyType(queueFamilyType)
+		{}
+
+		CommandPool(const vk::CommandPool& commandPool, const Device device, const uint32_t queueFamilyIndex, const QueueFamilyType queueFamilyType)
+			: mCommandPool(commandPool), mDevice(device), mQueueFamilyIndex(queueFamilyIndex), mQueueFamilyType(queueFamilyType)
+		{}
+
+		CommandBuffer allocateCommandBuffer();
+
 		vk::CommandPool get() const
 		{
 			return mCommandPool;
@@ -5760,11 +5785,124 @@ namespace SOULKAN_NAMESPACE
 		Device mDevice = Device();
 
 		CommandPoolError mError = CommandPoolError::NO_ERROR;
+
+		uint32_t mQueueFamilyIndex = std::numeric_limits<uint32_t>::max();
+		QueueFamilyType mQueueFamilyType = QueueFamilyType::DEBUG_TMP;
 	};
 
 	inline CommandPool Device::createCommandPool(const std::array<uint32_t, 6>& queueFamilyIndexes, const QueueFamilyType queueFamilyType)
 	{
-
+		auto createVkCommandPoolResult = createVkCommandPool(this->get(), queueFamilyIndexes, queueFamilyType);
+		return CommandPool(retLog(createVkCommandPoolResult), *this, queueFamilyIndexes, queueFamilyType);
 	}
+
+	class CommandBuffer
+	{
+	public:
+		CommandBuffer()
+		{}
+
+		CommandBuffer(const vk::CommandBuffer& commandBuffer, const CommandPool& commandPool)
+			: mCommandBuffer(commandBuffer), mCommandPool(commandPool)
+		{}
+
+		vk::CommandBuffer get() const
+		{
+			return mCommandBuffer;
+		}
+
+		CommandPool getPool() const
+		{
+			return mCommandPool;
+		}
+
+		CommandBufferError error() const
+		{
+			return mError;
+		}
+
+	private:
+		vk::CommandBuffer mCommandBuffer = nullptr;
+		CommandPool mCommandPool = CommandPool();
+
+		CommandBufferError mError = CommandBufferError::NO_ERROR;
+
+	};
+
+	inline CommandBuffer CommandPool::allocateCommandBuffer()
+	{
+		auto allocateCommandBufferResult = allocateVkCommandBuffer(mDevice.get(), mCommandPool);
+		return CommandBuffer(retLog(allocateCommandBufferResult), *this);
+	}
+
+	class RenderPass
+	{
+	public:
+		RenderPass()
+		{}
+
+		RenderPass(const vk::RenderPass& renderPass, const Device& device, const vk::SurfaceFormatKHR& surfaceFormat)
+			: mRenderPass(renderPass), mDevice(device), mSurfaceFormat(surfaceFormat)
+		{}
+
+		vk::RenderPass get() const
+		{
+			return mRenderPass;
+		}
+
+		Device getDevice() const
+		{
+			return mDevice;
+		}
+
+		vk::SurfaceFormatKHR getSurfaceFormat() const
+		{
+			return mSurfaceFormat;
+		}
+
+		RenderPassError error() const
+		{
+			return mError;
+		}
+
+		void destroy()
+		{
+			mDevice.get().destroyRenderPass(mRenderPass);
+		}
+
+	private:
+		vk::RenderPass mRenderPass = nullptr;
+		Device mDevice = Device();
+		vk::SurfaceFormatKHR mSurfaceFormat = {};
+
+		RenderPassError mError = RenderPassError::NO_ERROR;
+	};
+
+	inline RenderPass Device::createRenderPass(const vk::SurfaceFormatKHR& surfaceFormat)
+	{
+		auto createRenderPassResult = createBasicVkRenderPass(mDevice, surfaceFormat);
+		return RenderPass(retLog(createRenderPassResult), *this, surfaceFormat);
+	}
+
+	class Framebuffer
+	{
+	public:
+		Framebuffer()
+		{}
+
+		Framebuffer(const vk::Framebuffer& framebuffer, const Device& device, const RenderPass& renderPass, const vk::Extent2D& extent, const std::vector<vk::ImageView>& attachments)
+			: mFramebuffer(framebuffer), mDevice(device), mRenderPass(renderPass), mExtent(extent), mAttachments(attachments)
+		{}
+
+	private:
+		vk::Framebuffer mFramebuffer = nullptr;
+		Device mDevice = Device();
+
+		RenderPass mRenderPass = RenderPass();
+		vk::Extent2D mExtent = {};
+		std::vector<vk::ImageView> mAttachments = std::vector<vk::ImageView>();
+
+	};
+
 }
 #endif

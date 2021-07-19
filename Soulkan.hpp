@@ -5517,6 +5517,8 @@ namespace SOULKAN_NAMESPACE
 
 		RenderPass createRenderPass(const vk::SurfaceFormatKHR& surfaceFormat);
 
+		std::vector<Framebuffer> createFramebuffers(const vk::Extent2D& windowExtent, const vk::SwapchainKHR& swapchain, const std::vector<vk::ImageView>& swapchainImageViews);
+
 		vk::Device get() const
 		{
 			return mDevice;
@@ -5936,6 +5938,20 @@ namespace SOULKAN_NAMESPACE
 		FramebufferError mError = FramebufferError::NO_ERROR;
 
 	};
+
+	std::vector<Framebuffer> Device::createFramebuffers(const vk::RenderPass& renderPass, const vk::Extent2D& windowExtent, const vk::SwapchainKHR& swapchain, const std::vector<vk::ImageView>& swapchainImageViews)
+	{
+		std::vector<Framebuffer> framebuffers = {};
+		framebuffers.reserve(swapchainImageViews.size());
+		
+		auto createFramebuffers = createVkFramebuffers(mDevice, renderPass, swapchainImageViews.size(), windowExtent, swapchain, swapchainImageViews);
+		auto vkFramebuffers     = retLog(createFramebuffers);
+
+		for (uint32_t i = 0; i < vkFramebuffers.size(); i++)
+		{
+			framebuffers.emplace_back(vkFramebuffers[i], *this, renderPass, windowExtent, swapchainImageViews);
+		}
+	}
 
 }
 #endif

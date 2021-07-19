@@ -5894,6 +5894,37 @@ namespace SOULKAN_NAMESPACE
 			: mFramebuffer(framebuffer), mDevice(device), mRenderPass(renderPass), mExtent(extent), mAttachments(attachments)
 		{}
 
+		vk::Framebuffer get() const
+		{
+			return mFramebuffer;
+		}
+
+		Device getDevice() const
+		{
+			return mDevice;
+		}
+
+		RenderPass getRenderPass() const
+		{
+			return mRenderPass;
+		}
+
+		vk::Extent2D getExtent() const
+		{
+			return mExtent;
+		}
+
+		std::vector<vk::ImageView> getAttachments() const
+		{
+			return mAttachments;
+		}
+
+		FramebufferError error()
+		{
+			return mError;
+		}
+
+
 	private:
 		vk::Framebuffer mFramebuffer = nullptr;
 		Device mDevice = Device();
@@ -5901,6 +5932,8 @@ namespace SOULKAN_NAMESPACE
 		RenderPass mRenderPass = RenderPass();
 		vk::Extent2D mExtent = {};
 		std::vector<vk::ImageView> mAttachments = std::vector<vk::ImageView>();
+
+		FramebufferError mError = FramebufferError::NO_ERROR;
 
 	};
 

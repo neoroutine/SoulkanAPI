@@ -5520,6 +5520,8 @@ namespace SOULKAN_NAMESPACE
 
 		std::vector<Framebuffer> createFramebuffers(const RenderPass& renderPass, const vk::Extent2D& windowExtent, const Swapchain& swapchain, const std::vector<vk::ImageView>& swapchainImageViews);
 
+		void destroyFramebuffers(std::vector<Framebuffer>& framebuffers);
+
 		vk::Device get() const
 		{
 			return mDevice;
@@ -5927,6 +5929,11 @@ namespace SOULKAN_NAMESPACE
 			return mError;
 		}
 
+		void destroy()
+		{
+			mDevice.get().destroyFramebuffer(mFramebuffer);
+		}
+
 
 	private:
 		vk::Framebuffer mFramebuffer = nullptr;
@@ -5956,5 +5963,17 @@ namespace SOULKAN_NAMESPACE
 		return framebuffers;
 	}
 
+	inline std::vector<vk::Framebuffer> Device::getVkFramebuffers(std::vector<Framebuffer>& framebuffers)
+	{
+
+	}
+
+	inline void Device::destroyFramebuffers(std::vector<Framebuffer>& framebuffers)
+	{
+		for (Framebuffer framebuffer : framebuffers)
+		{
+			framebuffer.destroy();
+		}
+	}
 }
 #endif

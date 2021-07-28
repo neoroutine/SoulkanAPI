@@ -98,8 +98,13 @@ namespace SOULKAN_NAMESPACE
 
 		deletionQueue.push_func([=]() { skSwapchain.destroyImageViews(swapchainImageViews); });
 
-		static sk::SkResult<std::vector<vk::Framebuffer>, sk::FramebufferError> createFramebuffersResult = sk::createFramebuffers(device, renderPass, 1, extent, swapchain, swapchainImageViews);
-		static std::vector<vk::Framebuffer> framebuffers = sk::retLog(createFramebuffersResult);
+		static std::vector < sk::Framebuffer > skFramebuffers = skDevice.createFramebuffers(skRenderPass, extent, skSwapchain, swapchainImageViews);
+		static std::vector <vk::Framebuffer> framebuffers     = {};
+
+		for (sk::Framebuffer skFramebuffer : skFramebuffers)
+		{
+			framebuffers.push_back(skFramebuffer.get());
+		}
 
 		deletionQueue.push_func([=]() { sk::logError(sk::destroyFramebuffers(device, framebuffers)); });
 

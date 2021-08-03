@@ -5520,6 +5520,8 @@ namespace SOULKAN_NAMESPACE
 
 		std::vector<Framebuffer> createFramebuffers(const RenderPass& renderPass, const vk::Extent2D& windowExtent, const Swapchain& swapchain, const std::vector<vk::ImageView>& swapchainImageViews);
 
+		std::vector<vk::Framebuffer> getVkFramebuffers(std::vector<Framebuffer>& framebuffers);
+
 		void destroyFramebuffers(std::vector<Framebuffer>& framebuffers);
 
 		vk::Device get() const
@@ -5965,7 +5967,15 @@ namespace SOULKAN_NAMESPACE
 
 	inline std::vector<vk::Framebuffer> Device::getVkFramebuffers(std::vector<Framebuffer>& framebuffers)
 	{
+		std::vector<vk::Framebuffer> vkFramebuffers;
+		vkFramebuffers.reserve(framebuffers.size());
 
+		for (auto framebuffer : framebuffers)
+		{
+			vkFramebuffers.emplace_back(framebuffer.get());
+		}
+
+		return vkFramebuffers;
 	}
 
 	inline void Device::destroyFramebuffers(std::vector<Framebuffer>& framebuffers)
@@ -5975,5 +5985,76 @@ namespace SOULKAN_NAMESPACE
 			framebuffer.destroy();
 		}
 	}
+
+	class Semaphore
+	{
+	public:
+		Semaphore(vk::Semaphore& semaphore, Device& device)
+			: mSemaphore(semaphore), mDevice(device)
+		{}
+
+		vk::Semaphore get()
+		{
+			return mSemaphore;
+		}
+
+		Device getDevice()
+		{
+			return mDevice;
+		}
+
+		SyncError error()
+		{
+			return mError;
+		}
+
+		void destroy()
+		{
+			mError = affectError(destroySemaphore(mDevice.get(), mSemaphore), mError);
+		}
+	private:
+		vk::Semaphore mSemaphore = {};
+		Device mDevice = Device();
+
+		SyncError mError = SyncError::NO_ERROR;
+	};
+
+	class Fence
+	{
+	public:
+		Fence(vk::Fence& fence, Device& device)
+			: mFence(fence), mDevice(device)
+		{}
+
+		vk::Fence get()
+		{
+			return mFence;
+		}
+
+		Device getDevice()
+		{
+			return mDevice;
+		}
+
+		vk::Result status()
+		{
+			return mDevice.get().getFenceStatus(mFence);
+		}
+
+		SyncError error()
+		{
+			return mError;
+		}
+
+		void destroy()
+		{
+			mError = affectError(destroyFence(mDevice.get(), mFence), mError);
+		}
+	private:
+		vk::Fence mFence = {};
+		Device mDevice = Device();
+
+		SyncError mError = SyncError::NO_ERROR;
+	};
 }
 #endif

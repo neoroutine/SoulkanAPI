@@ -3587,7 +3587,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created fence, SyncError)
 	*/
-	inline SkResult<vk::Fence, SyncError> createFence(const vk::Device& device)
+	inline SkResult<vk::Fence, SyncError> createVkFence(const vk::Device& device)
 	{
 		SkResult result(static_cast<vk::Fence>(vk::Fence(nullptr)), static_cast<SyncError>(SyncError::NO_ERROR));
 
@@ -3613,7 +3613,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), SyncError)
 	*/
-	inline SkResult<bool, SyncError> destroyFence(const vk::Device& device, vk::Fence& fence)
+	inline SkResult<bool, SyncError> destroyVkFence(const vk::Device& device, vk::Fence& fence)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<SyncError>(SyncError::NO_ERROR));
 
@@ -3636,7 +3636,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created semaphore, SyncError)
 	*/
-	inline SkResult<vk::Semaphore, SyncError> createSemaphore(const vk::Device& device)
+	inline SkResult<vk::Semaphore, SyncError> createVkSemaphore(const vk::Device& device)
 	{
 		SkResult result(static_cast<vk::Semaphore>(vk::Semaphore(nullptr)), static_cast<SyncError>(SyncError::NO_ERROR));
 
@@ -3662,7 +3662,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(bool signaling if the operation worked(1) or not(0), SyncError)
 	*/
-	inline SkResult<bool, SyncError> destroySemaphore(const vk::Device& device, vk::Semaphore& semaphore)
+	inline SkResult<bool, SyncError> destroyVkSemaphore(const vk::Device& device, vk::Semaphore& semaphore)
 	{
 		SkResult result(static_cast<bool>(true), static_cast<SyncError>(SyncError::NO_ERROR));
 
@@ -3784,7 +3784,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created shader module, ShaderError)
 	*/
-	inline SkResult<vk::ShaderModule, ShaderError> createShaderModule(const vk::Device& device, const std::vector<uint32_t>& shaderBuffer)
+	inline SkResult<vk::ShaderModule, ShaderError> createVkShaderModule(const vk::Device& device, const std::vector<uint32_t>& shaderBuffer)
 	{
 		SkResult result(static_cast<vk::ShaderModule>(vk::ShaderModule(nullptr)), static_cast<ShaderError>(ShaderError::NO_ERROR));
 
@@ -3811,7 +3811,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created shader module, ShaderError)
 	*/
-	inline SkResult<vk::ShaderModule, ShaderError> createShaderModule(const vk::Device& device, const std::string_view shaderFilename)
+	inline SkResult<vk::ShaderModule, ShaderError> createVkShaderModule(const vk::Device& device, const std::string_view shaderFilename)
 	{
 		SkResult result(static_cast<vk::ShaderModule>(vk::ShaderModule(nullptr)), static_cast<ShaderError>(ShaderError::NO_ERROR));
 
@@ -3819,7 +3819,7 @@ namespace SOULKAN_NAMESPACE
 		result.error = affectError(loadShaderFileInBufferResult, result.error);
 		std::vector<uint32_t> shaderBuffer = retLog(loadShaderFileInBufferResult);
 
-		auto createShaderModuleResult = createShaderModule(device, shaderBuffer);
+		auto createShaderModuleResult = createVkShaderModule(device, shaderBuffer);
 		result.error = affectError(createShaderModuleResult, result.error);
 		vk::ShaderModule shaderModule = retLog(createShaderModuleResult);
 
@@ -3929,7 +3929,7 @@ namespace SOULKAN_NAMESPACE
 			auto shaderBufferResult = loadShaderFileInBuffer(shaderFilenames[i]);
 			std::vector<uint32_t> shaderBuffer = retLog(shaderBufferResult);
 
-			auto shaderModuleResult = createShaderModule(device, shaderBuffer);
+			auto shaderModuleResult = createVkShaderModule(device, shaderBuffer);
 			vk::ShaderModule shaderModule = retLog(shaderModuleResult);
 
 			shaderModules.emplace_back(std::move(shaderModule));
@@ -5252,6 +5252,9 @@ namespace SOULKAN_NAMESPACE
 	class CommandBuffer;
 	class RenderPass;
 	class Framebuffer;
+	class Semaphore;
+	class Fence;
+	class Shader;
 
 	class Window
 	{
@@ -5523,6 +5526,11 @@ namespace SOULKAN_NAMESPACE
 		std::vector<vk::Framebuffer> getVkFramebuffers(std::vector<Framebuffer>& framebuffers);
 
 		void destroyFramebuffers(std::vector<Framebuffer>& framebuffers);
+
+		Fence createFence();
+		Semaphore createSemaphore();
+
+		Shader createShader(vk::ShaderStageFlags stage, std::string filename, std::string entryName);
 
 		vk::Device get() const
 		{
@@ -5989,6 +5997,9 @@ namespace SOULKAN_NAMESPACE
 	class Semaphore
 	{
 	public:
+		Semaphore()
+		{}
+
 		Semaphore(vk::Semaphore& semaphore, Device& device)
 			: mSemaphore(semaphore), mDevice(device)
 		{}
@@ -6010,7 +6021,7 @@ namespace SOULKAN_NAMESPACE
 
 		void destroy()
 		{
-			mError = affectError(destroySemaphore(mDevice.get(), mSemaphore), mError);
+			mError = affectError(destroyVkSemaphore(mDevice.get(), mSemaphore), mError);
 		}
 	private:
 		vk::Semaphore mSemaphore = {};
@@ -6019,9 +6030,18 @@ namespace SOULKAN_NAMESPACE
 		SyncError mError = SyncError::NO_ERROR;
 	};
 
+	inline Semaphore Device::createSemaphore()
+	{
+		auto vkSemaphore = retLog(createVkSemaphore(mDevice));
+		return Semaphore(vkSemaphore, *this);
+	}
+
 	class Fence
 	{
 	public:
+		Fence()
+		{}
+
 		Fence(vk::Fence& fence, Device& device)
 			: mFence(fence), mDevice(device)
 		{}
@@ -6048,7 +6068,7 @@ namespace SOULKAN_NAMESPACE
 
 		void destroy()
 		{
-			mError = affectError(destroyFence(mDevice.get(), mFence), mError);
+			mError = affectError(destroyVkFence(mDevice.get(), mFence), mError);
 		}
 	private:
 		vk::Fence mFence = {};
@@ -6056,5 +6076,74 @@ namespace SOULKAN_NAMESPACE
 
 		SyncError mError = SyncError::NO_ERROR;
 	};
+
+	inline Fence Device::createFence()
+	{
+		auto vkFence = retLog(createVkFence(mDevice));
+		return Fence(vkFence, *this);
+	}
+
+
+	class Shader
+	{
+	public:
+		Shader()
+		{}
+
+		Shader(vk::ShaderModule& shaderModule, Device& device, vk::ShaderStageFlags stage, std::string& filename, std::string& entryName)
+			: mModule(shaderModule), mDevice(device), mStage(stage), mFilename(filename), mEntryName(entryName)
+		{}
+
+		vk::ShaderModule get()
+		{
+			return mModule;
+		}
+
+		Device getDevice()
+		{
+			return mDevice;
+		}
+		
+		vk::ShaderStageFlags stage()
+		{
+			return mStage;
+		}
+
+		std::string filename()
+		{
+			return mFilename;
+		}
+
+		std::string entryName()
+		{
+			return mEntryName;
+		}
+
+		ShaderError error()
+		{
+			return mError;
+		}
+
+		void destroy()
+		{
+			mError = affectError(destroyShaderModule(mDevice.get(), mModule), mError);
+		}
+
+	private:
+		vk::ShaderModule mModule = {};
+		Device mDevice = Device();
+
+		vk::ShaderStageFlags mStage = {};
+		std::string mFilename = "";
+		std::string mEntryName = "";
+
+		ShaderError mError = ShaderError::NO_ERROR;
+	};
+
+	inline Shader Device::createShader(vk::ShaderStageFlags stage, std::string filename, std::string entryName)
+	{
+		auto vkModule = retLog(createVkShaderModule(mDevice, filename));
+		return Shader(vkModule, *this, stage, filename, entryName);
+	}
 }
 #endif

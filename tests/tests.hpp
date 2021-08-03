@@ -101,23 +101,23 @@ namespace SOULKAN_NAMESPACE
 		static std::vector <sk::Framebuffer> skFramebuffers = skDevice.createFramebuffers(skRenderPass, extent, skSwapchain, swapchainImageViews);
 		static std::vector <vk::Framebuffer> framebuffers   = skDevice.getVkFramebuffers(skFramebuffers);
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroyFramebuffers(device, framebuffers)); });
+		deletionQueue.push_func([=]() { skDevice.destroyFramebuffers(skFramebuffers); });
 
 		/*SYNCHRONIZATION*/
-		static sk::SkResult<vk::Fence, sk::SyncError> createFenceResult = sk::createFence(device);
-		static vk::Fence renderFence = sk::retLog(createFenceResult);
+		static sk::Fence skRenderFence = skDevice.createFence();
+		static vk::Fence renderFence   = skRenderFence.get();
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroyFence(device, renderFence)); });
+		deletionQueue.push_func([=]() { skRenderFence.destroy(); });
 
-		static sk::SkResult<vk::Semaphore, sk::SyncError> presentSemaphoreResult = sk::createSemaphore(device);
-		static vk::Semaphore presentSemaphore = sk::retLog(presentSemaphoreResult);
+		static sk::Semaphore skPresentSemaphore = skDevice.createSemaphore();
+		static vk::Semaphore presentSemaphore   = skPresentSemaphore.get();
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroySemaphore(device, presentSemaphore)); });
+		deletionQueue.push_func([=]() { skPresentSemaphore.destroy(); });
 
-		static sk::SkResult<vk::Semaphore, sk::SyncError> renderSemaphoreResult = sk::createSemaphore(device);
-		static vk::Semaphore renderSemaphore = sk::retLog(renderSemaphoreResult);
+		static sk::Semaphore skRenderSemaphore = skDevice.createSemaphore();
+		static vk::Semaphore renderSemaphore   = skRenderSemaphore.get();
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroySemaphore(device, renderSemaphore)); });
+		deletionQueue.push_func([=]() { skRenderSemaphore.destroy(); });
 
 		/*GRAPHICS PIPELINE*/
 
@@ -131,15 +131,13 @@ namespace SOULKAN_NAMESPACE
 		static std::vector<std::string> entryNames = { "main", "main" };
 
 		/*SHADERS*/
-		static auto vertexShaderModuleResult = createShaderModule(device, shaderFilenames[0]);
-		static vk::ShaderModule vertexShaderModule = retLog(vertexShaderModuleResult);
-		static auto fragmentShaderModuleResult = createShaderModule(device, shaderFilenames[1]);
-		static vk::ShaderModule fragmentShaderModule = retLog(fragmentShaderModuleResult);
+		static sk::Shader vertexShader   = skDevice.createShader(vk::ShaderStageFlagBits::eVertex, "shaders/triangle_mesh.spv", "main");
+		static sk::Shader fragmentShader = skDevice.createShader(vk::ShaderStageFlagBits::eFragment, "shaders/colored_triangle.spv", "main");
 
-		static std::vector<vk::ShaderModule> shaderModules = { vertexShaderModule, fragmentShaderModule };
+		static std::vector<vk::ShaderModule> shaderModules = { vertexShader.get(), fragmentShader.get() };
 
-		deletionQueue.push_func([=]() { sk::logError(sk::destroyShaderModule(device, vertexShaderModule)); });
-		deletionQueue.push_func([=]() { sk::logError(sk::destroyShaderModule(device, fragmentShaderModule)); });
+		deletionQueue.push_func([=]() { vertexShader.destroy(); });
+		deletionQueue.push_func([=]() { fragmentShader.destroy(); });
 
 		/*MESH*/
 		static auto createTriangleMeshResult = sk::createTriangleMesh();

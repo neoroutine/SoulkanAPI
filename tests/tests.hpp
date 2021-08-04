@@ -126,10 +126,6 @@ namespace SOULKAN_NAMESPACE
 
 		deletionQueue.push_func([=]() { sk::logError(sk::destroyPipelineLayout(device, pipelineLayout)); });
 
-		static std::vector<std::string> shaderFilenames = { "shaders/triangle_mesh.spv", "shaders/colored_triangle.spv" };
-		static std::vector<vk::ShaderStageFlagBits> shaderStageFlags = { vk::ShaderStageFlagBits::eVertex, vk::ShaderStageFlagBits::eFragment };
-		static std::vector<std::string> entryNames = { "main", "main" };
-
 		/*SHADERS*/
 		static sk::Shader vertexShader   = skDevice.createShader(vk::ShaderStageFlagBits::eVertex, "shaders/triangle_mesh.spv", "main");
 		static sk::Shader fragmentShader = skDevice.createShader(vk::ShaderStageFlagBits::eFragment, "shaders/colored_triangle.spv", "main");

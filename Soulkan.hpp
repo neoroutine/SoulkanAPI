@@ -1551,102 +1551,102 @@ namespace SOULKAN_NAMESPACE
 
 
 	/*Typical Vertex holding Vec3 position(x, y, z), normal(x, y, z) and color(r, g, b)*/
-	struct Vertex
+	class Vertex
 	{
+	public:
 		Vertex()
-			: position(std::move(SOULKAN_MATHS_NAMESPACE::Vec3(0.0f, 0.0f, 0.0f))),
-			normal(std::move(SOULKAN_MATHS_NAMESPACE::Vec3(0.0f, 0.0f, 0.0f))),
-			color(std::move(SOULKAN_MATHS_NAMESPACE::Vec3(0.0f, 0.0f, 0.0f)))
-		{
-
-		}
+		{}
 
 		Vertex(SOULKAN_MATHS_NAMESPACE::Vec3&& vecPosition, SOULKAN_MATHS_NAMESPACE::Vec3&& vecNormal, SOULKAN_MATHS_NAMESPACE::Vec3&& vecColor)
-			: position(std::move(vecPosition)),
-			normal(std::move(vecNormal)),
-			color(std::move(vecColor))
-		{
-
-		}
+			: mPosition(std::move(vecPosition)),
+			mNormal(std::move(vecNormal)),
+			mColor(std::move(vecColor))
+		{}
 
 		Vertex(SOULKAN_MATHS_NAMESPACE::Vec3 vecPosition, SOULKAN_MATHS_NAMESPACE::Vec3 vecNormal, SOULKAN_MATHS_NAMESPACE::Vec3 vecColor)
-			: position(vecPosition), normal(vecNormal), color(vecColor)
-		{
-		}
-		//@TODO: Handle possible errors in the future
-		inline SkResult<vk::VertexInputBindingDescription, UndefinedError> getInputBindingDescription(uint32_t bindingIndex = 0, vk::VertexInputRate bindingInputRate = vk::VertexInputRate::eVertex)
-		{
-			SkResult result(static_cast<vk::VertexInputBindingDescription>(vk::VertexInputBindingDescription()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
+			: mPosition(vecPosition), mNormal(vecNormal), mColor(vecColor)
+		{}
 
-			vk::VertexInputBindingDescription vertexInputBindingDescription = {};
-			vertexInputBindingDescription.binding = bindingIndex;
-			vertexInputBindingDescription.stride = sizeof(Vertex);
-			vertexInputBindingDescription.inputRate = bindingInputRate;
+		vk::VertexInputBindingDescription getBindingDescription(uint32_t bindingIndex = 0, vk::VertexInputRate bindingInputRate = vk::VertexInputRate::eVertex)
+		{
+			vk::VertexInputBindingDescription bindingDescription = {};
+			bindingDescription.binding = bindingIndex;
+			bindingDescription.stride = sizeof(Vertex);
+			bindingDescription.inputRate = bindingInputRate;
 
-			result.value = std::move(vertexInputBindingDescription);
-			return result;
+			return bindingDescription;
 		}
 
-		inline SkResult<std::vector<vk::VertexInputAttributeDescription>, UndefinedError> getInputAttributeDescriptions(uint32_t bindingIndex = 0, vk::Format attributeFormat = vk::Format::eR32G32B32Sfloat)
+		std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions(uint32_t bindingIndex = 0, vk::Format attributeFormat = vk::Format::eR32G32B32Sfloat)
 		{
-			std::vector<vk::VertexInputAttributeDescription> value = {};
-			UndefinedError error = UndefinedError::NO_ERROR;
 
-			std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptons;
-			vertexInputAttributeDescriptons.reserve(3); // 3 as in 3 members (position, normal, color)
+			std::vector<vk::VertexInputAttributeDescription> attributeDescription;
+			attributeDescription.reserve(3); // 3 as in 3 members (position, normal, color)
 
 			vk::VertexInputAttributeDescription positionAttribute = {};
 			positionAttribute.binding = bindingIndex;
 			positionAttribute.location = 0;
 			positionAttribute.format = vk::Format::eR32G32B32Sfloat;
-			positionAttribute.offset = offsetof(Vertex, position);
-			vertexInputAttributeDescriptons.emplace_back(positionAttribute);
+			positionAttribute.offset = offsetof(Vertex, mPosition);
+			attributeDescription.emplace_back(positionAttribute);
 
 			vk::VertexInputAttributeDescription normalAttribute = {};
 			normalAttribute.binding = bindingIndex;
 			normalAttribute.location = 1;
 			normalAttribute.format = vk::Format::eR32G32B32Sfloat;
-			normalAttribute.offset = offsetof(Vertex, normal);
-			vertexInputAttributeDescriptons.emplace_back(normalAttribute);
+			normalAttribute.offset = offsetof(Vertex, mNormal);
+			attributeDescription.emplace_back(normalAttribute);
 
 			vk::VertexInputAttributeDescription colorAttribute = {};
 			colorAttribute.binding = bindingIndex;
 			colorAttribute.location = 2;
 			colorAttribute.format = vk::Format::eR32G32B32Sfloat;
-			colorAttribute.offset = offsetof(Vertex, color);
-			vertexInputAttributeDescriptons.emplace_back(colorAttribute);
+			colorAttribute.offset = offsetof(Vertex, mColor);
+			attributeDescription.emplace_back(colorAttribute);
 
-			value = vertexInputAttributeDescriptons;
-			return SkResult(value, error);
+			return attributeDescription;
 		}
 
-		SOULKAN_MATHS_NAMESPACE::Vec3 position;
-		SOULKAN_MATHS_NAMESPACE::Vec3 normal;
-		SOULKAN_MATHS_NAMESPACE::Vec3 color;
+		SOULKAN_MATHS_NAMESPACE::Vec3 position() const
+		{
+			return mPosition;
+		}
+
+		SOULKAN_MATHS_NAMESPACE::Vec3 normal() const
+		{
+			return mNormal;
+		}
+
+		SOULKAN_MATHS_NAMESPACE::Vec3 color() const
+		{
+			return mColor;
+		}
+
+	private:
+		SOULKAN_MATHS_NAMESPACE::Vec3 mPosition = { 0.0f, 0.0f, 0.0f };
+		SOULKAN_MATHS_NAMESPACE::Vec3 mNormal   = { 0.0f, 0.0f, 0.0f };
+		SOULKAN_MATHS_NAMESPACE::Vec3 mColor    = { 0.0f, 0.0f, 0.0f };
 	};
 
 	/*Typical Mesh holding a list of Vertices*/
-	struct Mesh
+	class Mesh
 	{
-		Mesh(std::vector<Vertex> vert)
-		{
-			vertices = vert;
-		}
+	public:
+		Mesh(std::vector<Vertex> vertices)
+			: mVertices(vertices)
+		{}
 
 		Mesh()
+		{}
+
+		std::vector<Vertex> get() const
 		{
-			vertices = {};
+			return mVertices;
 		}
-
-		//inline SkResult<std::vector<Vertex>, UndefinedError> getVertices()
-		//{
-		//	SkResult result(static_cast<std::vector<Vertex>>(std::vector<Vertex>()), static_cast<UndefinedError>(UndefinedError::NO_ERROR));
-		//
-		//	result.value = vertices;
-		//	return result;
-		//}
-
-		std::vector<Vertex> vertices;
+		
+	private:
+		std::vector<Vertex> mVertices = std::vector<Vertex>();
+		
 	};
 
 	/*GLFW
@@ -5072,7 +5072,7 @@ namespace SOULKAN_NAMESPACE
 	{
 		SkResult result(static_cast<vk::Buffer>(vk::Buffer(nullptr)), static_cast<BufferError>(BufferError::NO_ERROR));
 
-		std::vector<Vertex> meshVertices = mesh.vertices;
+		std::vector<Vertex> meshVertices = mesh.get();
 
 		vk::BufferCreateInfo bufferCreateInfo = {};
 		bufferCreateInfo.size = meshVertices.size() * sizeof(Vertex);
@@ -5646,7 +5646,7 @@ namespace SOULKAN_NAMESPACE
 
 	inline vk::Queue Device::getVkQueue(const uint32_t familyIndex, const uint32_t index)
 	{
-		auto getQueueResult = sk::getQueue(mDevice, familyIndex, index);
+		auto getQueueResult = SOULKAN_NAMESPACE::getQueue(mDevice, familyIndex, index);
 		mError = affectError(getQueueResult, mError);
 
 		return retLog(getQueueResult);
@@ -6145,5 +6145,53 @@ namespace SOULKAN_NAMESPACE
 		auto vkModule = retLog(createVkShaderModule(mDevice, filename));
 		return Shader(vkModule, *this, stage, filename, entryName);
 	}
+
+	/*inline SkResult<vk::Pipeline, GraphicsPipelineError> createGraphicsPipeline(const vk::Device& device, const vk::RenderPass& renderPass, const vk::PipelineLayout& pipelineLayout, const vk::Extent2D& extent,
+		                                                                        const std::vector<vk::ShaderStageFlagBits>& shaderStageFlags, const std::vector<vk::ShaderModule>& shaderModules, const std::vector<std::string>& entryNames,
+		                                                                        std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = std::vector<vk::VertexInputBindingDescription>(),
+		                                                                        std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = std::vector<vk::VertexInputAttributeDescription>(),
+		                                                                        vk::PrimitiveTopology primitiveTopology = vk::PrimitiveTopology::eTriangleList, vk::PolygonMode polygonMode = vk::PolygonMode::eFill,
+		                                                                        bool sampleShadingEnabled = false, vk::SampleCountFlagBits sampleCountFlag = vk::SampleCountFlagBits::e1,
+		                                                                        vk::Flags<vk::ColorComponentFlagBits> colorWriteMask = (vk::ColorComponentFlagBits::eR |
+		                                                                        	                                                    vk::ColorComponentFlagBits::eG |
+		                                                                        	                                                    vk::ColorComponentFlagBits::eG |
+		                                                                        	                                                    vk::ColorComponentFlagBits::eA),
+		                                                                        bool blendEnabled = false)*/
+	class GraphicsPipeline
+	{
+	public:
+		GraphicsPipeline()
+		{}
+
+	private:
+		vk::Pipeline mPipeline = {};
+		Device mDevice = Device();
+
+		GraphicsPipelineError mError = GraphicsPipelineError::NO_ERROR;
+
+	};
+
+	/*graphicsPipelineCreateInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+			graphicsPipelineCreateInfo.pStages = shaderStages.data();
+
+			graphicsPipelineCreateInfo.pVertexInputState = &vertexInputState;
+
+			graphicsPipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
+
+			graphicsPipelineCreateInfo.pViewportState = &viewportState;
+
+			graphicsPipelineCreateInfo.pRasterizationState = &rasterizationState;
+
+			graphicsPipelineCreateInfo.pMultisampleState = &multisampleState;
+
+			graphicsPipelineCreateInfo.pColorBlendState = &colorBlendState;
+
+			graphicsPipelineCreateInfo.layout = pipelineLayout;
+
+			graphicsPipelineCreateInfo.renderPass = renderPass;
+
+			graphicsPipelineCreateInfo.subpass = 0;
+
+			graphicsPipelineCreateInfo.basePipelineHandle = vk::Pipeline(nullptr);*/
 }
 #endif

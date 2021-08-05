@@ -127,6 +127,8 @@ namespace SOULKAN_NAMESPACE
 		deletionQueue.push_func([=]() { sk::logError(sk::destroyPipelineLayout(device, pipelineLayout)); });
 
 		/*SHADERS*/
+		static std::vector<vk::ShaderStageFlagBits> shaderStageFlags = { vk::ShaderStageFlagBits::eVertex, vk::ShaderStageFlagBits::eFragment };
+		static std::vector<std::string> entryNames                = {"main", "main"};
 		static sk::Shader vertexShader   = skDevice.createShader(vk::ShaderStageFlagBits::eVertex, "shaders/triangle_mesh.spv", "main");
 		static sk::Shader fragmentShader = skDevice.createShader(vk::ShaderStageFlagBits::eFragment, "shaders/colored_triangle.spv", "main");
 
@@ -139,15 +141,13 @@ namespace SOULKAN_NAMESPACE
 		static auto createTriangleMeshResult = sk::createTriangleMesh();
 		static sk::Mesh triangleMesh = sk::retLog(createTriangleMeshResult);
 
-		std::vector<sk::Vertex> triangleMeshVertices = triangleMesh.vertices;
+		std::vector<sk::Vertex> triangleMeshVertices = triangleMesh.get();
 
 		/*VERTEX INPUT DESCRIPTIONS*/
-		static auto vertexInputBindingDescriptionResult = triangleMeshVertices[0].getInputBindingDescription();
-		static vk::VertexInputBindingDescription vertexInputBindingDescription = sk::retLog(vertexInputBindingDescriptionResult);
+		static auto vertexInputBindingDescription = triangleMeshVertices[0].getBindingDescription();
 		static std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = { vertexInputBindingDescription };
 
-		static auto vertexInputAttributeDescriptionsResult = triangleMeshVertices[0].getInputAttributeDescriptions();
-		static std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = sk::retLog(vertexInputAttributeDescriptionsResult);
+		static auto vertexInputAttributeDescriptions = triangleMeshVertices[0].getAttributeDescriptions();
 
 		static auto createGraphicsPipelineResult = createGraphicsPipeline(device, renderPass, pipelineLayout, extent, shaderStageFlags, shaderModules, entryNames, vertexInputBindingDescriptions, vertexInputAttributeDescriptions);
 		static vk::Pipeline graphicsPipeline    = retLog(createGraphicsPipelineResult);

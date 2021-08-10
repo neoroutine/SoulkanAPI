@@ -6146,17 +6146,28 @@ namespace SOULKAN_NAMESPACE
 		return Shader(vkModule, *this, stage, filename, entryName);
 	}
 
-	/*inline SkResult<vk::Pipeline, GraphicsPipelineError> createGraphicsPipeline(const vk::Device& device, const vk::RenderPass& renderPass, const vk::PipelineLayout& pipelineLayout, const vk::Extent2D& extent,
-		                                                                        const std::vector<vk::ShaderStageFlagBits>& shaderStageFlags, const std::vector<vk::ShaderModule>& shaderModules, const std::vector<std::string>& entryNames,
-		                                                                        std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = std::vector<vk::VertexInputBindingDescription>(),
-		                                                                        std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = std::vector<vk::VertexInputAttributeDescription>(),
-		                                                                        vk::PrimitiveTopology primitiveTopology = vk::PrimitiveTopology::eTriangleList, vk::PolygonMode polygonMode = vk::PolygonMode::eFill,
-		                                                                        bool sampleShadingEnabled = false, vk::SampleCountFlagBits sampleCountFlag = vk::SampleCountFlagBits::e1,
-		                                                                        vk::Flags<vk::ColorComponentFlagBits> colorWriteMask = (vk::ColorComponentFlagBits::eR |
-		                                                                        	                                                    vk::ColorComponentFlagBits::eG |
-		                                                                        	                                                    vk::ColorComponentFlagBits::eG |
-		                                                                        	                                                    vk::ColorComponentFlagBits::eA),
-		                                                                        bool blendEnabled = false)*/
+	class ShaderStage
+	{};
+
+	class VertexInputState
+	{};
+
+	class InputAssemblyState
+	{};
+
+	class ViewportState
+	{};
+
+	class RasterizationState
+	{};
+
+	class MultisampleState
+	{};
+
+	class ColorBlendState
+	{};
+
+
 	class GraphicsPipeline
 	{
 	public:
@@ -6166,6 +6177,18 @@ namespace SOULKAN_NAMESPACE
 	private:
 		vk::Pipeline mPipeline = {};
 		Device mDevice = Device();
+
+		//ShaderStage
+		//VertexInputState
+		//InputAssemblyState
+		//ViewportState
+		//RasterizationState
+		//MultisampleState
+		//ColorBlendState
+		//PipelineLayout
+		//RenderPass
+		//SubPass = 0
+		//BasePipelineHandle
 
 		GraphicsPipelineError mError = GraphicsPipelineError::NO_ERROR;
 

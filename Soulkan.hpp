@@ -5530,7 +5530,7 @@ namespace SOULKAN_NAMESPACE
 		Fence createFence();
 		Semaphore createSemaphore();
 
-		Shader createShader(vk::ShaderStageFlags stage, std::string filename, std::string entryName);
+		Shader createShader(vk::ShaderStageFlagBits stage, std::string filename, std::string entryName);
 
 		vk::Device get() const
 		{
@@ -6140,14 +6140,46 @@ namespace SOULKAN_NAMESPACE
 		ShaderError mError = ShaderError::NO_ERROR;
 	};
 
-	inline Shader Device::createShader(vk::ShaderStageFlags stage, std::string filename, std::string entryName)
+	inline Shader Device::createShader(vk::ShaderStageFlagBits stage, std::string filename, std::string entryName)
 	{
 		auto vkModule = retLog(createVkShaderModule(mDevice, filename));
 		return Shader(vkModule, *this, stage, filename, entryName);
 	}
 
 	class ShaderStage
-	{};
+	{
+	public:
+		ShaderStage()
+		{}
+
+		ShaderStage()
+		{}
+
+		vk::PipelineShaderStageCreateInfo get()
+		{
+			return mShaderStageCreateInfo;
+		}
+
+		vk::ShaderStageFlags getStage()
+		{
+			return mShader.stage();
+		}
+
+		vk::ShaderModule getModule()
+		{
+			return mShader.get();
+		}
+
+		std::string getEntryName()
+		{
+			return mShader.entryName();
+		}
+
+	private:
+		vk::PipelineShaderStageCreateInfo mShaderStageCreateInfo = {};
+
+		Shader mShader = Shader();
+	};
 
 	class VertexInputState
 	{};

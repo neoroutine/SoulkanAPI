@@ -6264,7 +6264,7 @@ namespace SOULKAN_NAMESPACE
 		VertexInputState()
 		{}
 
-		VertexInputState(std::vector<vk::VertexInputBindingDescription> mBindingDescriptions, std::vector<vk::VertexInputAttributeDescription> mAttributeDescriptions)
+		VertexInputState(std::vector<vk::VertexInputBindingDescription> bindingDescriptions, std::vector<vk::VertexInputAttributeDescription> attributeDescriptions)
 		{}				 
 
 		vk::PipelineVertexInputStateCreateInfo get() const
@@ -6294,6 +6294,11 @@ namespace SOULKAN_NAMESPACE
 
 		GraphicsPipelineError mError = GraphicsPipelineError::NO_ERROR;
 	};
+
+	inline VertexInputState Device::createVertexInputState(std::vector<vk::VertexInputBindingDescription> bindingDescriptions, std::vector<vk::VertexInputAttributeDescription> attributeDescriptions)
+	{
+
+	}
 
 
 	class ViewportState

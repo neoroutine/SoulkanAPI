@@ -3861,7 +3861,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created shader stage, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineShaderStageCreateInfo, GraphicsPipelineError> createPipelineShaderStageCreateInfo(const vk::ShaderStageFlagBits& shaderStageFlag, const vk::ShaderModule& shaderModule,
+	inline SkResult<vk::PipelineShaderStageCreateInfo, GraphicsPipelineError> createVkPipelineShaderStageCreateInfo(const vk::ShaderStageFlagBits& shaderStageFlag, const vk::ShaderModule& shaderModule,
 		const std::string& entryName)
 	{
 		SkResult result(static_cast<vk::PipelineShaderStageCreateInfo>(vk::PipelineShaderStageCreateInfo{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
@@ -3890,7 +3890,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created shader stage, GraphicsPipelineError)
 	*/
-	inline SkResult<std::vector<vk::PipelineShaderStageCreateInfo>, GraphicsPipelineError> createPipelineShaderStageCreateInfos(const std::vector<vk::ShaderStageFlagBits>& shaderStageFlags,
+	inline SkResult<std::vector<vk::PipelineShaderStageCreateInfo>, GraphicsPipelineError> createVkPipelineShaderStageCreateInfos(const std::vector<vk::ShaderStageFlagBits>& shaderStageFlags,
 		const std::vector<vk::ShaderModule>& shaderModules, const std::vector<std::string>& entryNames)
 	{
 		SkResult result(static_cast<std::vector<vk::PipelineShaderStageCreateInfo>>(std::vector<vk::PipelineShaderStageCreateInfo>()), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
@@ -3899,7 +3899,7 @@ namespace SOULKAN_NAMESPACE
 		shaderStages.reserve(shaderModules.size());
 		for (int i = 0; i < shaderModules.size(); i++)
 		{
-			auto createShaderStageResult = createPipelineShaderStageCreateInfo(shaderStageFlags[i], shaderModules[i], entryNames[i]);
+			auto createShaderStageResult = createVkPipelineShaderStageCreateInfo(shaderStageFlags[i], shaderModules[i], entryNames[i]);
 			shaderStages.emplace_back(retLog(createShaderStageResult));
 		}
 
@@ -3935,7 +3935,7 @@ namespace SOULKAN_NAMESPACE
 			shaderModules.emplace_back(std::move(shaderModule));
 		}
 
-		auto createPipelineShaderStageCreateInfosResult = createPipelineShaderStageCreateInfos(shaderStageFlags, shaderModules, entryNames);
+		auto createPipelineShaderStageCreateInfosResult = createVkPipelineShaderStageCreateInfos(shaderStageFlags, shaderModules, entryNames);
 		result.error = affectError(createPipelineShaderStageCreateInfosResult, result.error);
 		std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos = retLog(createPipelineShaderStageCreateInfosResult);
 
@@ -3979,7 +3979,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created assembly state, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineInputAssemblyStateCreateInfo, GraphicsPipelineError> createPipelineInputAssemblyStateCreateInfo(const vk::PrimitiveTopology primitiveTopology)
+	inline SkResult<vk::PipelineInputAssemblyStateCreateInfo, GraphicsPipelineError> createVkPipelineInputAssemblyStateCreateInfo(const vk::PrimitiveTopology primitiveTopology)
 	{
 		SkResult result(static_cast<vk::PipelineInputAssemblyStateCreateInfo>(vk::PipelineInputAssemblyStateCreateInfo{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
@@ -4311,7 +4311,7 @@ namespace SOULKAN_NAMESPACE
 		SkResult result(static_cast<vk::Pipeline>(vk::Pipeline(nullptr)), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));
 
 		//Shader stages
-		auto createPipelineShaderStageCreateInfosResult = createPipelineShaderStageCreateInfos(shaderStageFlags, shaderModules, entryNames);
+		auto createPipelineShaderStageCreateInfosResult = createVkPipelineShaderStageCreateInfos(shaderStageFlags, shaderModules, entryNames);
 		result.error = affectError(createPipelineShaderStageCreateInfosResult, result.error);
 		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = retLog(createPipelineShaderStageCreateInfosResult);
 
@@ -4321,7 +4321,7 @@ namespace SOULKAN_NAMESPACE
 		vk::PipelineVertexInputStateCreateInfo vertexInputState = retLog(createPipelineVertexInputStateCreateInfoResult);
 
 		//Input assembly
-		auto createPipelineInputAssemblyStateCreateInfoResult = createPipelineInputAssemblyStateCreateInfo(primitiveTopology);
+		auto createPipelineInputAssemblyStateCreateInfoResult = createVkPipelineInputAssemblyStateCreateInfo(primitiveTopology);
 		result.error = affectError(createPipelineInputAssemblyStateCreateInfoResult, result.error);
 		vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState = retLog(createPipelineInputAssemblyStateCreateInfoResult);
 
@@ -5244,17 +5244,29 @@ namespace SOULKAN_NAMESPACE
 	//Convenient classes
 	class Window;
 	class Instance;
+
 	class PhysicalDevice;
 	class Device;
+
 	class Queue;
+
 	class Swapchain;
+
 	class CommandPool;
 	class CommandBuffer;
+
 	class RenderPass;
+
 	class Framebuffer;
+
 	class Semaphore;
 	class Fence;
+
 	class Shader;
+
+	class ShaderStage;
+	class InputAssemblyState;
+
 
 	class Window
 	{
@@ -5531,6 +5543,11 @@ namespace SOULKAN_NAMESPACE
 		Semaphore createSemaphore();
 
 		Shader createShader(vk::ShaderStageFlagBits stage, std::string filename, std::string entryName);
+
+		ShaderStage createShaderStage(const Shader& shader);
+
+		InputAssemblyState createInputAssemblyState(vk::PrimitiveTopology topology);
+
 
 		vk::Device get() const
 		{
@@ -6090,36 +6107,36 @@ namespace SOULKAN_NAMESPACE
 		Shader()
 		{}
 
-		Shader(vk::ShaderModule& shaderModule, Device& device, vk::ShaderStageFlags stage, std::string& filename, std::string& entryName)
+		Shader(vk::ShaderModule& shaderModule, Device& device, vk::ShaderStageFlagBits stage, std::string& filename, std::string& entryName)
 			: mModule(shaderModule), mDevice(device), mStage(stage), mFilename(filename), mEntryName(entryName)
 		{}
 
-		vk::ShaderModule get()
+		vk::ShaderModule get() const
 		{
 			return mModule;
 		}
 
-		Device getDevice()
+		Device getDevice() const
 		{
 			return mDevice;
 		}
 		
-		vk::ShaderStageFlags stage()
+		vk::ShaderStageFlagBits stage() const
 		{
 			return mStage;
 		}
 
-		std::string filename()
+		std::string filename() const
 		{
 			return mFilename;
 		}
 
-		std::string entryName()
+		std::string entryName() const
 		{
 			return mEntryName;
 		}
 
-		ShaderError error()
+		ShaderError error() const
 		{
 			return mError;
 		}
@@ -6133,7 +6150,7 @@ namespace SOULKAN_NAMESPACE
 		vk::ShaderModule mModule = {};
 		Device mDevice = Device();
 
-		vk::ShaderStageFlags mStage = {};
+		vk::ShaderStageFlagBits mStage = {};
 		std::string mFilename = "";
 		std::string mEntryName = "";
 
@@ -6152,34 +6169,92 @@ namespace SOULKAN_NAMESPACE
 		ShaderStage()
 		{}
 
-		ShaderStage()
-		{}
+		ShaderStage(const vk::PipelineShaderStageCreateInfo& shaderStageCreateInfo, const Shader& shader)
+		{
+
+		}
 
 		vk::PipelineShaderStageCreateInfo get()
 		{
-			return mShaderStageCreateInfo;
+			return mStageCreateInfo;
 		}
 
-		vk::ShaderStageFlags getStage()
+		Shader getShader() const
+		{
+			return mShader;
+		}
+
+		vk::ShaderStageFlags getStage() const
 		{
 			return mShader.stage();
 		}
 
-		vk::ShaderModule getModule()
+		vk::ShaderModule getModule() const
 		{
 			return mShader.get();
 		}
 
-		std::string getEntryName()
+		std::string getEntryName() const
 		{
 			return mShader.entryName();
 		}
 
+		GraphicsPipelineError error() const
+		{
+			return mError;
+		}
 	private:
-		vk::PipelineShaderStageCreateInfo mShaderStageCreateInfo = {};
+		vk::PipelineShaderStageCreateInfo mStageCreateInfo = {};
 
 		Shader mShader = Shader();
+
+		GraphicsPipelineError mError = GraphicsPipelineError::NO_ERROR;
 	};
+
+	//Arbitrary choice "Device::", could be anything, it should make sense
+	inline ShaderStage Device::createShaderStage(const Shader& shader)
+	{
+		auto stage = retLog(createVkPipelineShaderStageCreateInfo(shader.stage(), shader.get(), shader.entryName()));
+		return ShaderStage(stage, shader);
+	}
+
+	class InputAssemblyState
+	{
+	public:
+		InputAssemblyState()
+		{}
+
+		InputAssemblyState(const vk::PipelineInputAssemblyStateCreateInfo& inputAssemblyStateCreateInfo, const vk::PrimitiveTopology topology)
+			: mTopology(topology)
+		{}
+
+		vk::PipelineInputAssemblyStateCreateInfo get() const 
+		{
+			return mState;
+		}
+
+		vk::PrimitiveTopology getTopology() const
+		{
+			return mTopology;
+		}
+
+		GraphicsPipelineError error() const
+		{
+			return mError;
+		}
+
+	private:
+		vk::PipelineInputAssemblyStateCreateInfo mState = {};
+
+		vk::PrimitiveTopology mTopology = {};
+
+		GraphicsPipelineError mError = GraphicsPipelineError::NO_ERROR;
+	};
+
+	inline InputAssemblyState Device::createInputAssemblyState(vk::PrimitiveTopology topology)
+	{
+		auto state = retLog(createVkPipelineInputAssemblyStateCreateInfo(topology));
+	}
 
 	class VertexInputState
 	{};
@@ -6210,7 +6285,7 @@ namespace SOULKAN_NAMESPACE
 		vk::Pipeline mPipeline = {};
 		Device mDevice = Device();
 
-		//ShaderStage
+		ShaderStage mShaderStage = {};
 		//VertexInputState
 		//InputAssemblyState
 		//ViewportState

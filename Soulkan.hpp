@@ -3950,7 +3950,7 @@ namespace SOULKAN_NAMESPACE
 	*
 	* @return SkResult(created vertex input state, GraphicsPipelineError)
 	*/
-	inline SkResult<vk::PipelineVertexInputStateCreateInfo, GraphicsPipelineError> createPipelineVertexInputStateCreateInfo(const std::vector<vk::VertexInputBindingDescription>& vertexInputBindingDescriptions,
+	inline SkResult<vk::PipelineVertexInputStateCreateInfo, GraphicsPipelineError> createVkPipelineVertexInputStateCreateInfo(const std::vector<vk::VertexInputBindingDescription>& vertexInputBindingDescriptions,
 		const std::vector<vk::VertexInputAttributeDescription>& vertexInputAttributeDescriptions)
 	{
 		SkResult result(static_cast<vk::PipelineVertexInputStateCreateInfo>(vk::PipelineVertexInputStateCreateInfo{}), static_cast<GraphicsPipelineError>(GraphicsPipelineError::NO_ERROR));;
@@ -4316,7 +4316,7 @@ namespace SOULKAN_NAMESPACE
 		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = retLog(createPipelineShaderStageCreateInfosResult);
 
 		//Vertex input
-		auto createPipelineVertexInputStateCreateInfoResult = createPipelineVertexInputStateCreateInfo(vertexInputBindingDescriptions, vertexInputAttributeDescriptions);
+		auto createPipelineVertexInputStateCreateInfoResult = createVkPipelineVertexInputStateCreateInfo(vertexInputBindingDescriptions, vertexInputAttributeDescriptions);
 		result.error = affectError(createPipelineVertexInputStateCreateInfoResult, result.error);
 		vk::PipelineVertexInputStateCreateInfo vertexInputState = retLog(createPipelineVertexInputStateCreateInfoResult);
 
@@ -5266,6 +5266,7 @@ namespace SOULKAN_NAMESPACE
 
 	class ShaderStage;
 	class InputAssemblyState;
+	class VertexInputState;
 
 
 	class Window
@@ -6254,13 +6255,46 @@ namespace SOULKAN_NAMESPACE
 	inline InputAssemblyState Device::createInputAssemblyState(vk::PrimitiveTopology topology)
 	{
 		auto state = retLog(createVkPipelineInputAssemblyStateCreateInfo(topology));
+		return InputAssemblyState(state, topology);
 	}
 
 	class VertexInputState
-	{};
+	{
+	public:
+		VertexInputState()
+		{}
 
-	class InputAssemblyState
-	{};
+		VertexInputState(std::vector<vk::VertexInputBindingDescription> mBindingDescriptions, std::vector<vk::VertexInputAttributeDescription> mAttributeDescriptions)
+		{}				 
+
+		vk::PipelineVertexInputStateCreateInfo get() const
+		{
+			return mState;
+		}
+
+		std::vector<vk::VertexInputBindingDescription> getBindingDescriptions() const
+		{
+			return mBindingDescriptions;
+		}
+
+		std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions() const
+		{
+			return mAttributeDescriptions;
+		}
+
+		GraphicsPipelineError error()
+		{
+			return mError;
+		}
+	private:
+		vk::PipelineVertexInputStateCreateInfo mState = {};
+
+		std::vector<vk::VertexInputBindingDescription> mBindingDescriptions     = {};
+		std::vector<vk::VertexInputAttributeDescription> mAttributeDescriptions = {};
+
+		GraphicsPipelineError mError = GraphicsPipelineError::NO_ERROR;
+	};
+
 
 	class ViewportState
 	{};

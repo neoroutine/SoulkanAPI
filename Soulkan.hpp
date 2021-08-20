@@ -5548,6 +5548,7 @@ namespace SOULKAN_NAMESPACE
 		ShaderStage createShaderStage(const Shader& shader);
 
 		InputAssemblyState createInputAssemblyState(vk::PrimitiveTopology topology);
+		VertexInputState createVertexInputState(std::vector<vk::VertexInputBindingDescription> bindingDescriptions, std::vector<vk::VertexInputAttributeDescription> attributeDescriptions);
 
 
 		vk::Device get() const
@@ -6226,7 +6227,7 @@ namespace SOULKAN_NAMESPACE
 		{}
 
 		InputAssemblyState(const vk::PipelineInputAssemblyStateCreateInfo& inputAssemblyStateCreateInfo, const vk::PrimitiveTopology topology)
-			: mTopology(topology)
+			: mState(inputAssemblyStateCreateInfo), mTopology(topology)
 		{}
 
 		vk::PipelineInputAssemblyStateCreateInfo get() const 
@@ -6264,7 +6265,7 @@ namespace SOULKAN_NAMESPACE
 		VertexInputState()
 		{}
 
-		VertexInputState(std::vector<vk::VertexInputBindingDescription> bindingDescriptions, std::vector<vk::VertexInputAttributeDescription> attributeDescriptions)
+		VertexInputState(vk::PipelineVertexInputStateCreateInfo vertexInputState, std::vector<vk::VertexInputBindingDescription>& bindingDescriptions, std::vector<vk::VertexInputAttributeDescription>& attributeDescriptions)
 		{}				 
 
 		vk::PipelineVertexInputStateCreateInfo get() const
@@ -6282,7 +6283,7 @@ namespace SOULKAN_NAMESPACE
 			return mAttributeDescriptions;
 		}
 
-		GraphicsPipelineError error()
+		GraphicsPipelineError error() const
 		{
 			return mError;
 		}
@@ -6297,7 +6298,8 @@ namespace SOULKAN_NAMESPACE
 
 	inline VertexInputState Device::createVertexInputState(std::vector<vk::VertexInputBindingDescription> bindingDescriptions, std::vector<vk::VertexInputAttributeDescription> attributeDescriptions)
 	{
-
+		auto vertexInputStateCreateInfo = retLog(createVkPipelineVertexInputStateCreateInfo(bindingDescriptions, attributeDescriptions));
+		return VertexInputState(vertexInputStateCreateInfo, bindingDescriptions, attributeDescriptions);
 	}
 
 

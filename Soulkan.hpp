@@ -18,9 +18,10 @@ namespace SOULKAN_NAMESPACE
 	//Essential enums and types
 	enum class ErrorCode : uint32_t
 	{
-		NO_ERROR = 1,
-		GENERAL_VULKAN_ERROR = 2,
-		GENERAL_GLFW_ERROR   = 4
+		NO_ERROR                = 1,
+		GENERAL_PARAMETER_ERROR = 2,
+		GENERAL_VULKAN_ERROR    = 4,
+		GENERAL_GLFW_ERROR      = 8
 	};
 
 	//Essential classes
@@ -62,6 +63,50 @@ namespace SOULKAN_NAMESPACE
 		ErrorCode mCode = ErrorCode::NO_ERROR;
 	};
 
+	//Vulkan related classes
+	class Instance
+	{
+	public:
+		Instance() {}
+
+		//Instance() {} with params
+
+		void prepare(std::string appName = "Vulkan Application", std::string engineName = "Vulkan Engine",
+			         std::vector<const char*> extensions = std::vector<const char*>(),
+			         std::vector<const char*> validationLayers = std::vector<const char*>())
+		{
+			if (extensions.empty())
+			{
+				if (validationLayers.empty())
+				{
+					auto getRequiredInstanceExtensionsResult = get_required_instance_extensions(false);
+				}
+			}
+		}
+		
+
+		Result<std::vector<const char*>, Error> get_required_instance_extensions(bool validationEnabled)
+		{
+			uint32_t glfwExtensionCount  = 0;
+			const char** ppGlfwExtensions = nullptr;
+
+			ppGlfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+			if (glfwExtensionCount == 0 || ppGlfwExtensions == nullptr)
+			{
+				return Result(std::vector<const char*>(), Error(ErrorCode::GENERAL_GLFW_ERROR));
+			}
+
+			auto extensions = std::vector<const char*>(ppGlfwExtensions, ppGlfwExtensions + glfwExtensionCount);
+			if (validationEnabled)
+			{
+				extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+			}
+
+			return Result(extensions, Error());
+		}
+	private:
+	};
+
 	//GLFW related classes
 	class Window
 	{
@@ -73,7 +118,7 @@ namespace SOULKAN_NAMESPACE
 			prepare(title, height, width);
 		}
 
-		Result<Window, Error> prepare(std::string title, uint32_t height, uint32_t width)
+		void prepare(std::string title, uint32_t height, uint32_t width)
 		{
 			mTitle = title;
 			mHeight = height;
@@ -84,18 +129,18 @@ namespace SOULKAN_NAMESPACE
 		{
 			if (mTitle == "" || mHeight == 0 || mWidth == 0)
 			{
-				return Result(Window(), Error(ErrorCode::GENERAL_GLFW_ERROR));
+				return Result(Window(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
 			}
 
 			//VkSurfaceKHR rawSurface;
 			//VkResult result = glfwCreateWindowSurface()
 
-			return Result(Window(), Error(ErrorCode::NO_ERROR));
+			return Result(Window(), Error());
 		}
 
 		std::string title() const { return mTitle; }
 		uint32_t height() const { return mHeight; }
-		uint32_t width() const{ return mWidth; }
+		uint32_t width() const { return mWidth; }
 		GLFWwindow* ptr() const { return mPtr; }
 
 	private:

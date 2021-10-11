@@ -27,10 +27,11 @@ namespace SOULKAN_NAMESPACE
 	//Essential classes
 
 	//Common return type used
-	template<class V, class E>
+	template<class V, class E = Error>
 	class Result
 	{
 	public:
+		Result() {}
 		//Essential enums and constants
 		Result(V value, E error)
 		{
@@ -40,6 +41,7 @@ namespace SOULKAN_NAMESPACE
 
 		V value() { return mValue; }
 		E error() { return mError; }
+		bool is_error() { return (mError.code() == ErrorCode::NO_ERROR); }
 
 	private:
 		V mValue = {};
@@ -58,6 +60,7 @@ namespace SOULKAN_NAMESPACE
 		}
 
 		ErrorCode code() { return mCode; }
+		bool is_error() { return (mCode == ErrorCode::NO_ERROR); }
 
 	private:
 		ErrorCode mCode = ErrorCode::NO_ERROR;
@@ -71,17 +74,48 @@ namespace SOULKAN_NAMESPACE
 
 		//Instance() {} with params
 
-		void prepare(std::string appName = "Vulkan Application", std::string engineName = "Vulkan Engine",
-			         std::vector<const char*> extensions = std::vector<const char*>(),
-			         std::vector<const char*> validationLayers = std::vector<const char*>())
+		Result<Instance, Error> prepare(bool validationEnabled, std::string appName, std::string engineName = "Vulkan Engine",
+			         std::vector<const char*> extensions = std::vector<const char*>())
 		{
-			if (extensions.empty())
+			mValidationEnabled = validationEnabled;
+			mAppInfo           = vk::ApplicationInfo(appName.c_str(), VK_MAKE_VERSION(1, 0, 0), engineName.c_str(), VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_0);
+			mExtensions        = extensions;
+		}
+
+		Result<Instance, Error> build()
+		{
+			//No extensions specified by the user, querying required ones
+			if (mExtensions.empty())
 			{
-				if (validationLayers.empty())
+				auto getRequiredInstanceExtensionsResult = Result<std::vector<const char*>, Error>();
+				if (mValidationEnabled)
 				{
-					auto getRequiredInstanceExtensionsResult = get_required_instance_extensions(false);
+					getRequiredInstanceExtensionsResult = get_required_instance_extensions(true);
+				}
+
+				else
+				{
+					getRequiredInstanceExtensionsResult = get_required_instance_extensions(false);
+				}
+
+				if (getRequiredInstanceExtensionsResult.is_error())
+				{
+					return Result(Instance(), Error(getRequiredInstanceExtensionsResult.error().code()));
 				}
 			}
+
+			std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+
+			auto instanceCreateInfo = vk::InstanceCreateInfo(vk::InstanceCreateFlags(), 
+				                                             &mAppInfo,
+				                                             static_cast<uint32_t>(validationLayers.size()),
+				                                             validationLayers.data(),
+				                                             static_cast<uint32_t>(mExtensions.size()),
+				                                             mExtensions.data());
+
+			mInstance = vk::createInstance(instanceCreateInfo);
+
+			return Result(*this, Error());
 		}
 		
 
@@ -105,6 +139,12 @@ namespace SOULKAN_NAMESPACE
 			return Result(extensions, Error());
 		}
 	private:
+		vk::Instance mInstance = {};
+		vk::ApplicationInfo mAppInfo = {};
+
+		bool mValidationEnabled = false;
+
+		std::vector<const char*> mExtensions = {};
 	};
 
 	//GLFW related classes
@@ -135,7 +175,7 @@ namespace SOULKAN_NAMESPACE
 			//VkSurfaceKHR rawSurface;
 			//VkResult result = glfwCreateWindowSurface()
 
-			return Result(Window(), Error());
+			return Result(*this, Error());
 		}
 
 		std::string title() const { return mTitle; }

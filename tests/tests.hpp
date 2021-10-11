@@ -13,7 +13,7 @@ namespace SOULKAN_NAMESPACE
 		bool testValid = true;
 
 		auto builtMainWindow = Window("Soulkan graphic test", 800, 600).build();
-		if (builtMainWindow.error().code() != sk::ErrorCode::NO_ERROR) { testValid = false; }
+		if (builtMainWindow.is_error()) { testValid = false; }
 		auto mainWindow = builtMainWindow.value();
 
 		std::cout << "Created main window with title = \"" << mainWindow.title() << "\", height = \"" << mainWindow.height() << "\", width = \"" << mainWindow.width() << "\"" << std::endl;

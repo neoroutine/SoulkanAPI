@@ -24,6 +24,34 @@ namespace SOULKAN_NAMESPACE
 		GENERAL_GLFW_ERROR      = 8
 	};
 
+	//Commonly used in Result
+	class Error
+	{
+	public:
+		Error()
+		{}
+		Error(ErrorCode code)
+		{
+			mCode = code;
+		}
+
+		ErrorCode code() { return mCode; }
+		bool is_error() { return (mCode != ErrorCode::NO_ERROR); }
+		std::string to_string()
+		{
+			switch (mCode)
+			{
+			    case ErrorCode::NO_ERROR:                return "NO_ERROR"; break;
+				case ErrorCode::GENERAL_PARAMETER_ERROR: return "GENERAL_PARAMETER_ERROR"; break;
+				case ErrorCode::GENERAL_VULKAN_ERROR:    return "GENERAL_VULKAN_ERROR"; break;
+				case ErrorCode::GENERAL_GLFW_ERROR:      return "GENERAL_GLFW_ERROR"; break;
+			}
+		}
+
+	private:
+		ErrorCode mCode = ErrorCode::NO_ERROR;
+	};
+
 	//Essential classes
 
 	//Common return type used
@@ -41,29 +69,11 @@ namespace SOULKAN_NAMESPACE
 
 		V value() { return mValue; }
 		E error() { return mError; }
-		bool is_error() { return (mError.code() == ErrorCode::NO_ERROR); }
+		bool is_error() { return (mError.code() != ErrorCode::NO_ERROR); }
 
 	private:
 		V mValue = {};
 		E mError = {};
-	};
-
-	//Commonly used in Result
-	class Error
-	{
-	public:
-		Error()
-		{}
-		Error(ErrorCode code)
-		{
-			mCode = code;
-		}
-
-		ErrorCode code() { return mCode; }
-		bool is_error() { return (mCode == ErrorCode::NO_ERROR); }
-
-	private:
-		ErrorCode mCode = ErrorCode::NO_ERROR;
 	};
 
 	//Vulkan related classes
@@ -72,9 +82,13 @@ namespace SOULKAN_NAMESPACE
 	public:
 		Instance() {}
 
-		//Instance() {} with params
+		Instance(bool validationEnabled, std::string appName, std::string engineName = "Vulkan Engine",
+			std::vector<const char*> extensions = std::vector<const char*>())
+		{
+			prepare(validationEnabled, appName, engineName, extensions);
+		}
 
-		Result<Instance, Error> prepare(bool validationEnabled, std::string appName, std::string engineName = "Vulkan Engine",
+		void prepare(bool validationEnabled, std::string appName, std::string engineName = "Vulkan Engine",
 			         std::vector<const char*> extensions = std::vector<const char*>())
 		{
 			mValidationEnabled = validationEnabled;
@@ -100,7 +114,7 @@ namespace SOULKAN_NAMESPACE
 
 				if (getRequiredInstanceExtensionsResult.is_error())
 				{
-					return Result(Instance(), Error(getRequiredInstanceExtensionsResult.error().code()));
+					return Result(*this, Error(getRequiredInstanceExtensionsResult.error().code()));
 				}
 			}
 
@@ -116,6 +130,11 @@ namespace SOULKAN_NAMESPACE
 			mInstance = vk::createInstance(instanceCreateInfo);
 
 			return Result(*this, Error());
+		}
+
+		void cleanup()
+		{
+			mInstance.destroy();
 		}
 		
 
@@ -138,6 +157,11 @@ namespace SOULKAN_NAMESPACE
 
 			return Result(extensions, Error());
 		}
+
+		vk::Instance instance() const { return mInstance; }
+		vk::ApplicationInfo appInfo() const { return mAppInfo; }
+		bool validation() const { return mValidationEnabled; }
+		std::vector<const char*> extensions() const { return mExtensions; }
 	private:
 		vk::Instance mInstance = {};
 		vk::ApplicationInfo mAppInfo = {};
@@ -147,50 +171,98 @@ namespace SOULKAN_NAMESPACE
 		std::vector<const char*> mExtensions = {};
 	};
 
+	class PhysicalDevice
+	{
+	public:
+		PhysicalDevice() {}
+
+		void prepare()
+		{}
+
+		Result<PhysicalDevice, Error> build()
+		{}
+
+		void cleanup()
+		{}
+
+		vk::Instance instance() const { return mInstance; }
+	private:
+		vk::Instance mInstance = {}
+	};
+
 	//GLFW related classes
 	class Window
 	{
 	public:
 		Window(){}
 
-		Window(std::string title, uint32_t height, uint32_t width)
+		Window(std::string title, uint32_t height, uint32_t width, bool resizable)
 		{
-			prepare(title, height, width);
+			prepare(title, height, width, resizable);
 		}
 
-		void prepare(std::string title, uint32_t height, uint32_t width)
+		void prepare(std::string title, uint32_t height, uint32_t width, bool resizable)
 		{
-			mTitle = title;
-			mHeight = height;
-			mWidth = width;
+			mTitle     = title;
+			mHeight    = height;
+			mWidth     = width;
+			mResizable = resizable;
 		}
 
 		Result<Window, Error> build()
 		{
 			if (mTitle == "" || mHeight == 0 || mWidth == 0)
 			{
-				return Result(Window(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+				return Result(*this, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
 			}
 
-			//VkSurfaceKHR rawSurface;
-			//VkResult result = glfwCreateWindowSurface()
+			if (mResizable)
+			{
+				glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+			}
+			else
+			{
+				glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+			}
+
+			mPtr = glfwCreateWindow(mWidth, mHeight, mTitle.c_str(), 0, NULL);
+
+			if (mPtr == nullptr)
+			{
+				return Result(*this, Error(ErrorCode::GENERAL_GLFW_ERROR));
+			}
 
 			return Result(*this, Error());
+		}
+
+		Result<std::string, Error> rename(std::string title)
+		{
+			mTitle = title;
+
+			if (mTitle == "")
+			{
+				return Result(std::string(""), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			glfwSetWindowTitle(mPtr, title.c_str());
+
+			return Result(mTitle, Error(ErrorCode::NO_ERROR));
 		}
 
 		std::string title() const { return mTitle; }
 		uint32_t height() const { return mHeight; }
 		uint32_t width() const { return mWidth; }
+		bool resizable() const { return mResizable; }
 		GLFWwindow* ptr() const { return mPtr; }
 
 	private:
 		std::string mTitle = "";
 		uint32_t mHeight   = 0;
 		uint32_t mWidth    = 0;
-		GLFWwindow* mPtr = nullptr;
+		bool mResizable    = false;
+		GLFWwindow* mPtr   = nullptr;
 	};
 
-	//Vulkan related classes
 
 }
 #endif

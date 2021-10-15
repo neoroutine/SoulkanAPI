@@ -4,7 +4,7 @@
 
 int main()
 {
-	bool testValid = sk::graphic_test();
+	bool testValid = sk::graphic_test(true);
 
 	std::cout << "Test is " << (testValid ? "valid" : "not valid") << std::endl;
 

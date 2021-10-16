@@ -77,6 +77,25 @@ namespace SOULKAN_NAMESPACE
 	};
 
 	//Vulkan related classes
+	inline Result<std::vector<const char*>, Error> get_required_instance_extensions(bool validationEnabled)
+	{
+		uint32_t glfwExtensionCount = 0;
+		const char** ppGlfwExtensions = nullptr;
+
+		ppGlfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		if (glfwExtensionCount == 0 || ppGlfwExtensions == nullptr)
+		{
+			return Result(std::vector<const char*>(), Error(ErrorCode::GENERAL_GLFW_ERROR));
+		}
+
+		auto extensions = std::vector<const char*>(ppGlfwExtensions, ppGlfwExtensions + glfwExtensionCount);
+		if (validationEnabled)
+		{
+			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
+
+		return Result(extensions, Error());
+	}
 	class Instance
 	{
 	public:
@@ -138,26 +157,6 @@ namespace SOULKAN_NAMESPACE
 		}
 		
 
-		Result<std::vector<const char*>, Error> get_required_instance_extensions(bool validationEnabled)
-		{
-			uint32_t glfwExtensionCount  = 0;
-			const char** ppGlfwExtensions = nullptr;
-
-			ppGlfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-			if (glfwExtensionCount == 0 || ppGlfwExtensions == nullptr)
-			{
-				return Result(std::vector<const char*>(), Error(ErrorCode::GENERAL_GLFW_ERROR));
-			}
-
-			auto extensions = std::vector<const char*>(ppGlfwExtensions, ppGlfwExtensions + glfwExtensionCount);
-			if (validationEnabled)
-			{
-				extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-			}
-
-			return Result(extensions, Error());
-		}
-
 		vk::Instance instance() const { return mInstance; }
 		vk::ApplicationInfo appInfo() const { return mAppInfo; }
 		bool validation() const { return mValidationEnabled; }
@@ -170,6 +169,65 @@ namespace SOULKAN_NAMESPACE
 
 		std::vector<const char*> mExtensions = {};
 	};
+
+	inline Result<std::vector<vk::PhysicalDevice>, Error> get_available_physical_devices(const vk::Instance instance)
+	{
+		auto availablePhysicalDevices = instance.enumeratePhysicalDevices();
+
+		auto err = Error();
+		if (availablePhysicalDevices.size() == 0)
+		{
+			err = Error(ErrorCode::GENERAL_VULKAN_ERROR);
+		}
+
+		return Result(availablePhysicalDevices, err);
+	}
+
+	inline Result<bool, Error> is_suitable_device(const vk::PhysicalDevice physicalDevice)
+	{
+		auto err = Error();
+		if (physicalDevice == vk::PhysicalDevice())
+		{
+			return Result(false, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+		}
+
+		auto physicalDeviceFeatures = physicalDevice.getFeatures();
+
+		if (physicalDeviceFeatures == vk::PhysicalDeviceFeatures())
+		{
+			return Result(false, Error(ErrorCode::GENERAL_VULKAN_ERROR));
+		}
+
+		if (!physicalDeviceFeatures.geometryShader)
+		{
+			return Result(false, Error(ErrorCode::NO_ERROR));
+		}
+
+		return Result(true, Error(ErrorCode::NO_ERROR));
+	}
+
+	inline Result<std::vector<vk::PhysicalDevice>, Error> get_suitable_physical_devices(const vk::Instance instance)
+	{
+		auto availablePhysicalDevicesResult = get_available_physical_devices(instance);
+		if (availablePhysicalDevicesResult.is_error())
+		{
+			return Result(std::vector<vk::PhysicalDevice>(), Error(availablePhysicalDevicesResult.error().code()));
+		}
+
+		auto availablePhysicalDevices = availablePhysicalDevicesResult.value();
+		auto suitablePhysicalDevices  = std::vector<vk::PhysicalDevice>();
+
+		for (uint32_t i = 0; i < availablePhysicalDevices.size(); i++)
+		{
+			auto isSuitableResult = is_suitable_device(availablePhysicalDevices[i]);
+			if (!isSuitableResult.is_error() && isSuitableResult.value())
+			{
+				suitablePhysicalDevices.push_back(availablePhysicalDevices[i]);
+			}
+		}
+
+		return Result(suitablePhysicalDevices, Error());
+	}
 
 	class PhysicalDevice
 	{
@@ -187,7 +245,7 @@ namespace SOULKAN_NAMESPACE
 
 		vk::Instance instance() const { return mInstance; }
 	private:
-		vk::Instance mInstance = {}
+		vk::Instance mInstance = {};
 	};
 
 	//GLFW related classes

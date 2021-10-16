@@ -172,6 +172,10 @@ namespace SOULKAN_NAMESPACE
 
 	inline Result<std::vector<vk::PhysicalDevice>, Error> get_available_physical_devices(const vk::Instance instance)
 	{
+		if (instance == vk::Instance())
+		{
+			return Result(std::vector<vk::PhysicalDevice>(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+		}
 		auto availablePhysicalDevices = instance.enumeratePhysicalDevices();
 
 		auto err = Error();
@@ -227,6 +231,22 @@ namespace SOULKAN_NAMESPACE
 		}
 
 		return Result(suitablePhysicalDevices, Error());
+	}
+
+	inline Result<vk::PhysicalDevice, Error> get_best_physical_device(const vk::Instance instance)
+	{
+		auto suitablePhysicalDevicesResult = get_suitable_physical_devices(instance);
+		if (suitablePhysicalDevicesResult.is_error())
+		{
+			return Result(vk::PhysicalDevice(), Error(suitablePhysicalDevicesResult.error().code()));
+		}
+
+		auto suitablePhysicalDevices = suitablePhysicalDevicesResult.value();
+
+		uint32_t i = 0;
+		auto physicalDeviceProperties = suitablePhysicalDevices[i].getProperties();
+
+		while ()
 	}
 
 	class PhysicalDevice

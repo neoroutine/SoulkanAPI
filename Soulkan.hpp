@@ -19,9 +19,10 @@ namespace SOULKAN_NAMESPACE
 	enum class ErrorCode : uint32_t
 	{
 		NO_ERROR                = 1,
-		GENERAL_PARAMETER_ERROR = 2,
-		GENERAL_VULKAN_ERROR    = 4,
-		GENERAL_GLFW_ERROR      = 8
+		GENERAL_HARDWARE_ERROR  = 2,
+		GENERAL_PARAMETER_ERROR = 4,
+		GENERAL_VULKAN_ERROR    = 8,
+		GENERAL_GLFW_ERROR      = 16,
 	};
 
 	//Commonly used in Result
@@ -42,6 +43,7 @@ namespace SOULKAN_NAMESPACE
 			switch (mCode)
 			{
 			    case ErrorCode::NO_ERROR:                return "NO_ERROR"; break;
+				case ErrorCode::GENERAL_HARDWARE_ERROR:  return "GENERAL_HARDWARE_ERROR"; break;
 				case ErrorCode::GENERAL_PARAMETER_ERROR: return "GENERAL_PARAMETER_ERROR"; break;
 				case ErrorCode::GENERAL_VULKAN_ERROR:    return "GENERAL_VULKAN_ERROR"; break;
 				case ErrorCode::GENERAL_GLFW_ERROR:      return "GENERAL_GLFW_ERROR"; break;
@@ -105,6 +107,16 @@ namespace SOULKAN_NAMESPACE
 			std::vector<const char*> extensions = std::vector<const char*>())
 		{
 			prepare(validationEnabled, appName, engineName, extensions);
+		}
+
+		friend bool operator==(const Instance lhs, const Instance rhs)
+		{
+			return (lhs.instance() == rhs.instance());
+		}
+
+		friend bool operator!=(const Instance lhs, const Instance rhs)
+		{
+			return !(lhs == rhs);
 		}
 
 		void prepare(bool validationEnabled, std::string appName, std::string engineName = "Vulkan Engine",
@@ -233,7 +245,7 @@ namespace SOULKAN_NAMESPACE
 		return Result(suitablePhysicalDevices, Error());
 	}
 
-	inline Result<vk::PhysicalDevice, Error> get_best_physical_device(const vk::Instance instance)
+	inline Result<vk::PhysicalDevice, Error> get_best_physical_device(const vk::Instance instance, bool discrete)
 	{
 		auto suitablePhysicalDevicesResult = get_suitable_physical_devices(instance);
 		if (suitablePhysicalDevicesResult.is_error())
@@ -242,30 +254,122 @@ namespace SOULKAN_NAMESPACE
 		}
 
 		auto suitablePhysicalDevices = suitablePhysicalDevicesResult.value();
+		switch (suitablePhysicalDevices.size())
+		{
+			//No physical devices found
+			case 0: return Result(vk::PhysicalDevice(), Error(ErrorCode::GENERAL_HARDWARE_ERROR));
 
-		uint32_t i = 0;
-		auto physicalDeviceProperties = suitablePhysicalDevices[i].getProperties();
+			//Only one physical device found
+			case 1: 
+			{
+				if (discrete)
+				{ 
+					auto physicalDeviceProperties = suitablePhysicalDevices[0].getProperties();
+					if (physicalDeviceProperties.deviceType != vk::PhysicalDeviceType::eDiscreteGpu)
+					{
+						return Result(vk::PhysicalDevice(), Error(ErrorCode::GENERAL_HARDWARE_ERROR));
+					}
 
-		while ()
+					return Result(suitablePhysicalDevices[0], Error());
+				}
+
+				return Result(suitablePhysicalDevices[0], Error());
+			}
+
+			default:
+				auto chosenPhysicalDevice = vk::PhysicalDevice();
+				for (uint32_t i = 0; i < suitablePhysicalDevices.size(); i++)
+				{
+					auto physicalDeviceProperties = suitablePhysicalDevices[i].getProperties();
+					if (physicalDeviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu)
+					{
+						chosenPhysicalDevice = suitablePhysicalDevices[i];
+						break;
+					}
+				}
+
+				//No discrete physical devices found
+				if (chosenPhysicalDevice == vk::PhysicalDevice())
+				{
+					if (discrete) { return Result(vk::PhysicalDevice(), Error(ErrorCode::GENERAL_HARDWARE_ERROR)); }
+					
+					//Returning first suitable device as fallback
+					return Result(suitablePhysicalDevices[0], Error());
+				}
+
+				return Result(chosenPhysicalDevice, Error());
+		}	
 	}
 
 	class PhysicalDevice
 	{
 	public:
 		PhysicalDevice() {}
+		PhysicalDevice(const Instance instance, bool discrete = true)
+		{
+			prepare(instance, discrete);
+		}
 
-		void prepare()
-		{}
+
+		void prepare(const Instance instance, bool discrete = true)
+		{
+			mInstance = instance;
+			mDiscreteWish = discrete;
+		}
 
 		Result<PhysicalDevice, Error> build()
-		{}
+		{
+			if (mInstance == Instance())
+			{
+				return Result(*this, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			auto getBestPhysicalDeviceResult = get_best_physical_device(mInstance.instance(), mDiscreteWish);
+
+			if (getBestPhysicalDeviceResult.is_error())
+			{
+				return Result(*this, Error(getBestPhysicalDeviceResult.error().code()));
+			}
+
+			mDevice = getBestPhysicalDeviceResult.value();
+			auto physicalDeviceProperties = mDevice.getProperties();
+			mName   = std::string(physicalDeviceProperties.deviceName.data());
+			mType   = physicalDeviceProperties.deviceType;
+
+
+			return Result(*this, Error());
+		}
 
 		void cleanup()
 		{}
 
-		vk::Instance instance() const { return mInstance; }
+		Instance instance() const { return mInstance; }
+		vk::PhysicalDevice device() const { return mDevice; }
+		std::string name() const { return mName; }
+		vk::PhysicalDeviceType type() const { return mType; }
 	private:
-		vk::Instance mInstance = {};
+		Instance mInstance = {};
+		vk::PhysicalDevice mDevice = {};
+
+		std::string mName = "";
+		vk::PhysicalDeviceType mType = {};
+
+		bool mDiscreteWish = true;
+	};
+
+	class LogicalDevice
+	{
+		LogicalDevice() {}
+
+		void prepare() {}
+
+		Result<LogicalDevice, Error> build() {}
+
+		void cleanup() {}
+
+		private:
+			PhysicalDevice mPhysicalDevice = {};
+			vk::Device mDevice = {};
 	};
 
 	//GLFW related classes

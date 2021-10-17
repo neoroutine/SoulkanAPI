@@ -12,19 +12,27 @@ namespace SOULKAN_NAMESPACE
 	{
 		bool testValid = true;
 
+		/*GLFW*/
 		glfwInit();
-
 		auto builtMainWindow = Window("Soulkan graphic test", 800, 600, true).build();
 		if (builtMainWindow.is_error()) { testValid = false; }
 		auto mainWindow = builtMainWindow.value();
 
-		std::cout << "Created main window with title = \"" << mainWindow.title() << "\", height = \"" << mainWindow.height() << "\", width = \"" << mainWindow.width() << "\"" << std::endl;
+		std::cout << "Built Main Window with title = \"" << mainWindow.title() << "\", height = \"" << mainWindow.height() << "\", width = \"" << mainWindow.width() << "\"" << std::endl;
 
+		/*INSTANCE*/
 		auto builtInstance = Instance(true, "Soulkan Test", "Soulkan Engine").build();
 		if (builtInstance.is_error()) { testValid = false; }
 		auto instance = builtInstance.value();
 
-		std::cout << "Created instance with validation = \"" << instance.validation() << "\", extensions = \"" << instance.extensions().size() << "\"" << std::endl;
+		std::cout << "Built Instance with validation = \"" << instance.validation() << "\", extensions = \"" << instance.extensions().size() << "\"" << std::endl;
+
+		/*PHYSICALDEVICE*/
+		auto builtPhysicalDevice = PhysicalDevice(instance).build();
+		if (builtPhysicalDevice.is_error()) { testValid = false; }
+		auto physicalDevice = builtPhysicalDevice.value();
+
+		std::cout << "Built Physical Device with name = \"" << physicalDevice.name() << "\"" << std::endl;
 		
 		if (interactive)
 		{

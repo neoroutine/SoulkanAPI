@@ -367,6 +367,9 @@ namespace SOULKAN_NAMESPACE
 
 		void cleanup() {}
 
+		PhysicalDevice physical_device() const { return mPhysicalDevice; }
+		vk::Device device() const { return mDevice; }
+
 		private:
 			PhysicalDevice mPhysicalDevice = {};
 			vk::Device mDevice = {};

@@ -33,6 +33,8 @@ namespace SOULKAN_NAMESPACE
 		auto physicalDevice = builtPhysicalDevice.value();
 
 		std::cout << "Built Physical Device with name = \"" << physicalDevice.name() << "\"" << std::endl;
+
+		/*LOGICALDEVICE*/
 		
 		if (interactive)
 		{

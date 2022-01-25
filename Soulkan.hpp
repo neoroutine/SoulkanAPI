@@ -18,11 +18,15 @@ namespace SOULKAN_NAMESPACE
 	//Essential enums and types
 	enum class ErrorCode : uint32_t
 	{
-		NO_ERROR                = 1,
-		GENERAL_HARDWARE_ERROR  = 2,
-		GENERAL_PARAMETER_ERROR = 4,
-		GENERAL_VULKAN_ERROR    = 8,
-		GENERAL_GLFW_ERROR      = 16,
+		//General errors, up to 2**10
+		NO_ERROR                   = 1,
+		GENERAL_HARDWARE_ERROR     = 2,
+		GENERAL_PARAMETER_ERROR    = 4,
+		GENERAL_UNAUTHORIZED_ERROR = 8, //Unauthorized method call : Calling instance.get_available_physical_devices() before instance.build()
+		GENERAL_VULKAN_ERROR       = 16,
+		GENERAL_GLFW_ERROR         = 32,
+
+		//GENERAL errors, 2**11 to 2**31
 	};
 
 	//Commonly used in Result
@@ -38,15 +42,17 @@ namespace SOULKAN_NAMESPACE
 
 		ErrorCode code() { return mCode; }
 		bool is_error() { return (mCode != ErrorCode::NO_ERROR); }
+
 		std::string to_string()
 		{
 			switch (mCode)
 			{
-			    case ErrorCode::NO_ERROR:                return "NO_ERROR"; break;
-				case ErrorCode::GENERAL_HARDWARE_ERROR:  return "GENERAL_HARDWARE_ERROR"; break;
-				case ErrorCode::GENERAL_PARAMETER_ERROR: return "GENERAL_PARAMETER_ERROR"; break;
-				case ErrorCode::GENERAL_VULKAN_ERROR:    return "GENERAL_VULKAN_ERROR"; break;
-				case ErrorCode::GENERAL_GLFW_ERROR:      return "GENERAL_GLFW_ERROR"; break;
+			    case ErrorCode::NO_ERROR:                   return "NO_ERROR"; break;
+				case ErrorCode::GENERAL_HARDWARE_ERROR:     return "GENERAL_HARDWARE_ERROR"; break;
+				case ErrorCode::GENERAL_PARAMETER_ERROR:    return "GENERAL_PARAMETER_ERROR"; break;
+				case ErrorCode::GENERAL_UNAUTHORIZED_ERROR: return "GENERAL_UNAUTHORIZED_ERROR"; break;
+				case ErrorCode::GENERAL_VULKAN_ERROR:       return "GENERAL_VULKAN_ERROR"; break;
+				case ErrorCode::GENERAL_GLFW_ERROR:         return "GENERAL_GLFW_ERROR"; break;
 			}
 		}
 
@@ -160,110 +166,94 @@ namespace SOULKAN_NAMESPACE
 
 			mInstance = vk::createInstance(instanceCreateInfo);
 
+			mBuilt = true;
+
 			return Result(*this, Error());
 		}
 
-		void cleanup()
+		inline Result<std::vector<vk::PhysicalDevice>, Error> get_available_physical_devices()
 		{
-			mInstance.destroy();
-		}
-		
-
-		vk::Instance instance() const { return mInstance; }
-		vk::ApplicationInfo appInfo() const { return mAppInfo; }
-		bool validation() const { return mValidationEnabled; }
-		std::vector<const char*> extensions() const { return mExtensions; }
-	private:
-		vk::Instance mInstance = {};
-		vk::ApplicationInfo mAppInfo = {};
-
-		bool mValidationEnabled = false;
-
-		std::vector<const char*> mExtensions = {};
-	};
-
-	inline Result<std::vector<vk::PhysicalDevice>, Error> get_available_physical_devices(const vk::Instance instance)
-	{
-		if (instance == vk::Instance())
-		{
-			return Result(std::vector<vk::PhysicalDevice>(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
-		}
-		auto availablePhysicalDevices = instance.enumeratePhysicalDevices();
-
-		auto err = Error();
-		if (availablePhysicalDevices.size() == 0)
-		{
-			err = Error(ErrorCode::GENERAL_VULKAN_ERROR);
-		}
-
-		return Result(availablePhysicalDevices, err);
-	}
-
-	inline Result<bool, Error> is_suitable_device(const vk::PhysicalDevice physicalDevice)
-	{
-		auto err = Error();
-		if (physicalDevice == vk::PhysicalDevice())
-		{
-			return Result(false, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
-		}
-
-		auto physicalDeviceFeatures = physicalDevice.getFeatures();
-
-		if (physicalDeviceFeatures == vk::PhysicalDeviceFeatures())
-		{
-			return Result(false, Error(ErrorCode::GENERAL_VULKAN_ERROR));
-		}
-
-		if (!physicalDeviceFeatures.geometryShader)
-		{
-			return Result(false, Error(ErrorCode::NO_ERROR));
-		}
-
-		return Result(true, Error(ErrorCode::NO_ERROR));
-	}
-
-	inline Result<std::vector<vk::PhysicalDevice>, Error> get_suitable_physical_devices(const vk::Instance instance)
-	{
-		auto availablePhysicalDevicesResult = get_available_physical_devices(instance);
-		if (availablePhysicalDevicesResult.is_error())
-		{
-			return Result(std::vector<vk::PhysicalDevice>(), Error(availablePhysicalDevicesResult.error().code()));
-		}
-
-		auto availablePhysicalDevices = availablePhysicalDevicesResult.value();
-		auto suitablePhysicalDevices  = std::vector<vk::PhysicalDevice>();
-
-		for (uint32_t i = 0; i < availablePhysicalDevices.size(); i++)
-		{
-			auto isSuitableResult = is_suitable_device(availablePhysicalDevices[i]);
-			if (!isSuitableResult.is_error() && isSuitableResult.value())
+			if (!mBuilt)
 			{
-				suitablePhysicalDevices.push_back(availablePhysicalDevices[i]);
+				return Result(std::vector<vk::PhysicalDevice>(), Error(ErrorCode::GENERAL_UNAUTHORIZED_ERROR));
 			}
+
+			auto availablePhysicalDevices = mInstance.enumeratePhysicalDevices();
+
+			auto err = Error();
+			if (availablePhysicalDevices.size() == 0)
+			{
+				err = Error(ErrorCode::GENERAL_VULKAN_ERROR);
+			}
+
+			return Result(availablePhysicalDevices, err);
 		}
 
-		return Result(suitablePhysicalDevices, Error());
-	}
-
-	inline Result<vk::PhysicalDevice, Error> get_best_physical_device(const vk::Instance instance, bool discrete)
-	{
-		auto suitablePhysicalDevicesResult = get_suitable_physical_devices(instance);
-		if (suitablePhysicalDevicesResult.is_error())
+		inline Result<bool, Error> is_suitable_device(const vk::PhysicalDevice physicalDevice)
 		{
-			return Result(vk::PhysicalDevice(), Error(suitablePhysicalDevicesResult.error().code()));
+			auto err = Error();
+			if (physicalDevice == vk::PhysicalDevice())
+			{
+				return Result(false, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			auto physicalDeviceFeatures = physicalDevice.getFeatures();
+
+			if (physicalDeviceFeatures == vk::PhysicalDeviceFeatures())
+			{
+				return Result(false, Error(ErrorCode::GENERAL_VULKAN_ERROR));
+			}
+
+			if (!physicalDeviceFeatures.geometryShader)
+			{
+				return Result(false, Error(ErrorCode::NO_ERROR));
+			}
+
+			return Result(true, Error(ErrorCode::NO_ERROR));
 		}
 
-		auto suitablePhysicalDevices = suitablePhysicalDevicesResult.value();
-		switch (suitablePhysicalDevices.size())
+		inline Result<std::vector<vk::PhysicalDevice>, Error> get_suitable_physical_devices()
 		{
-			//No physical devices found
+			auto availablePhysicalDevicesResult = this->get_available_physical_devices();
+			if (availablePhysicalDevicesResult.is_error())
+			{
+				return Result(std::vector<vk::PhysicalDevice>(), Error(availablePhysicalDevicesResult.error().code()));
+			}
+
+			auto availablePhysicalDevices = availablePhysicalDevicesResult.value();
+			auto suitablePhysicalDevices = std::vector<vk::PhysicalDevice>();
+
+			for (uint32_t i = 0; i < availablePhysicalDevices.size(); i++)
+			{
+				auto isSuitableResult = is_suitable_device(availablePhysicalDevices[i]);
+				if (!isSuitableResult.is_error() && isSuitableResult.value())
+				{
+					suitablePhysicalDevices.push_back(availablePhysicalDevices[i]);
+				}
+			}
+
+			return Result(suitablePhysicalDevices, Error());
+		}
+
+		inline Result<vk::PhysicalDevice, Error> get_best_physical_device(bool discrete)
+		{
+			auto suitablePhysicalDevicesResult = this->get_suitable_physical_devices();
+			if (suitablePhysicalDevicesResult.is_error())
+			{
+				return Result(vk::PhysicalDevice(), Error(suitablePhysicalDevicesResult.error().code()));
+			}
+
+			auto suitablePhysicalDevices = suitablePhysicalDevicesResult.value();
+			switch (suitablePhysicalDevices.size())
+			{
+				//No physical devices found
 			case 0: return Result(vk::PhysicalDevice(), Error(ErrorCode::GENERAL_HARDWARE_ERROR));
 
-			//Only one physical device found
-			case 1: 
+				//Only one physical device found
+			case 1:
 			{
 				if (discrete)
-				{ 
+				{
 					auto physicalDeviceProperties = suitablePhysicalDevices[0].getProperties();
 					if (physicalDeviceProperties.deviceType != vk::PhysicalDeviceType::eDiscreteGpu)
 					{
@@ -292,14 +282,73 @@ namespace SOULKAN_NAMESPACE
 				if (chosenPhysicalDevice == vk::PhysicalDevice())
 				{
 					if (discrete) { return Result(vk::PhysicalDevice(), Error(ErrorCode::GENERAL_HARDWARE_ERROR)); }
-					
+
 					//Returning first suitable device as fallback
 					return Result(suitablePhysicalDevices[0], Error());
 				}
 
 				return Result(chosenPhysicalDevice, Error());
-		}	
-	}
+			}
+		}
+
+		inline Result<vk::SurfaceKHR, Error> createSurface(Window window)
+		{
+			//Temporarily using VkSurfaceKHR (instead of vk::SurfaceKHR) because GLFW only returns Vk... stuff
+			VkSurfaceKHR rawSurface;
+			VkResult result = glfwCreateWindowSurface(mInstance, window.ptr(), nullptr, &rawSurface);
+
+			if (result != VK_SUCCESS || rawSurface == VK_NULL_HANDLE)
+			{
+				return Result(vk::SurfaceKHR(), Error(ErrorCode::GENERAL_GLFW_ERROR));
+			}
+
+			return Result(static_cast<vk::SurfaceKHR>(rawSurface), Error());
+
+		}
+
+		void cleanup()
+		{
+			mInstance.destroy();
+		}
+		
+
+		vk::Instance instance() const { return mInstance; }
+		vk::ApplicationInfo appInfo() const { return mAppInfo; }
+		bool validation() const { return mValidationEnabled; }
+		std::vector<const char*> extensions() const { return mExtensions; }
+	private:
+		vk::Instance mInstance = {};
+		vk::ApplicationInfo mAppInfo = {};
+
+		bool mValidationEnabled = false;
+
+		std::vector<const char*> mExtensions = {};
+
+		bool mBuilt = false;
+
+	};
+
+	
+
+	class QueueFamilies
+	{
+	public:
+		QueueFamilies() {}
+		//In the vector, index 0 = generalFamily, 1 = graphicsFamily, 2 = presentFamily, 3 = computeFamily, 4 = transferFamily, 5 = debug/tmp.
+		QueueFamilies(std::array<int32_t, 6> queueFamilyIndexes) {}
+
+		int32_t general()  const { return mQueueFamilyIndexes[0]; }
+		int32_t graphics() const { return mQueueFamilyIndexes[1]; }
+		int32_t present()  const { return mQueueFamilyIndexes[2]; }
+		int32_t compute()  const { return mQueueFamilyIndexes[3]; }
+		int32_t transfer() const { return mQueueFamilyIndexes[4]; }
+		int32_t debug()    const { return mQueueFamilyIndexes[5]; }
+
+
+	private:
+		std::vector<int32_t> mQueueFamilyIndexes = {};
+
+	};
 
 	class PhysicalDevice
 	{
@@ -324,7 +373,7 @@ namespace SOULKAN_NAMESPACE
 				return Result(*this, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
 			}
 
-			auto getBestPhysicalDeviceResult = get_best_physical_device(mInstance.instance(), mDiscreteWish);
+			auto getBestPhysicalDeviceResult = mInstance.get_best_physical_device(mDiscreteWish);
 
 			if (getBestPhysicalDeviceResult.is_error())
 			{
@@ -336,8 +385,68 @@ namespace SOULKAN_NAMESPACE
 			mName   = std::string(physicalDeviceProperties.deviceName.data());
 			mType   = physicalDeviceProperties.deviceType;
 
+			mBuilt = true;
 
 			return Result(*this, Error());
+		}
+
+		Result<QueueFamilies, Error> getQueueFamilies(vk::SurfaceKHR testSurface)
+		{
+			if (!mBuilt)
+			{
+				return Result(QueueFamilies(), Error(ErrorCode::GENERAL_UNAUTHORIZED_ERROR));
+			}
+
+			std::array<int32_t, 6> queueFamilyIndexes = { -1 };
+			auto availableQueueFamilies = mDevice.getQueueFamilyProperties();
+
+			//Looking for a general queue
+			uint32_t i = 0;
+			for (const auto& queueFamily : availableQueueFamilies)
+			{
+				if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics &&
+					queueFamily.queueFlags & vk::QueueFlagBits::eCompute &&
+					mDevice.getSurfaceSupportKHR(i, testSurface))
+				{
+					queueFamilyIndexes[0] = i;
+				}
+
+				i++;
+			}
+
+			//Looking for other queues
+			i = 0;
+			for (const auto& queueFamily : availableQueueFamilies)
+			{
+				if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
+				{
+					queueFamilyIndexes[1] = i;
+				}
+
+				if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer &&
+					queueFamily.queueFlags & vk::QueueFlagBits::eCompute &&
+					!(queueFamily.queueFlags & vk::QueueFlagBits::eGraphics))
+				{
+					queueFamilyIndexes[2] = i;
+				}
+
+
+				if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer &&
+					!(queueFamily.queueFlags & vk::QueueFlagBits::eCompute) &&
+					!(queueFamily.queueFlags & vk::QueueFlagBits::eGraphics))
+				{
+					queueFamilyIndexes[3] = i;
+				}
+
+				if (mDevice.getSurfaceSupportKHR(i, testSurface))
+				{
+					queueFamilyIndexes[4] = i;
+				}
+
+				i++;
+			}
+
+			return Result(QueueFamilies(queueFamilyIndexes), Error());
 		}
 
 		void cleanup()
@@ -354,14 +463,24 @@ namespace SOULKAN_NAMESPACE
 		std::string mName = "";
 		vk::PhysicalDeviceType mType = {};
 
+		QueueFamilies mQueueFamilies = {};
+
 		bool mDiscreteWish = true;
+
+		bool mBuilt = false;
 	};
 
 	class LogicalDevice
 	{
-		LogicalDevice() {}
+		LogicalDevice(const PhysicalDevice physicalDevice)
+		{
+			prepare(physicalDevice);
+		}
 
-		void prepare() {}
+		void prepare(const PhysicalDevice physicalDevice)
+		{
+			mPhysicalDevice = physicalDevice;
+		}
 
 		Result<LogicalDevice, Error> build() {}
 

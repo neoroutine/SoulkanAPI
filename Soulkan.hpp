@@ -9,6 +9,7 @@
 
 
 /*Includes from the std library or from needed tools*/
+#include <deque>
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 #define GLFW_INCLUDE_VULKAN
@@ -83,6 +84,43 @@ namespace SOULKAN_NAMESPACE
 	private:
 		V mValue = {};
 		E mError = {};
+	};
+
+	class FunctionQueue
+	{
+	public:
+		FunctionQueue() {}
+		FunctionQueue(std::deque<std::function<void()>> functions)
+		{
+			mFunctions = functions;
+		}
+		void push(std::function<void()>&& function)
+		{
+			mFunctions.emplace_back(function);
+		}
+
+		void flush()
+		{
+			for (auto func = mFunctions.begin(); func != mFunctions.end(); func++)
+			{
+				(*func)();
+			}
+
+			mFunctions.clear();
+		}
+
+		void rflush()
+		{
+			for (auto func = mFunctions.rbegin(); func != mFunctions.rend(); func++)
+			{
+				(*func)();
+			}
+
+			mFunctions.clear();
+		}
+
+	private:
+		std::deque<std::function<void()>> mFunctions = {};
 	};
 
 	//Vulkan related classes
@@ -199,7 +237,7 @@ namespace SOULKAN_NAMESPACE
 
 		friend bool operator==(const Instance lhs, const Instance rhs)
 		{
-			return (lhs.instance() == rhs.instance());
+			return (lhs.get() == rhs.get());
 		}
 
 		friend bool operator!=(const Instance lhs, const Instance rhs)
@@ -235,6 +273,8 @@ namespace SOULKAN_NAMESPACE
 				{
 					return Result(*this, Error(getRequiredInstanceExtensionsResult.error().code()));
 				}
+
+				mExtensions = getRequiredInstanceExtensionsResult.value();
 			}
 
 			std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -388,13 +428,13 @@ namespace SOULKAN_NAMESPACE
 
 		}
 
-		void cleanup()
+		void cleanup() const
 		{
 			mInstance.destroy();
 		}
 		
 
-		vk::Instance instance() const { return mInstance; }
+		vk::Instance get() const { return mInstance; }
 		vk::ApplicationInfo appInfo() const { return mAppInfo; }
 		bool validation() const { return mValidationEnabled; }
 		std::vector<const char*> extensions() const { return mExtensions; }
@@ -417,7 +457,10 @@ namespace SOULKAN_NAMESPACE
 	public:
 		QueueFamilies() {}
 		//In the vector, index 0 = generalFamily, 1 = graphicsFamily, 2 = presentFamily, 3 = computeFamily, 4 = transferFamily, 5 = debug/tmp.
-		QueueFamilies(std::array<int32_t, 6> queueFamilyIndexes) {}
+		QueueFamilies(std::array<int32_t, 6> queueFamilyIndexes)
+		{
+			mQueueFamilyIndexes = queueFamilyIndexes;
+		}
 
 		Result<std::vector<uint32_t>, Error> concentrate()
 		{
@@ -425,7 +468,8 @@ namespace SOULKAN_NAMESPACE
 			{
 				return Result(std::vector<uint32_t>(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
 			}
-			std::vector<uint32_t> concentratedIndexes(mQueueFamilyIndexes.begin(), mQueueFamilyIndexes.end());
+
+			std::vector<uint32_t> concentratedIndexes = {};
 			//Get rid of all the -1s (here to say that a queue does not exist, not needed for vulkan)
 			//Get rid of duplicates
 			for (uint32_t i = 0; i < mQueueFamilyIndexes.size(); i++)
@@ -470,7 +514,7 @@ namespace SOULKAN_NAMESPACE
 
 			return false;
 		}
-		std::array<int32_t, 6> mQueueFamilyIndexes = {-1};
+		std::array<int32_t, 6> mQueueFamilyIndexes = {-1, -1 , -1 , -1 , -1, -1};
 
 	};
 
@@ -580,8 +624,6 @@ namespace SOULKAN_NAMESPACE
 			return Result(mQueueFamilies, Error());
 		}
 
-		void cleanup()
-		{}
 
 		Instance instance() const { return mInstance; }
 		vk::PhysicalDevice get() const { return mDevice; }
@@ -675,10 +717,15 @@ namespace SOULKAN_NAMESPACE
 			//TODO:Check if device is fine as is (try catch ?)
 			mDevice = device;
 
+			mBuilt = true;
+
 			return Result(*this, Error());
 		}
 
-		void cleanup() {}
+		void cleanup() const
+		{
+			mDevice.destroy();
+		}
 
 		PhysicalDevice physicalDevice() const { return mPhysicalDevice;}
 		vk::Device get() const { return mDevice;}
@@ -687,7 +734,10 @@ namespace SOULKAN_NAMESPACE
 		std::vector<const char*> deviceExtensions() const { return mDeviceExtensions;}
 		vk::SurfaceKHR testSurface() const { return mTestSurface;}
 
+
 		private:
+			bool mBuilt = false;
+
 			PhysicalDevice mPhysicalDevice = {};
 			vk::Device mDevice = {};
 

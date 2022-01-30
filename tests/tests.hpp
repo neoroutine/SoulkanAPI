@@ -8,34 +8,43 @@
 
 namespace SOULKAN_NAMESPACE
 {
+	//TODO:Garbage for now, plz fix
 	template<class V, class E>
-	inline bool valid(Result<V, E> result)
+	inline bool valid(Result<V, E> result, bool current)
 	{
-		return result.is_error();
+		return result.is_error() ? false : current;
 	}
 
 	inline bool graphic_test(bool interactive)
 	{
 		bool testValid = true;
 
+		FunctionQueue deletionQueue = {};
+
 		/*GLFW*/
-		glfwInit();
+		//TODO:Bundle glfwInit and glfwWindowHint later
+		if (!glfwInit()) { testValid = false; };
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		deletionQueue.push([=]() { glfwTerminate(); });
+
+
 		auto builtMainWindow = Window("Soulkan graphic test", 800, 600, true).build();
-		testValid = valid(builtMainWindow);
+		testValid = valid(builtMainWindow, testValid);
 		auto mainWindow = builtMainWindow.value();
 
 		std::cout << "Built Main Window with title = \"" << mainWindow.title() << "\", height = \"" << mainWindow.height() << "\", width = \"" << mainWindow.width() << "\"" << std::endl;
 
 		/*INSTANCE*/
 		auto builtInstance = Instance(true, "Soulkan Test", "Soulkan Engine").build();
-		testValid = valid(builtInstance) ? testValid : false;
+		testValid = valid(builtInstance, testValid);
 		auto instance = builtInstance.value();
+		deletionQueue.push([=]() { instance.cleanup(); });
 
 		std::cout << "Built Instance with validation = \"" << instance.validation() << "\", extensions = \"" << instance.extensions().size() << "\"" << std::endl;
 
 		/*PHYSICALDEVICE*/
 		auto builtPhysicalDevice = PhysicalDevice(instance).build();
-		testValid = valid(builtPhysicalDevice);
+		testValid = valid(builtPhysicalDevice, testValid);
 		auto physicalDevice = builtPhysicalDevice.value();
 
 		std::cout << "Built Physical Device with name = \"" << physicalDevice.name() << "\"" << std::endl;
@@ -44,12 +53,14 @@ namespace SOULKAN_NAMESPACE
 		std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 		auto testSurfaceResult = instance.create_surface(mainWindow);
-		testValid = valid(testSurfaceResult);
+		testValid = valid(testSurfaceResult, testValid);
 		auto testSurface = testSurfaceResult.value();
+		deletionQueue.push([=]() { instance.get().destroySurfaceKHR(testSurface); });
 
-		auto builtLogicalDevice = LogicalDevice(physicalDevice, deviceExtensions, {}).build();
-		testValid = valid(builtLogicalDevice);
-		auto logicalDevice = builtPhysicalDevice.value();
+		auto builtLogicalDevice = LogicalDevice(physicalDevice, deviceExtensions, testSurface, {}).build();
+		testValid = valid(builtLogicalDevice, testValid);
+		auto logicalDevice = builtLogicalDevice.value();
+		deletionQueue.push([=]() { logicalDevice.cleanup(); });
 
 		std::cout << "Built Logical Device" << std::endl;
 		
@@ -64,16 +75,9 @@ namespace SOULKAN_NAMESPACE
 			}
 
 			glfwDestroyWindow(mainWindow.ptr());
-
-			std::cout << "Waiting for input" << std::endl;
-			std::cin.get();
 		}
-		
-		glfwTerminate();
 
-		
-		instance.cleanup();
-
+		deletionQueue.rflush();
 
 		return testValid;
 	}

@@ -22,7 +22,8 @@ namespace SOULKAN_NAMESPACE
 		NO_ERROR                   = 1,
 		GENERAL_HARDWARE_ERROR     = 2,
 		GENERAL_PARAMETER_ERROR    = 4,
-		GENERAL_UNAUTHORIZED_ERROR = 8, //Unauthorized method call : Calling instance.get_available_physical_devices() before instance.build()
+		GENERAL_UNBUILT_ERROR = 8, //UNBUILT method call : Calling instance.get_available_physical_devices() before instance.build()
+		                           //or calling QueueFamilies.concentrate() on an empty QueueFamilies
 		GENERAL_VULKAN_ERROR       = 16,
 		GENERAL_GLFW_ERROR         = 32,
 
@@ -50,7 +51,7 @@ namespace SOULKAN_NAMESPACE
 			    case ErrorCode::NO_ERROR:                   return "NO_ERROR"; break;
 				case ErrorCode::GENERAL_HARDWARE_ERROR:     return "GENERAL_HARDWARE_ERROR"; break;
 				case ErrorCode::GENERAL_PARAMETER_ERROR:    return "GENERAL_PARAMETER_ERROR"; break;
-				case ErrorCode::GENERAL_UNAUTHORIZED_ERROR: return "GENERAL_UNAUTHORIZED_ERROR"; break;
+				case ErrorCode::GENERAL_UNBUILT_ERROR:      return "GENERAL_UNBUILT_ERROR"; break;
 				case ErrorCode::GENERAL_VULKAN_ERROR:       return "GENERAL_VULKAN_ERROR"; break;
 				case ErrorCode::GENERAL_GLFW_ERROR:         return "GENERAL_GLFW_ERROR"; break;
 			}
@@ -104,6 +105,87 @@ namespace SOULKAN_NAMESPACE
 
 		return Result(extensions, Error());
 	}
+
+		//GLFW related classes
+	class Window
+	{
+	public:
+		Window(){}
+
+		Window(std::string title, uint32_t height, uint32_t width, bool resizable)
+		{
+			prepare(title, height, width, resizable);
+		}
+
+		void prepare(std::string title, uint32_t height, uint32_t width, bool resizable)
+		{
+			mTitle     = title;
+			mHeight    = height;
+			mWidth     = width;
+			mResizable = resizable;
+		}
+
+		Result<Window, Error> build()
+		{
+			if (mTitle == "" || mHeight == 0 || mWidth == 0)
+			{
+				return Result(*this, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			if (mResizable)
+			{
+				glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+			}
+			else
+			{
+				glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+			}
+
+			mPtr = glfwCreateWindow(mWidth, mHeight, mTitle.c_str(), 0, NULL);
+
+			if (mPtr == nullptr)
+			{
+				return Result(*this, Error(ErrorCode::GENERAL_GLFW_ERROR));
+			}
+
+			return Result(*this, Error());
+		}
+
+		Result<std::string, Error> rename(std::string title)
+		{
+			mTitle = title;
+
+			if (mTitle == "")
+			{
+				return Result(std::string(""), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			glfwSetWindowTitle(mPtr, title.c_str());
+
+			return Result(mTitle, Error(ErrorCode::NO_ERROR));
+		}
+
+		std::string title() const { return mTitle; }
+		uint32_t height() const { return mHeight; }
+		uint32_t width() const { return mWidth; }
+		bool resizable() const { return mResizable; }
+		GLFWwindow* ptr() const { return mPtr; }
+
+	private:
+		std::string mTitle = "";
+		uint32_t mHeight   = 0;
+		uint32_t mWidth    = 0;
+		bool mResizable    = false;
+		GLFWwindow* mPtr   = nullptr;
+	};
+
+	class DebugCallBack
+	{
+	public:
+	    
+		private:
+	};
+
 	class Instance
 	{
 	public:
@@ -175,7 +257,7 @@ namespace SOULKAN_NAMESPACE
 		{
 			if (!mBuilt)
 			{
-				return Result(std::vector<vk::PhysicalDevice>(), Error(ErrorCode::GENERAL_UNAUTHORIZED_ERROR));
+				return Result(std::vector<vk::PhysicalDevice>(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
 			}
 
 			auto availablePhysicalDevices = mInstance.enumeratePhysicalDevices();
@@ -291,7 +373,7 @@ namespace SOULKAN_NAMESPACE
 			}
 		}
 
-		inline Result<vk::SurfaceKHR, Error> createSurface(Window window)
+		inline Result<vk::SurfaceKHR, Error> create_surface(Window window)
 		{
 			//Temporarily using VkSurfaceKHR (instead of vk::SurfaceKHR) because GLFW only returns Vk... stuff
 			VkSurfaceKHR rawSurface;
@@ -337,6 +419,39 @@ namespace SOULKAN_NAMESPACE
 		//In the vector, index 0 = generalFamily, 1 = graphicsFamily, 2 = presentFamily, 3 = computeFamily, 4 = transferFamily, 5 = debug/tmp.
 		QueueFamilies(std::array<int32_t, 6> queueFamilyIndexes) {}
 
+		Result<std::vector<uint32_t>, Error> concentrate()
+		{
+			if (this->empty())
+			{
+				return Result(std::vector<uint32_t>(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
+			}
+			std::vector<uint32_t> concentratedIndexes(mQueueFamilyIndexes.begin(), mQueueFamilyIndexes.end());
+			//Get rid of all the -1s (here to say that a queue does not exist, not needed for vulkan)
+			//Get rid of duplicates
+			for (uint32_t i = 0; i < mQueueFamilyIndexes.size(); i++)
+			{
+				if (mQueueFamilyIndexes[i] != -1 && !present(concentratedIndexes, mQueueFamilyIndexes[i]))
+				{
+					concentratedIndexes.push_back(mQueueFamilyIndexes[i]);
+				}
+			}
+
+			return Result(concentratedIndexes, Error());
+		}
+
+		bool empty() const 
+		{ 
+			if (mQueueFamilyIndexes.empty()) { return true;}
+
+			for (uint32_t i = 0; i < mQueueFamilyIndexes.size(); i++)
+			{
+				if (mQueueFamilyIndexes[i] != -1) { return false;}
+			}
+
+			return true;
+		}
+
+		//If -1 is returned, then the queue does not exist/the array is empty
 		int32_t general()  const { return mQueueFamilyIndexes[0]; }
 		int32_t graphics() const { return mQueueFamilyIndexes[1]; }
 		int32_t present()  const { return mQueueFamilyIndexes[2]; }
@@ -346,7 +461,16 @@ namespace SOULKAN_NAMESPACE
 
 
 	private:
-		std::vector<int32_t> mQueueFamilyIndexes = {};
+	    bool present(std::vector<uint32_t> indexes, uint32_t index)
+		{
+			for (uint32_t i = 0; i < indexes.size(); i++)
+			{
+				if (indexes[i] == index) { return true;}
+			}
+
+			return false;
+		}
+		std::array<int32_t, 6> mQueueFamilyIndexes = {-1};
 
 	};
 
@@ -390,11 +514,16 @@ namespace SOULKAN_NAMESPACE
 			return Result(*this, Error());
 		}
 
-		Result<QueueFamilies, Error> getQueueFamilies(vk::SurfaceKHR testSurface)
+		Result<QueueFamilies, Error> get_queue_families(vk::SurfaceKHR testSurface)
 		{
 			if (!mBuilt)
 			{
-				return Result(QueueFamilies(), Error(ErrorCode::GENERAL_UNAUTHORIZED_ERROR));
+				return Result(QueueFamilies(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
+			}
+
+			if (!mQueueFamilies.empty())
+			{
+				return Result(mQueueFamilies, Error());
 			}
 
 			std::array<int32_t, 6> queueFamilyIndexes = { -1 };
@@ -446,14 +575,16 @@ namespace SOULKAN_NAMESPACE
 				i++;
 			}
 
-			return Result(QueueFamilies(queueFamilyIndexes), Error());
+			mQueueFamilies = QueueFamilies(queueFamilyIndexes);
+
+			return Result(mQueueFamilies, Error());
 		}
 
 		void cleanup()
 		{}
 
 		Instance instance() const { return mInstance; }
-		vk::PhysicalDevice device() const { return mDevice; }
+		vk::PhysicalDevice get() const { return mDevice; }
 		std::string name() const { return mName; }
 		vk::PhysicalDeviceType type() const { return mType; }
 	private:
@@ -472,97 +603,101 @@ namespace SOULKAN_NAMESPACE
 
 	class LogicalDevice
 	{
-		LogicalDevice(const PhysicalDevice physicalDevice)
+	public:
+	    LogicalDevice(){}
+		LogicalDevice(const PhysicalDevice physicalDevice, const std::vector<const char*> deviceExtensions, const vk::SurfaceKHR testSurface, const vk::PhysicalDeviceFeatures physicalDeviceFeatures = {})
 		{
-			prepare(physicalDevice);
+			prepare(physicalDevice, deviceExtensions, testSurface, physicalDeviceFeatures);
 		}
 
-		void prepare(const PhysicalDevice physicalDevice)
+		void prepare(const PhysicalDevice physicalDevice, const std::vector<const char*> deviceExtensions, const vk::SurfaceKHR testSurface, const vk::PhysicalDeviceFeatures physicalDeviceFeatures = {})
 		{
 			mPhysicalDevice = physicalDevice;
+			mPhysicalDeviceFeatures = physicalDeviceFeatures;
+			mDeviceExtensions = deviceExtensions;
+			mTestSurface = testSurface;
 		}
 
-		Result<LogicalDevice, Error> build() {}
-
-		void cleanup() {}
-
-		private:
-			PhysicalDevice mPhysicalDevice = {};
-			vk::Device mDevice = {};
-	};
-
-	//GLFW related classes
-	class Window
-	{
-	public:
-		Window(){}
-
-		Window(std::string title, uint32_t height, uint32_t width, bool resizable)
+		Result<LogicalDevice, Error> build()
 		{
-			prepare(title, height, width, resizable);
-		}
-
-		void prepare(std::string title, uint32_t height, uint32_t width, bool resizable)
-		{
-			mTitle     = title;
-			mHeight    = height;
-			mWidth     = width;
-			mResizable = resizable;
-		}
-
-		Result<Window, Error> build()
-		{
-			if (mTitle == "" || mHeight == 0 || mWidth == 0)
+			/*TODO:Implement == operator in PhysicalDevice
+			if (mPhysicalDevice == PhysicalDevice())
 			{
-				return Result(*this, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+				return Result(LogicalDevice(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}*/
+
+			//Queue families
+			auto queueFamiliesResult = mPhysicalDevice.get_queue_families(mTestSurface);
+			if (queueFamiliesResult.is_error())
+			{
+				return Result(LogicalDevice(), queueFamiliesResult.error());
 			}
 
-			if (mResizable)
+			QueueFamilies queueFamilies = queueFamiliesResult.value();
+
+			if (queueFamilies.empty())
 			{
-				glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-			}
-			else
-			{
-				glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+				return Result(LogicalDevice(), Error(ErrorCode::GENERAL_VULKAN_ERROR));
 			}
 
-			mPtr = glfwCreateWindow(mWidth, mHeight, mTitle.c_str(), 0, NULL);
-
-			if (mPtr == nullptr)
+			std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos = {};
+			auto concentratedQueueFamiliesResult = queueFamilies.concentrate();
+			if (concentratedQueueFamiliesResult.is_error())
 			{
-				return Result(*this, Error(ErrorCode::GENERAL_GLFW_ERROR));
+				return Result(LogicalDevice(), concentratedQueueFamiliesResult.error());
 			}
+
+			std::vector<uint32_t> concentratedQueueFamilies = concentratedQueueFamiliesResult.value();
+			float queuePriority = 1.0f;
+
+			for (const auto queueFamilyIndex : concentratedQueueFamilies)
+			{
+				deviceQueueCreateInfos.push_back({vk::DeviceQueueCreateFlags(), queueFamilyIndex, 1, &queuePriority});
+			}
+
+			auto deviceCreateInfo = vk::DeviceCreateInfo(vk::DeviceCreateFlags(), static_cast<uint32_t>(deviceQueueCreateInfos.size()), deviceQueueCreateInfos.data());
+
+            //Device extensions
+			if (mDeviceExtensions.size() == 0)
+			{
+				return Result(LogicalDevice(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(mDeviceExtensions.size());
+			deviceCreateInfo.ppEnabledExtensionNames = mDeviceExtensions.data();
+
+			//Physical Device Features
+			mPhysicalDeviceFeatures.samplerAnisotropy = VK_TRUE;
+			deviceCreateInfo.pEnabledFeatures = &mPhysicalDeviceFeatures;
+
+			vk::Device device = mPhysicalDevice.get().createDevice(deviceCreateInfo);
+
+			//TODO:Check if device is fine as is (try catch ?)
+			mDevice = device;
 
 			return Result(*this, Error());
 		}
 
-		Result<std::string, Error> rename(std::string title)
-		{
-			mTitle = title;
+		void cleanup() {}
 
-			if (mTitle == "")
-			{
-				return Result(std::string(""), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
-			}
+		PhysicalDevice physicalDevice() const { return mPhysicalDevice;}
+		vk::Device get() const { return mDevice;}
+		QueueFamilies queueFamilies() const { return mQueueFamilies;}
+		vk::PhysicalDeviceFeatures physicalDeviceFeatures() const { return mPhysicalDeviceFeatures;}
+		std::vector<const char*> deviceExtensions() const { return mDeviceExtensions;}
+		vk::SurfaceKHR testSurface() const { return mTestSurface;}
 
-			glfwSetWindowTitle(mPtr, title.c_str());
+		private:
+			PhysicalDevice mPhysicalDevice = {};
+			vk::Device mDevice = {};
 
-			return Result(mTitle, Error(ErrorCode::NO_ERROR));
-		}
-
-		std::string title() const { return mTitle; }
-		uint32_t height() const { return mHeight; }
-		uint32_t width() const { return mWidth; }
-		bool resizable() const { return mResizable; }
-		GLFWwindow* ptr() const { return mPtr; }
-
-	private:
-		std::string mTitle = "";
-		uint32_t mHeight   = 0;
-		uint32_t mWidth    = 0;
-		bool mResizable    = false;
-		GLFWwindow* mPtr   = nullptr;
+			QueueFamilies mQueueFamilies = {};
+			vk::PhysicalDeviceFeatures mPhysicalDeviceFeatures = {};
+			std::vector<const char*> mDeviceExtensions = {};
+			vk::SurfaceKHR mTestSurface = {};
 	};
+
+
 
 
 }

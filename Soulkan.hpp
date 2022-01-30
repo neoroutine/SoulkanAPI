@@ -10,6 +10,7 @@
 
 /*Includes from the std library or from needed tools*/
 #include <deque>
+#include <fstream>
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 #define GLFW_INCLUDE_VULKAN
@@ -217,13 +218,6 @@ namespace SOULKAN_NAMESPACE
 		GLFWwindow* mPtr   = nullptr;
 	};
 
-	class DebugCallBack
-	{
-	public:
-	    
-		private:
-	};
-
 	class Instance
 	{
 	public:
@@ -251,6 +245,21 @@ namespace SOULKAN_NAMESPACE
 			mValidationEnabled = validationEnabled;
 			mAppInfo           = vk::ApplicationInfo(appName.c_str(), VK_MAKE_VERSION(1, 0, 0), engineName.c_str(), VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_0);
 			mExtensions        = extensions;
+		}
+
+		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+			                                                VkDebugUtilsMessageTypeFlagsEXT messageType,
+			                                                const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+			                                                void* pUserData)
+		{
+			//TODO:Be able to specify a specific filename/filepath 
+			//TODO:Specify severity at start of line
+			std::ofstream out;
+			out.open("debugUtilsMessengerOutput.txt", std::ios::out | std::ios::app);
+			out << pCallbackData->pMessage << "\n" << std::endl;
+			out.close();
+
+			return VK_FALSE;
 		}
 
 		Result<Instance, Error> build()
@@ -286,7 +295,36 @@ namespace SOULKAN_NAMESPACE
 				                                             static_cast<uint32_t>(mExtensions.size()),
 				                                             mExtensions.data());
 
+			//Debug Utils Messenger
+			vk::DebugUtilsMessengerCreateInfoEXT createInfo = {};
+			if (mValidationEnabled)
+			{
+				createInfo.setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+					vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+					vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
+					vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose);
+			
+				createInfo.setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+					vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+					vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance);
+			
+				createInfo.setPfnUserCallback(debugCallback);
+				createInfo.setPUserData(nullptr);
+				//instanceCreateInfo.pNext = &createInfo;
+			}
+
+			
+
+			
+
 			mInstance = vk::createInstance(instanceCreateInfo);
+
+			if (mValidationEnabled)
+			{
+				auto dynamicLoader = vk::DispatchLoaderDynamic(mInstance, vkGetInstanceProcAddr);
+			
+				vk::Result result = mInstance.createDebugUtilsMessengerEXT(&createInfo, nullptr, &mDebugUtilsMessenger, dynamicLoader);
+			}
 
 			mBuilt = true;
 
@@ -430,6 +468,9 @@ namespace SOULKAN_NAMESPACE
 
 		void cleanup() const
 		{
+			auto dynamicLoader = vk::DispatchLoaderDynamic(mInstance, vkGetInstanceProcAddr);
+			mInstance.destroyDebugUtilsMessengerEXT(mDebugUtilsMessenger, nullptr, dynamicLoader);
+
 			mInstance.destroy();
 		}
 		
@@ -441,16 +482,16 @@ namespace SOULKAN_NAMESPACE
 	private:
 		vk::Instance mInstance = {};
 		vk::ApplicationInfo mAppInfo = {};
-
-		bool mValidationEnabled = false;
+		vk::DebugUtilsMessengerEXT mDebugUtilsMessenger = {};
 
 		std::vector<const char*> mExtensions = {};
 
 		bool mBuilt = false;
+		bool mValidationEnabled = false;
+
 
 	};
 
-	
 
 	class QueueFamilies
 	{

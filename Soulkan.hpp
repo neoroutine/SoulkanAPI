@@ -1,6 +1,9 @@
 /*Include guards to avoid including this .hpp file multiple times*/
 #ifndef SOULKAN_HPP
 #define SOULKAN_HPP
+#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_handles.hpp>
+#include <vulkan/vulkan_structs.hpp>
 #pragma once
 
 /*Defining namespaces as macros so that the user can change them*/
@@ -145,7 +148,9 @@ namespace SOULKAN_NAMESPACE
 		return Result(extensions, Error());
 	}
 
-		//GLFW related classes
+	//TODO:Convert prepares to -> ClassName() : member1(member), ...
+	//TODO:Replace all instances of ...createInfo = ... with createInfo = ...
+	//GLFW related classes
 	class Window
 	{
 	public:
@@ -166,6 +171,11 @@ namespace SOULKAN_NAMESPACE
 
 		Result<Window, Error> build()
 		{
+			if (mBuilt)
+			{
+				return Result(*this, Error());
+			}
+
 			if (mTitle == "" || mHeight == 0 || mWidth == 0)
 			{
 				return Result(*this, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
@@ -187,6 +197,8 @@ namespace SOULKAN_NAMESPACE
 				return Result(*this, Error(ErrorCode::GENERAL_GLFW_ERROR));
 			}
 
+			mBuilt = true;
+
 			return Result(*this, Error());
 		}
 
@@ -204,6 +216,7 @@ namespace SOULKAN_NAMESPACE
 			return Result(mTitle, Error(ErrorCode::NO_ERROR));
 		}
 
+        bool built() const { return mBuilt; }
 		std::string title() const { return mTitle; }
 		uint32_t height() const { return mHeight; }
 		uint32_t width() const { return mWidth; }
@@ -211,6 +224,8 @@ namespace SOULKAN_NAMESPACE
 		GLFWwindow* ptr() const { return mPtr; }
 
 	private:
+	    bool mBuilt = false;
+
 		std::string mTitle = "";
 		uint32_t mHeight   = 0;
 		uint32_t mWidth    = 0;
@@ -264,6 +279,11 @@ namespace SOULKAN_NAMESPACE
 
 		Result<Instance, Error> build()
 		{
+			if (mBuilt)
+			{
+				return Result(*this, Error());
+			}
+
 			//No extensions specified by the user, querying required ones
 			if (mExtensions.empty())
 			{
@@ -474,7 +494,7 @@ namespace SOULKAN_NAMESPACE
 			mInstance.destroy();
 		}
 		
-
+        bool built() const { return mBuilt; }
 		vk::Instance get() const { return mInstance; }
 		vk::ApplicationInfo appInfo() const { return mAppInfo; }
 		bool validation() const { return mValidationEnabled; }
@@ -577,6 +597,10 @@ namespace SOULKAN_NAMESPACE
 
 		Result<PhysicalDevice, Error> build()
 		{
+			if (mBuilt)
+			{
+				return Result(*this, Error());
+			}
 			if (mInstance == Instance())
 			{
 				return Result(*this, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
@@ -665,6 +689,145 @@ namespace SOULKAN_NAMESPACE
 			return Result(mQueueFamilies, Error());
 		}
 
+		Result<vk::Extent2D, Error> get_extent(vk::SurfaceKHR surface, Window window)
+		{
+			if (!mBuilt)
+			{
+				return Result(vk::Extent2D(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
+			}
+
+			if (surface == {} || /*TODO:window == {}*/)
+			{
+				return Result(vk::Extent2D(), Error(ErrorCode::GENERAL_PARAMETER_ERROR))
+			}
+
+			auto surfaceCapabiilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(surface);
+
+			if (surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+			{
+				return Result(vk::Extent2D(surfaceCapabiilities.currentExtent), Error());
+			}
+
+			int width, height = 0;
+			glfwGetFramebufferSize(window.ptr(), &width, &height);
+
+			if (width == 0 || height == 0)
+			{
+				return Result(vk::Extent2D(), Error(ErrorCode::GENERAL_GLFW_ERROR));
+			}
+
+			vk::Extent2D extent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+
+			extent.width = std::max(surfacCapabilities.minImageExtent.width, std::min(surfaceCapabilities.maxImageExtent.width, extent.width));
+			extent.height = std::max(surfacCapabilities.minImageExtent.height, std::min(surfaceCapabilities.maxImageExtent.height, extent.height));
+
+			return Result(extent, Error());
+		}
+
+		Result<vk::SurfaceFormatKHR, Error> get_surface_format(vk::SurfaceKHR surface)
+		{
+			if (!mBuilt)
+			{
+				return Result(vk::SurfaceFormatKHR(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
+			}
+
+			std::vector<vk::SurfaceFormatKHR> surfaceFormats = mDevice.getSurfaceFormatKHR(surface);
+
+			if (surfaceFormats.size() == 0)
+			{
+				return Result(vk::SurfaceFormatKHR(), Error(ErrorCode::GENERAL_VULKAN_ERROR));
+			}
+
+			if (surfaceFormats.size() == 1 && surfaceFormats[0].format == vk::Format::eUndefined)
+			{
+				return Result(vk::SurfaceKHR(), Error(ErrorCode::GENERAL_VULKAN_ERROR));
+			}
+
+			if (surfaceFormats.size() == 1)
+			{
+				return Result(surfaceFormats[0], Error());
+			}
+
+			for (const auto& surfaceFormat : surfaceFormats)
+			{
+				if (surfaceFormat.format == vk::Format::eB8G8R8A8Unorm && surfaceFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+				{
+					return Result(surfaceFormat, Error());
+				}
+			}
+		}
+
+		Result<bool, Error> is_presentMode_available(vk::SurfaceKHR surface, vk::PresentModeKHR presentMode)
+		{
+			if (!mBuilt)
+			{
+				return Result(false, Error(ErrorCode::GENERAL_UNBUILT_ERROR));
+			}
+
+			if (surface = {} || presentMode = {})
+			{
+				return Result(false, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			std::vector<vk::SurfaceKHR> presentModes = mDevice.getSurfacePresentModesKHR(surface);
+
+			if (presentModes.size() == 0)
+			{
+				return Result(false, Error(ErrorCode::GENERAL_VULKAN_ERROR));
+			}
+
+			for (const auto mode : presentModes)
+			{
+				if (mode == presentMode)
+				{
+					return Result(true, Error());
+				}
+			}
+
+			return Result(false, Error());
+		}
+
+		Result<vk::PresentModeKHR, Error> get_present_mode(vk::SurfaceKHR surface)
+		{
+			if (!mBuilt)
+			{
+				return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
+			}
+
+			if (surface = {})
+			{
+				return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			std::vector<vk::PresentModeKHR> presentModes = physicalDevice.getSurfacePresentModesKHR(surface);
+		    if (presentModes.size() == 0)
+		    {
+			    return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_VULKAN_ERROR));
+		    }
+
+            //Priority : MAILBOX > FIFO_RELAXED > FIFO > IMMEDIATE
+			if (is_presentMode_available(surface, vk::PresentModeKHR::eMailbox)) 
+			{ 
+				return Result(vk::PresentModeKHR::eMailbox, Error()));
+			}
+
+			if (is_presentMode_available(surface, vk::PresentModeKHR::eFifoRelaxed)) 
+			{ 
+				return Result(vk::PresentModeKHR::eFifoRelaxed, Error()));
+			}
+
+			if (is_presentMode_available(surface, vk::PresentModeKHR::eFifo)) 
+			{ 
+				return Result(vk::PresentModeKHR::eFifo, Error()));
+			}
+
+			if (is_presentMode_available(surface, vk::PresentModeKHR::eImmediate)) 
+			{ 
+				return Result(vk::PresentModeKHR::eImmediate, Error()));
+			}
+
+            return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_VULKAN_ERROR));
+		}
 
 		Instance instance() const { return mInstance; }
 		vk::PhysicalDevice get() const { return mDevice; }
@@ -703,6 +866,11 @@ namespace SOULKAN_NAMESPACE
 
 		Result<LogicalDevice, Error> build()
 		{
+			if (mBuilt)
+			{
+				return Result(*this, Error());
+			}
+
 			/*TODO:Implement == operator in PhysicalDevice
 			if (mPhysicalDevice == PhysicalDevice())
 			{
@@ -788,7 +956,141 @@ namespace SOULKAN_NAMESPACE
 			vk::SurfaceKHR mTestSurface = {};
 	};
 
+	class Swapchain
+	{
+	public:
+	    Swapchain(){}
+		//Swapchain(physicalDevice, surface, imageformat, extent and check for maxImageExtent) {}
+		Swapchain(PhysicalDevice physicalDevice, vk::SurfaceKHR surface, Window window, vk::Extent2D extent = {})
+		{
+			prepare(physicalDevice, surface, window, extent);
+		}
 
+		void prepare(PhysicalDevice physicalDevice, vk::SurfaceKHR surface, Window window, vk::Extent2D extent = {})
+		{
+			mPhysicalDevice = physicalDevice;
+			mSurface = surface;
+			mWindow = window;
+			mExtent = extent;
+		}
+
+		Result<Swapchain, Error> build()
+		{
+			if (mBuilt)
+			{
+				return Result(*this, Error());
+			}
+
+			//TODO
+			//if (physicalDevice == {} || window == {})
+			if (mSurface == {})
+			{
+				return Result(Swapchain(), Error(ErrorCode::GENERAL_PARAMETER_ERROR))
+			}
+
+			if (!mDevice.built())
+			{
+				return Result(Swapchain(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
+			}
+
+			vk::PhysicalDevice physicalDevice = mDevice.physicalDevice().get();
+
+			auto surfaceCapabiilities = physicalDevice.getSurfaceCapabilitiesKHR(mSurface);
+
+			//Image count
+			mImageCount = surfaceCapabilities.minImageCount + 1;
+			if (surfaceCapabilities.maxImageCount > 0 && mImageCount > surfaceCapabilities.maxImageCount)
+			{
+				mImageCount = surfaceCapabilities.maxImageCount;
+		    }
+
+			//Handle empty extent or wrong one
+			if (mExtent == {})
+			{
+				mExtent = mPhysicalDevice.get_extent(mSurface, mWindow);
+			}
+			else
+			{
+				if (mExtent.width < surfaceCapabilities.minImageExtent.width || mExtent.width > surfaceCapabiilities.maxImageExtent.width ||
+				    mExtent.height < surfaceCapabilities.minImageExtent.height || mExtent.height > surfaceCapabiilities.maxImageExtent.height)
+					{
+						return Result(Swapchain(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+					}
+			}
+
+			//Concurrency
+			auto builtQueueFamilies = mPhysicalDevice.get_queue_families();
+			if (builtQueueFamilies.is_error())
+			{
+				return Result(Swapchain(), builtQueueFamilies.error());
+			}
+
+			QueueFamilies queueFamilies = builtQueueFamilies.value();
+			auto builtConcentrated = queueFamilies.concentrate();
+			if (builtConcentrated.is_error())
+			{
+				return Result(Swapchain(), builtConcentrated.error());
+			}
+
+			std::vector<uint32_t> concentrated = builtConcentrated.value();
+
+			if (concentrated.size() > 1)
+			{
+				mSharingMode = vk::SharingMode::eConcurrent;
+			}
+			else
+			{
+				mSharingMode = vk::SharingMode::eExclusive;
+			}
+
+            //TODO:Put all the infos in this single declaration
+			auto createInfo = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), mSurface, mImageCount
+			                                            mFormat.format, mFormat.colorspace, mExtent,
+														1, vk::ImageUsageFlagBits);
+
+			createInfo.queueFamilyIndexCount = static_cast<uint32_t>(concenrated.size());
+			createInfo.pQueueFamilyIndices = concentrated.data();
+			
+			createInfo.imageSharingMode = mSharingMode;
+
+			createInfo.preTransform = surfaceCapabilities.currentTransform;
+		    createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+
+		    createInfo.presentMode = presentMode;
+
+		    createInfo.clipped = VK_TRUE;
+		    createInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
+
+			mSwapchain = mDevice.get().createSwapchainKHR(createInfo);
+
+			mBuilt = true;
+		}
+
+		bool built() const { return mBuilt;}
+		vk::SwapchainKHR get() const { return mSwapchain;}
+		LogicalDevice device() const { return mDevice;}
+		Window window() const { return mWindow;}
+		vk::SurfaceKHR surface() const { return mSurface;}
+		vk::Extent2D extent() const { return mExtent;}
+		vk::SharingMode sharing() const { return mSharingMode;}
+		uint32_t imageCount() const { return mImageCount;}
+		vk::SurfaceFormatKHR format() const { return mFormat;}
+	private:
+	    bool mBuilt = false;
+
+		LogicalDevice mDevice = {};
+		Window window = {};
+
+	    vk::SwapchainKHR mSwapchain = {};
+		vk::SurfaceKHR mSurface = {};
+		vk::Extent2D mExtent = {};
+		vk::SharingMode mSharingMode = {};
+		uint32_t mImageCount = 0;
+		vk::SurfaceFormatKHR mFormat = {};
+		
+
+
+	};
 
 
 }

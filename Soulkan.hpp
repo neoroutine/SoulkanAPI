@@ -33,6 +33,16 @@ namespace SOULKAN_NAMESPACE
 		//GENERAL errors, 2**11 to 2**31
 	};
 
+	enum class QueueFamilyType : uint32_t
+	{
+		GENERAL  = 0,
+		GRAPHICS = 1,
+		PRESENT  = 2,
+		COMPUTE  = 3,
+		TRANSFER = 4,
+		DEBUG    = 5
+	};
+
 	//Commonly used in Result
 	class Error
 	{
@@ -510,15 +520,20 @@ namespace SOULKAN_NAMESPACE
 
 	};
 
-
 	class QueueFamilies
 	{
 	public:
 		QueueFamilies() {}
 		//In the vector, index 0 = generalFamily, 1 = graphicsFamily, 2 = presentFamily, 3 = computeFamily, 4 = transferFamily, 5 = debug/tmp.
-		QueueFamilies(std::array<int32_t, 6> queueFamilyIndexes)
+		QueueFamilies(std::array<int32_t, 6> queueFamilyIndexes, std::array<int32_t, 6> queueFamilyQueueCount)
+		{
+			prepare(queueFamilyIndexes, queueFamilyQueueCount);
+		}
+
+		void prepare(std::array<int32_t, 6> queueFamilyIndexes, std::array<int32_t, 6> queueFamilyQueueCount)
 		{
 			mQueueFamilyIndexes = queueFamilyIndexes;
+			mQueueFamilyQueueCounts = queueFamilyQueueCount;
 		}
 
 		Result<std::vector<uint32_t>, Error> concentrate()
@@ -555,12 +570,8 @@ namespace SOULKAN_NAMESPACE
 		}
 
 		//If -1 is returned, then the queue does not exist/the array is empty
-		int32_t general()  const { return mQueueFamilyIndexes[0]; }
-		int32_t graphics() const { return mQueueFamilyIndexes[1]; }
-		int32_t present()  const { return mQueueFamilyIndexes[2]; }
-		int32_t compute()  const { return mQueueFamilyIndexes[3]; }
-		int32_t transfer() const { return mQueueFamilyIndexes[4]; }
-		int32_t debug()    const { return mQueueFamilyIndexes[5]; }
+		int32_t index(QueueFamilyType type) { return mQueueFamilyIndexes[static_cast<uint32_t>(type)]; }
+		int32_t queueCount(QueueFamilyType type) { return mQueueFamilyQueueCounts[static_cast<uint32_t>(type)]; }
 
 
 	private:
@@ -573,7 +584,9 @@ namespace SOULKAN_NAMESPACE
 
 			return false;
 		}
-		std::array<int32_t, 6> mQueueFamilyIndexes = {-1, -1 , -1 , -1 , -1, -1};
+
+		std::array<int32_t, 6> mQueueFamilyIndexes     =    { -1, -1, -1, -1, -1, -1 };
+		std::array<int32_t, 6> mQueueFamilyQueueCounts = { -1, -1, -1, -1, -1, -1 };
 
 	};
 
@@ -633,7 +646,8 @@ namespace SOULKAN_NAMESPACE
 				return Result(mQueueFamilies, Error());
 			}
 
-			std::array<int32_t, 6> queueFamilyIndexes = { -1 };
+			std::array<int32_t, 6> queueFamilyIndexes     = { -1, -1, -1, -1, -1, -1 };
+			std::array<int32_t, 6> queueFamilyQueueCounts = { -1, -1, -1, -1, -1, -1 };
 			auto availableQueueFamilies = mDevice.getQueueFamilyProperties();
 
 			//Looking for a general queue
@@ -644,7 +658,8 @@ namespace SOULKAN_NAMESPACE
 					queueFamily.queueFlags & vk::QueueFlagBits::eCompute &&
 					mDevice.getSurfaceSupportKHR(i, testSurface))
 				{
-					queueFamilyIndexes[0] = i;
+					queueFamilyIndexes[static_cast<uint32_t>(QueueFamilyType::GENERAL)]    = i;
+					queueFamilyQueueCounts[static_cast<uint32_t>(QueueFamilyType::GENERAL)] = queueFamily.queueCount;
 				}
 
 				i++;
@@ -656,14 +671,16 @@ namespace SOULKAN_NAMESPACE
 			{
 				if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
 				{
-					queueFamilyIndexes[1] = i;
+					queueFamilyIndexes[static_cast<uint32_t>(QueueFamilyType::GRAPHICS)] = i;
+					queueFamilyQueueCounts[static_cast<uint32_t>(QueueFamilyType::GRAPHICS)] = queueFamily.queueCount;
 				}
 
 				if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer &&
 					queueFamily.queueFlags & vk::QueueFlagBits::eCompute &&
 					!(queueFamily.queueFlags & vk::QueueFlagBits::eGraphics))
 				{
-					queueFamilyIndexes[2] = i;
+					queueFamilyIndexes[static_cast<uint32_t>(QueueFamilyType::PRESENT)] = i;
+					queueFamilyQueueCounts[static_cast<uint32_t>(QueueFamilyType::PRESENT)] = queueFamily.queueCount;
 				}
 
 
@@ -671,18 +688,20 @@ namespace SOULKAN_NAMESPACE
 					!(queueFamily.queueFlags & vk::QueueFlagBits::eCompute) &&
 					!(queueFamily.queueFlags & vk::QueueFlagBits::eGraphics))
 				{
-					queueFamilyIndexes[3] = i;
+					queueFamilyIndexes[static_cast<uint32_t>(QueueFamilyType::COMPUTE)] = i;
+					queueFamilyQueueCounts[static_cast<uint32_t>(QueueFamilyType::COMPUTE)] = queueFamily.queueCount;
 				}
 
 				if (mDevice.getSurfaceSupportKHR(i, testSurface))
 				{
-					queueFamilyIndexes[4] = i;
+					queueFamilyIndexes[static_cast<uint32_t>(QueueFamilyType::TRANSFER)] = i;
+					queueFamilyQueueCounts[static_cast<uint32_t>(QueueFamilyType::TRANSFER)] = queueFamily.queueCount;
 				}
 
 				i++;
 			}
 
-			mQueueFamilies = QueueFamilies(queueFamilyIndexes);
+			mQueueFamilies = QueueFamilies(queueFamilyIndexes, queueFamilyQueueCounts);
 
 			return Result(mQueueFamilies, Error());
 		}
@@ -722,7 +741,7 @@ namespace SOULKAN_NAMESPACE
 			return Result(extent, Error());
 		}
 
-		Result<vk::SurfaceFormatKHR, Error> get_surface_format(vk::SurfaceKHR surface)
+		Result<vk::SurfaceFormatKHR, Error> get_surfaceFormat(vk::SurfaceKHR surface)
 		{
 			if (!mBuilt)
 			{
@@ -785,14 +804,14 @@ namespace SOULKAN_NAMESPACE
 			return Result(false, Error());
 		}
 
-		Result<vk::PresentModeKHR, Error> get_present_mode(vk::SurfaceKHR surface)
+		Result<vk::PresentModeKHR, Error> get_presentMode(vk::SurfaceKHR surface)
 		{
 			if (!mBuilt)
 			{
 				return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
 			}
 
-			if (surface = vk::SurfaceKHR())
+			if (surface == vk::SurfaceKHR())
 			{
 				return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
 			}
@@ -1052,12 +1071,20 @@ namespace SOULKAN_NAMESPACE
 			}
 
 			//SurfaceForamt
-			auto surfaceFormatResult = mDevice.physicalDevice().get_surface_format(mSurface);
+			auto surfaceFormatResult = mDevice.physicalDevice().get_surfaceFormat(mSurface);
 			if (surfaceFormatResult.is_error())
 			{
 				return Result(Swapchain(), surfaceFormatResult.error());
 			}
 			mFormat = surfaceFormatResult.value();
+
+			//PresentMode
+			auto presentModeResult = mDevice.physicalDevice().get_presentMode(mSurface);
+			if (presentModeResult.is_error())
+			{
+				return Result(Swapchain(), presentModeResult.error());
+			}
+			mPresentMode = presentModeResult.value();
 
             //TODO:Put all the infos in this single declaration
 			auto createInfo = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), mSurface, mImageCount,
@@ -1116,6 +1143,64 @@ namespace SOULKAN_NAMESPACE
 
 	};
 
+	class Queue
+	{
+	public:
+		Queue() {}
+		Queue(LogicalDevice device, QueueFamilies queueFamilies, QueueFamilyType type, uint32_t index)
+		{
+			prepare(device, queueFamilies, type, index);
+		}
 
+		void prepare(LogicalDevice device, QueueFamilies queueFamilies, QueueFamilyType type, uint32_t index)
+		{
+			mDevice = device;
+			mType = type;
+			mIndex = index;
+			mQueueFamilies = queueFamilies;
+		}
+
+		Result<Queue, Error> build()
+		{
+			if (mBuilt)
+			{
+				return Result(*this, Error());
+			}
+
+			//if (mDevice == LogicalDevice())
+			int32_t queueCount = mQueueFamilies.queueCount(mType);
+			if (queueCount == -1)
+			{
+				return Result(Queue(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			if (mType == QueueFamilyType::DEBUG || mIndex > queueCount)
+			{
+				return Result(Queue(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			int32_t queueFamilyIndex = mQueueFamilies.index(mType);
+			if (queueFamilyIndex == -1)
+			{
+				return Result(Queue(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			mQueue = mDevice.get().getQueue(queueFamilyIndex, mIndex);
+
+			mBuilt = true;
+
+			return Result(*this, Error());
+		}
+
+	private:
+		bool mBuilt = false;
+		vk::Queue mQueue = {};
+
+		LogicalDevice mDevice = {};
+		QueueFamilies mQueueFamilies = {};
+
+		QueueFamilyType mType = QueueFamilyType::DEBUG;
+		uint32_t mIndex = std::numeric_limits<uint32_t>::max();
+	};
 }
 #endif

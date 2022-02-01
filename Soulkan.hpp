@@ -1,9 +1,7 @@
 /*Include guards to avoid including this .hpp file multiple times*/
 #ifndef SOULKAN_HPP
 #define SOULKAN_HPP
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_handles.hpp>
-#include <vulkan/vulkan_structs.hpp>
+#include <vulkan/vulkan.hpp>
 #pragma once
 
 /*Defining namespaces as macros so that the user can change them*/
@@ -696,16 +694,16 @@ namespace SOULKAN_NAMESPACE
 				return Result(vk::Extent2D(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
 			}
 
-			if (surface == {} || /*TODO:window == {}*/)
+			if (surface == vk::SurfaceKHR() /*|| TODO:window == {}*/)
 			{
-				return Result(vk::Extent2D(), Error(ErrorCode::GENERAL_PARAMETER_ERROR))
+				return Result(vk::Extent2D(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
 			}
 
-			auto surfaceCapabiilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(surface);
+			auto surfaceCapabilities = mDevice.getSurfaceCapabilitiesKHR(surface);
 
 			if (surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
 			{
-				return Result(vk::Extent2D(surfaceCapabiilities.currentExtent), Error());
+				return Result(vk::Extent2D(surfaceCapabilities.currentExtent), Error());
 			}
 
 			int width, height = 0;
@@ -718,8 +716,8 @@ namespace SOULKAN_NAMESPACE
 
 			vk::Extent2D extent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
 
-			extent.width = std::max(surfacCapabilities.minImageExtent.width, std::min(surfaceCapabilities.maxImageExtent.width, extent.width));
-			extent.height = std::max(surfacCapabilities.minImageExtent.height, std::min(surfaceCapabilities.maxImageExtent.height, extent.height));
+			extent.width = std::max(surfaceCapabilities.minImageExtent.width, std::min(surfaceCapabilities.maxImageExtent.width, extent.width));
+			extent.height = std::max(surfaceCapabilities.minImageExtent.height, std::min(surfaceCapabilities.maxImageExtent.height, extent.height));
 
 			return Result(extent, Error());
 		}
@@ -731,7 +729,7 @@ namespace SOULKAN_NAMESPACE
 				return Result(vk::SurfaceFormatKHR(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
 			}
 
-			std::vector<vk::SurfaceFormatKHR> surfaceFormats = mDevice.getSurfaceFormatKHR(surface);
+			std::vector<vk::SurfaceFormatKHR> surfaceFormats = mDevice.getSurfaceFormatsKHR(surface);
 
 			if (surfaceFormats.size() == 0)
 			{
@@ -740,7 +738,7 @@ namespace SOULKAN_NAMESPACE
 
 			if (surfaceFormats.size() == 1 && surfaceFormats[0].format == vk::Format::eUndefined)
 			{
-				return Result(vk::SurfaceKHR(), Error(ErrorCode::GENERAL_VULKAN_ERROR));
+				return Result(vk::SurfaceFormatKHR(), Error(ErrorCode::GENERAL_VULKAN_ERROR));
 			}
 
 			if (surfaceFormats.size() == 1)
@@ -764,12 +762,12 @@ namespace SOULKAN_NAMESPACE
 				return Result(false, Error(ErrorCode::GENERAL_UNBUILT_ERROR));
 			}
 
-			if (surface = {} || presentMode = {})
+			if (surface == vk::SurfaceKHR() || presentMode == vk::PresentModeKHR())
 			{
 				return Result(false, Error(ErrorCode::GENERAL_PARAMETER_ERROR));
 			}
 
-			std::vector<vk::SurfaceKHR> presentModes = mDevice.getSurfacePresentModesKHR(surface);
+			std::vector<vk::PresentModeKHR> presentModes = mDevice.getSurfacePresentModesKHR(surface);
 
 			if (presentModes.size() == 0)
 			{
@@ -794,36 +792,40 @@ namespace SOULKAN_NAMESPACE
 				return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_UNBUILT_ERROR));
 			}
 
-			if (surface = {})
+			if (surface = vk::SurfaceKHR())
 			{
 				return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
 			}
 
-			std::vector<vk::PresentModeKHR> presentModes = physicalDevice.getSurfacePresentModesKHR(surface);
+			std::vector<vk::PresentModeKHR> presentModes = mDevice.getSurfacePresentModesKHR(surface);
 		    if (presentModes.size() == 0)
 		    {
 			    return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_VULKAN_ERROR));
 		    }
 
             //Priority : MAILBOX > FIFO_RELAXED > FIFO > IMMEDIATE
-			if (is_presentMode_available(surface, vk::PresentModeKHR::eMailbox)) 
+			auto availableResult = is_presentMode_available(surface, vk::PresentModeKHR::eMailbox);
+			if (!availableResult.is_error() && availableResult.value())
 			{ 
-				return Result(vk::PresentModeKHR::eMailbox, Error()));
+				return Result(vk::PresentModeKHR::eMailbox, Error());
 			}
 
-			if (is_presentMode_available(surface, vk::PresentModeKHR::eFifoRelaxed)) 
+			availableResult = is_presentMode_available(surface, vk::PresentModeKHR::eFifoRelaxed);
+			if (!availableResult.is_error() && availableResult.value())
 			{ 
-				return Result(vk::PresentModeKHR::eFifoRelaxed, Error()));
+				return Result(vk::PresentModeKHR::eFifoRelaxed, Error());
 			}
 
-			if (is_presentMode_available(surface, vk::PresentModeKHR::eFifo)) 
+			availableResult = is_presentMode_available(surface, vk::PresentModeKHR::eFifo);
+			if (!availableResult.is_error() && availableResult.value())
 			{ 
-				return Result(vk::PresentModeKHR::eFifo, Error()));
+				return Result(vk::PresentModeKHR::eFifo, Error());
 			}
 
-			if (is_presentMode_available(surface, vk::PresentModeKHR::eImmediate)) 
+			availableResult = is_presentMode_available(surface, vk::PresentModeKHR::eImmediate);
+			if (!availableResult.is_error() && availableResult.value())
 			{ 
-				return Result(vk::PresentModeKHR::eImmediate, Error()));
+				return Result(vk::PresentModeKHR::eImmediate, Error());
 			}
 
             return Result(vk::PresentModeKHR(), Error(ErrorCode::GENERAL_VULKAN_ERROR));
@@ -936,6 +938,7 @@ namespace SOULKAN_NAMESPACE
 			mDevice.destroy();
 		}
 
+		bool built() const { return mBuilt; }
 		PhysicalDevice physicalDevice() const { return mPhysicalDevice;}
 		vk::Device get() const { return mDevice;}
 		QueueFamilies queueFamilies() const { return mQueueFamilies;}
@@ -961,14 +964,14 @@ namespace SOULKAN_NAMESPACE
 	public:
 	    Swapchain(){}
 		//Swapchain(physicalDevice, surface, imageformat, extent and check for maxImageExtent) {}
-		Swapchain(PhysicalDevice physicalDevice, vk::SurfaceKHR surface, Window window, vk::Extent2D extent = {})
+		Swapchain(LogicalDevice device, vk::SurfaceKHR surface, Window window, vk::Extent2D extent = {})
 		{
-			prepare(physicalDevice, surface, window, extent);
+			prepare(device, surface, window, extent);
 		}
 
-		void prepare(PhysicalDevice physicalDevice, vk::SurfaceKHR surface, Window window, vk::Extent2D extent = {})
+		void prepare(LogicalDevice device, vk::SurfaceKHR surface, Window window, vk::Extent2D extent = {})
 		{
-			mPhysicalDevice = physicalDevice;
+			mDevice = device;
 			mSurface = surface;
 			mWindow = window;
 			mExtent = extent;
@@ -983,9 +986,9 @@ namespace SOULKAN_NAMESPACE
 
 			//TODO
 			//if (physicalDevice == {} || window == {})
-			if (mSurface == {})
+			if (mSurface == vk::SurfaceKHR())
 			{
-				return Result(Swapchain(), Error(ErrorCode::GENERAL_PARAMETER_ERROR))
+				return Result(Swapchain(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
 			}
 
 			if (!mDevice.built())
@@ -995,7 +998,7 @@ namespace SOULKAN_NAMESPACE
 
 			vk::PhysicalDevice physicalDevice = mDevice.physicalDevice().get();
 
-			auto surfaceCapabiilities = physicalDevice.getSurfaceCapabilitiesKHR(mSurface);
+			auto surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(mSurface);
 
 			//Image count
 			mImageCount = surfaceCapabilities.minImageCount + 1;
@@ -1005,21 +1008,26 @@ namespace SOULKAN_NAMESPACE
 		    }
 
 			//Handle empty extent or wrong one
-			if (mExtent == {})
+			if (mExtent == vk::Extent2D())
 			{
-				mExtent = mPhysicalDevice.get_extent(mSurface, mWindow);
+				auto extentResult = mDevice.physicalDevice().get_extent(mSurface, mWindow);
+				if (extentResult.is_error())
+				{
+					return Result(Swapchain(), extentResult.error());
+				}
+				mExtent = extentResult.value();
 			}
 			else
 			{
-				if (mExtent.width < surfaceCapabilities.minImageExtent.width || mExtent.width > surfaceCapabiilities.maxImageExtent.width ||
-				    mExtent.height < surfaceCapabilities.minImageExtent.height || mExtent.height > surfaceCapabiilities.maxImageExtent.height)
+				if (mExtent.width < surfaceCapabilities.minImageExtent.width || mExtent.width > surfaceCapabilities.maxImageExtent.width ||
+				    mExtent.height < surfaceCapabilities.minImageExtent.height || mExtent.height > surfaceCapabilities.maxImageExtent.height)
 					{
 						return Result(Swapchain(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
 					}
 			}
 
 			//Concurrency
-			auto builtQueueFamilies = mPhysicalDevice.get_queue_families();
+			auto builtQueueFamilies = mDevice.physicalDevice().get_queue_families(mSurface);
 			if (builtQueueFamilies.is_error())
 			{
 				return Result(Swapchain(), builtQueueFamilies.error());
@@ -1043,12 +1051,20 @@ namespace SOULKAN_NAMESPACE
 				mSharingMode = vk::SharingMode::eExclusive;
 			}
 
-            //TODO:Put all the infos in this single declaration
-			auto createInfo = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), mSurface, mImageCount
-			                                            mFormat.format, mFormat.colorspace, mExtent,
-														1, vk::ImageUsageFlagBits);
+			//SurfaceForamt
+			auto surfaceFormatResult = mDevice.physicalDevice().get_surface_format(mSurface);
+			if (surfaceFormatResult.is_error())
+			{
+				return Result(Swapchain(), surfaceFormatResult.error());
+			}
+			mFormat = surfaceFormatResult.value();
 
-			createInfo.queueFamilyIndexCount = static_cast<uint32_t>(concenrated.size());
+            //TODO:Put all the infos in this single declaration
+			auto createInfo = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), mSurface, mImageCount,
+			                                            mFormat.format, mFormat.colorSpace, mExtent,
+														1, vk::ImageUsageFlagBits::eColorAttachment);
+
+			createInfo.queueFamilyIndexCount = static_cast<uint32_t>(concentrated.size());
 			createInfo.pQueueFamilyIndices = concentrated.data();
 			
 			createInfo.imageSharingMode = mSharingMode;
@@ -1056,7 +1072,7 @@ namespace SOULKAN_NAMESPACE
 			createInfo.preTransform = surfaceCapabilities.currentTransform;
 		    createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
-		    createInfo.presentMode = presentMode;
+		    createInfo.presentMode = mPresentMode;
 
 		    createInfo.clipped = VK_TRUE;
 		    createInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
@@ -1064,6 +1080,13 @@ namespace SOULKAN_NAMESPACE
 			mSwapchain = mDevice.get().createSwapchainKHR(createInfo);
 
 			mBuilt = true;
+
+			return Result(*this, Error());
+		}
+
+		void cleanup() const
+		{
+			mDevice.get().destroySwapchainKHR(mSwapchain);
 		}
 
 		bool built() const { return mBuilt;}
@@ -1079,12 +1102,13 @@ namespace SOULKAN_NAMESPACE
 	    bool mBuilt = false;
 
 		LogicalDevice mDevice = {};
-		Window window = {};
+		Window mWindow = {};
 
 	    vk::SwapchainKHR mSwapchain = {};
 		vk::SurfaceKHR mSurface = {};
 		vk::Extent2D mExtent = {};
 		vk::SharingMode mSharingMode = {};
+		vk::PresentModeKHR mPresentMode = {};
 		uint32_t mImageCount = 0;
 		vk::SurfaceFormatKHR mFormat = {};
 		

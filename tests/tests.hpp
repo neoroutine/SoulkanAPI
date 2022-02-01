@@ -52,17 +52,25 @@ namespace SOULKAN_NAMESPACE
 		/*LOGICALDEVICE*/
 		std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-		auto testSurfaceResult = instance.create_surface(mainWindow);
-		testValid = valid(testSurfaceResult, testValid);
-		auto testSurface = testSurfaceResult.value();
-		deletionQueue.push([=]() { instance.get().destroySurfaceKHR(testSurface); });
+		auto surfaceResult = instance.create_surface(mainWindow);
+		testValid = valid(surfaceResult, testValid);
+		vk::SurfaceKHR surface = surfaceResult.value();
+		deletionQueue.push([=]() { instance.get().destroySurfaceKHR(surface); });
 
-		auto builtLogicalDevice = LogicalDevice(physicalDevice, deviceExtensions, testSurface, {}).build();
+		auto builtLogicalDevice = LogicalDevice(physicalDevice, deviceExtensions, surface, {}).build();
 		testValid = valid(builtLogicalDevice, testValid);
 		auto logicalDevice = builtLogicalDevice.value();
 		deletionQueue.push([=]() { logicalDevice.cleanup(); });
 
 		std::cout << "Built Logical Device" << std::endl;
+
+		/*SWAPCHAIN*/
+		auto builtSwapchain = Swapchain(logicalDevice, surface, mainWindow).build();
+		testValid = valid(builtSwapchain, testValid);
+		Swapchain swapchain = builtSwapchain.value();
+		deletionQueue.push([=]() { swapchain.cleanup(); });
+		
+		std::cout << "Built Swapchain" << std::endl;
 		
 		if (interactive)
 		{

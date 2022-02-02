@@ -158,6 +158,7 @@ namespace SOULKAN_NAMESPACE
 
 	//TODO:Convert prepares to -> ClassName() : member1(member), ...
 	//TODO:Replace all instances of ...createInfo = ... with createInfo = ...
+	//TODO:Every createXXXX seems to have two overloads, one with vk::Result return type, use that to check if everything worked
 	//GLFW related classes
 	class Window
 	{
@@ -1205,5 +1206,127 @@ namespace SOULKAN_NAMESPACE
 		QueueFamilyType mType = QueueFamilyType::DEBUG;
 		uint32_t mIndex = std::numeric_limits<uint32_t>::max();
 	};
+
+	class CommandPool
+	{
+	public:
+		CommandPool() {}
+		CommandPool(LogicalDevice device, QueueFamilyType queueFamilyType) { prepare(device, queueFamilyType); }
+
+		void prepare(LogicalDevice device, QueueFamilyType queueFamilyType)
+		{
+			mDevice = device;
+			mQueueFamilyType = queueFamilyType;
+		}
+		Result<CommandPool, Error> build()
+		{
+			if (mBuilt)
+			{
+				return Result(*this, Error());
+			}
+			//TODO:
+			//if (mDevice == LogicalDevice())
+
+			if (mQueueFamilyType == QueueFamilyType::DEBUG)
+			{
+				return Result(CommandPool(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			int32_t queueFamilyIndex = mDevice.queueFamilies().index(mQueueFamilyType);
+			if (queueFamilyIndex == -1)
+			{
+				return Result(CommandPool(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			vk::CommandPoolCreateInfo createInfo = {};
+
+			createInfo.queueFamilyIndex = queueFamilyIndex;
+			//we also want the pool to allow for resetting of individual command buffers
+			createInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+
+			mPool = mDevice.get().createCommandPool(createInfo);
+
+			mBuilt = true;
+
+			return Result(*this, Error());
+		}
+
+		void cleanup()
+		{
+			mDevice.get().destroyCommandPool(mPool);
+		}
+
+		bool built() const { return mBuilt; }
+		vk::CommandPool get() const { return mPool; }
+		LogicalDevice device() const { return mDevice; }
+		QueueFamilyType queueFamilyType() const { return mQueueFamilyType; }
+	private:
+		bool mBuilt = false;
+		vk::CommandPool mPool = {};
+		LogicalDevice mDevice = {};
+		QueueFamilyType mQueueFamilyType = QueueFamilyType::DEBUG;
+	};
+
+	class CommandBuffer
+	{
+	public:
+		CommandBuffer() {}
+		CommandBuffer(CommandPool commandPool, uint32_t commandBufferCount) { prepare(commandPool, commandBufferCount); }
+
+		void prepare(CommandPool commandPool, uint32_t commandBufferCount)
+		{
+			mCommandPool = commandPool;
+			mCommandBufferCount = commandBufferCount;
+		}
+		Result<CommandBuffer, Error> build()
+		{
+			if (mBuilt)
+			{
+				return Result(*this, Error());
+			}
+			//TODO
+			//if (mCommandPool = CommandPool())
+
+			if (mCommandBufferCount == 0)
+			{
+				return Result(CommandBuffer(), Error(ErrorCode::GENERAL_PARAMETER_ERROR));
+			}
+
+			vk::CommandBufferAllocateInfo allocateInfo = {};
+
+			allocateInfo.commandPool = mCommandPool.get();
+			allocateInfo.commandBufferCount = mCommandBufferCount;
+			allocateInfo.level = vk::CommandBufferLevel::ePrimary;
+
+
+			mCommandBuffers = mCommandPool.device().get().allocateCommandBuffers(allocateInfo);
+
+			mBuilt = true;
+		}
+
+		bool built() const { return mBuilt; }
+		std::vector<vk::CommandBuffer> get() const { return mCommandBuffers; }
+		CommandPool pool() const { return mCommandPool; }
+		uint32_t count() const { return mCommandBufferCount; }
+	private:
+		bool mBuilt = false;
+		std::vector<vk::CommandBuffer> mCommandBuffers = {};
+		CommandPool mCommandPool = {};
+		uint32_t mCommandBufferCount = 0;
+	};
+
+	/*class Classname
+	{
+	public:
+		ClassName(){}
+		ClassName(...){prepare(...)}
+
+		void prepare(...){...}
+		Result<ClassName, Error> build(...){...}
+
+		accessors
+	private:
+		vk::ClassNameEquivalent mName = {};
+	};*/
 }
 #endif
